@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, X, ShoppingCart, Leaf, User, LogOut } from 'lucide-react';
+import { Menu, X, ShoppingCart, Leaf, User, LogOut, Settings } from 'lucide-react';
 import { theme } from '../config/theme';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -11,7 +11,7 @@ interface HeaderProps {
 
 export function Header({ currentPage = 'home', onNavigate }: HeaderProps) {
   const { getCartCount } = useCart();
-  const { user, profile, signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -205,6 +205,30 @@ export function Header({ currentPage = 'home', onNavigate }: HeaderProps) {
                 )}
               </button>
 
+              {user?.is_admin && (
+                <button
+                  onClick={() => onNavigate?.('admin')}
+                  style={{
+                    border: 'none',
+                    background: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: theme.spacing.xs,
+                    color: theme.colors.primary.main,
+                    fontFamily: theme.typography.fontFamily.body,
+                    fontSize: theme.typography.fontSize.sm,
+                  }}
+                  aria-label="Admin"
+                  title="Panneau d'administration"
+                >
+                  <Settings size={20} />
+                  <span className="hide-mobile" style={{ display: 'none' }}>
+                    Admin
+                  </span>
+                </button>
+              )}
+
               {user ? (
                 <button
                   onClick={handleSignOut}
@@ -220,7 +244,7 @@ export function Header({ currentPage = 'home', onNavigate }: HeaderProps) {
                     fontSize: theme.typography.fontSize.sm,
                   }}
                   aria-label="Déconnexion"
-                  title={`${profile?.first_name || ''} ${profile?.last_name || ''}`}
+                  title={`${user?.first_name || ''} ${user?.last_name || ''}`}
                 >
                   <LogOut size={20} />
                   <span className="hide-mobile" style={{ display: 'none' }}>
@@ -316,6 +340,35 @@ export function Header({ currentPage = 'home', onNavigate }: HeaderProps) {
                     </button>
                   </li>
                 ))}
+                {user?.is_admin && (
+                  <li>
+                    <button
+                      onClick={() => handleNavClick('admin')}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        fontFamily: theme.typography.fontFamily.body,
+                        fontSize: theme.typography.fontSize.lg,
+                        color: currentPage === 'admin' ? theme.colors.primary.main : theme.colors.text.primary,
+                        fontWeight:
+                          currentPage === 'admin'
+                            ? theme.typography.fontWeight.semibold
+                            : theme.typography.fontWeight.normal,
+                        textDecoration: 'none',
+                        cursor: 'pointer',
+                        border: 'none',
+                        background: 'none',
+                        padding: theme.spacing.sm,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: theme.spacing.xs,
+                      }}
+                    >
+                      <Settings size={20} />
+                      Admin
+                    </button>
+                  </li>
+                )}
               </ul>
             </nav>
           )}

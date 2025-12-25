@@ -12,6 +12,12 @@ import { ProductDetailPage } from './pages/ProductDetailPage';
 import { CartPage } from './pages/CartPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
+import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
+import { AdminUsersPage } from './pages/admin/AdminUsersPage';
+import { AdminProductsPage } from './pages/admin/AdminProductsPage';
+import { AdminBlogPage } from './pages/admin/AdminBlogPage';
+import { AdminFAQPage } from './pages/admin/AdminFAQPage';
+import { AdminCouponsPage } from './pages/admin/AdminCouponsPage';
 import { theme } from './config/theme';
 import { Product, BlogPost } from './lib/supabase';
 
@@ -76,6 +82,18 @@ function App() {
         ) : (
           <HomePage onNavigate={handleNavigate} onViewProduct={handleViewProduct} />
         );
+      case 'admin':
+        return <AdminDashboardPage />;
+      case 'admin-users':
+        return <AdminUsersPage />;
+      case 'admin-products':
+        return <AdminProductsPage />;
+      case 'admin-blog':
+        return <AdminBlogPage />;
+      case 'admin-faq':
+        return <AdminFAQPage />;
+      case 'admin-coupons':
+        return <AdminCouponsPage />;
       default:
         return <HomePage onNavigate={handleNavigate} onViewProduct={handleViewProduct} />;
     }
