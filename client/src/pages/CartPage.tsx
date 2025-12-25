@@ -286,9 +286,9 @@ export function CartPage({ onNavigate }: CartPageProps) {
                             color: theme.colors.text.primary,
                           }}
                         >
-                          {formatPrice(item.product.price)} €
+                          {formatPrice(Number(item.product.price))} €
                         </span>
-                        {item.product.compare_at_price && item.product.compare_at_price > item.product.price && (
+                        {item.product.compare_at_price && Number(item.product.compare_at_price) > Number(item.product.price) && (
                           <span
                             style={{
                               ...theme.body.small,
@@ -296,7 +296,7 @@ export function CartPage({ onNavigate }: CartPageProps) {
                               textDecoration: 'line-through',
                             }}
                           >
-                            {formatPrice(item.product.compare_at_price)} €
+                            {formatPrice(Number(item.product.compare_at_price))} €
                           </span>
                         )}
                       </div>

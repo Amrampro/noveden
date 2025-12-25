@@ -10,8 +10,8 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onAddToCart, onViewDetails }: ProductCardProps) {
-  const formattedPrice = product.price.toFixed(2);
-  const hasDiscount = product.compare_at_price && product.compare_at_price > product.price;
+  const formattedPrice = Number(product.price).toFixed(2);
+  const hasDiscount = product.compare_at_price && Number(product.compare_at_price) > Number(product.price);
 
   const renderStars = (rating: number) => {
     return (
@@ -195,7 +195,7 @@ export function ProductCard({ product, onAddToCart, onViewDetails }: ProductCard
                   textDecoration: 'line-through',
                 }}
               >
-                {product.compare_at_price?.toFixed(2)} €
+                {Number(product.compare_at_price).toFixed(2)} €
               </span>
             )}
           </div>

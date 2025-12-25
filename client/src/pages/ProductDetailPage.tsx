@@ -272,7 +272,7 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                     color: theme.colors.text.secondary,
                   }}
                 >
-                  {product.average_rating.toFixed(1)} ({product.review_count}{' '}
+                  {Number(product.average_rating).toFixed(1)} ({product.review_count}{' '}
                   {product.review_count === 1 ? 'avis' : 'avis'})
                 </span>
               </div>
@@ -287,9 +287,9 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                       color: theme.colors.text.primary,
                     }}
                   >
-                    {product.price.toFixed(2)} €
+                    {Number(product.price).toFixed(2)} €
                   </span>
-                  {product.compare_at_price && product.compare_at_price > product.price && (
+                  {product.compare_at_price && Number(product.compare_at_price) > Number(product.price) && (
                     <span
                       style={{
                         fontFamily: theme.typography.fontFamily.body,
@@ -298,7 +298,7 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                         textDecoration: 'line-through',
                       }}
                     >
-                      {product.compare_at_price.toFixed(2)} €
+                      {Number(product.compare_at_price).toFixed(2)} €
                     </span>
                   )}
                 </div>
@@ -738,9 +738,9 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                           marginBottom: theme.spacing.xs,
                         }}
                       >
-                        {product.average_rating.toFixed(1)}
+                        {Number(product.average_rating).toFixed(1)}
                       </div>
-                      {renderStars(Math.round(product.average_rating), 24)}
+                      {renderStars(Math.round(Number(product.average_rating)), 24)}
                       <div
                         style={{
                           fontFamily: theme.typography.fontFamily.body,
