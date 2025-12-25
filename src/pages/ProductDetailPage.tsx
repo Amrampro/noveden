@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { ArrowLeft, Star, ShoppingCart, Check, ThumbsUp } from 'lucide-react';
 import { theme } from '../config/theme';
 import { Button } from '../components/Button';
-import { supabase, Product, ProductReview } from '../lib/supabase';
+import { ProductImageGallery } from '../components/ProductImageGallery';
+import { supabase, Product, ProductReview, ProductImage } from '../lib/supabase';
 
 interface ProductDetailPageProps {
   productId: string;
@@ -11,6 +12,7 @@ interface ProductDetailPageProps {
 
 export function ProductDetailPage({ productId, onNavigate }: ProductDetailPageProps) {
   const [product, setProduct] = useState<Product | null>(null);
+  const [productImages, setProductImages] = useState<ProductImage[]>([]);
   const [reviews, setReviews] = useState<ProductReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -26,6 +28,7 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
 
   useEffect(() => {
     fetchProductDetails();
+    fetchProductImages();
     fetchReviews();
   }, [productId]);
 
@@ -43,6 +46,21 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
       console.error('Error fetching product:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProductImages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('product_images')
+        .select('*')
+        .eq('product_id', productId)
+        .order('display_order');
+
+      if (error) throw error;
+      setProductImages(data || []);
+    } catch (error) {
+      console.error('Error fetching product images:', error);
     }
   };
 
@@ -192,60 +210,27 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
             }}
           >
             <div>
-              <div
-                style={{
-                  width: '100%',
-                  aspectRatio: '1',
-                  backgroundColor: theme.colors.background.secondary,
-                  borderRadius: theme.borderRadius.lg,
-                  overflow: 'hidden',
-                  position: 'relative',
-                }}
-              >
-                {product.is_new && (
-                  <span
-                    style={{
-                      position: 'absolute',
-                      top: theme.spacing.md,
-                      left: theme.spacing.md,
-                      backgroundColor: theme.colors.primary.main,
-                      color: theme.colors.text.inverse,
-                      padding: `${theme.spacing.xs} ${theme.spacing.md}`,
-                      borderRadius: theme.borderRadius.md,
-                      fontSize: theme.typography.fontSize.sm,
-                      fontWeight: theme.typography.fontWeight.medium,
-                      fontFamily: theme.typography.fontFamily.body,
-                      zIndex: 10,
-                    }}
-                  >
-                    Nouveau
-                  </span>
-                )}
-                {product.image_url ? (
-                  <img
-                    src={product.image_url}
-                    alt={product.name}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                    }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: theme.colors.text.light,
-                    }}
-                  >
-                    Pas d'image
-                  </div>
-                )}
-              </div>
+              <ProductImageGallery
+                images={
+                  productImages.length > 0
+                    ? productImages
+                    : product.image_url
+                    ? [
+                        {
+                          id: 'fallback',
+                          product_id: product.id,
+                          image_url: product.image_url,
+                          alt_text: product.name,
+                          display_order: 0,
+                          is_primary: true,
+                          created_at: product.created_at,
+                        },
+                      ]
+                    : []
+                }
+                productName={product.name}
+                isNew={product.is_new}
+              />
             </div>
 
             <div>
