@@ -25,7 +25,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    localStorage.setItem('shopping-cart', JSON.stringify(items));
+    try {
+      localStorage.setItem('shopping-cart', JSON.stringify(items));
+    } catch (error) {
+      if (error instanceof DOMException && (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
+        console.warn('localStorage quota exceeded for cart, cannot save cart state');
+      }
+    }
   }, [items]);
 
   const addToCart = (product: Product, quantity: number = 1) => {

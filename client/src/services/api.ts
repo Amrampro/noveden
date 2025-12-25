@@ -9,7 +9,21 @@ class ApiService {
 
   setToken(token: string) {
     this.token = token;
-    localStorage.setItem('auth_token', token);
+    try {
+      localStorage.setItem('auth_token', token);
+    } catch (error) {
+      if (error instanceof DOMException && (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
+        console.warn('localStorage quota exceeded, clearing old data...');
+        try {
+          localStorage.clear();
+          localStorage.setItem('auth_token', token);
+        } catch (retryError) {
+          console.error('Failed to store auth token even after clearing localStorage:', retryError);
+        }
+      } else {
+        console.error('Failed to store auth token:', error);
+      }
+    }
   }
 
   clearToken() {
