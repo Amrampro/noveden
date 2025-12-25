@@ -1,0 +1,74 @@
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+
+import authRoutes from './routes/auth.js';
+import productsRoutes from './routes/products.js';
+import couponsRoutes from './routes/coupons.js';
+import blogRoutes from './routes/blog.js';
+import faqRoutes from './routes/faq.js';
+import adminRoutes from './routes/admin/index.js';
+
+import pool from './config/database.js';
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  credentials: true
+}));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.get('/', (req, res) => {
+  res.json({
+    message: 'E-Commerce API',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/auth',
+      products: '/api/products',
+      coupons: '/api/coupons',
+      blog: '/api/blog',
+      faq: '/api/faq',
+      admin: '/api/admin'
+    }
+  });
+});
+
+app.use('/api/auth', authRoutes);
+app.use('/api/products', productsRoutes);
+app.use('/api/coupons', couponsRoutes);
+app.use('/api/blog', blogRoutes);
+app.use('/api/faq', faqRoutes);
+app.use('/api/admin', adminRoutes);
+
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal server error'
+  });
+});
+
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
+
+pool.getConnection()
+  .then(connection => {
+    console.log('✓ Database connection established');
+    connection.release();
+
+    app.listen(PORT, () => {
+      console.log(`✓ Server running on port ${PORT}`);
+      console.log(`✓ API available at http://localhost:${PORT}/api`);
+    });
+  })
+  .catch(err => {
+    console.error('× Database connection failed:', err.message);
+    console.error('Please check your database configuration in .env file');
+    process.exit(1);
+  });
