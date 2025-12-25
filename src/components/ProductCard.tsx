@@ -1,3 +1,4 @@
+import { Star } from 'lucide-react';
 import { Product } from '../lib/supabase';
 import { Button } from './Button';
 import { theme } from '../config/theme';
@@ -5,11 +6,27 @@ import { theme } from '../config/theme';
 interface ProductCardProps {
   product: Product;
   onAddToCart?: (product: Product) => void;
+  onViewDetails?: (product: Product) => void;
 }
 
-export function ProductCard({ product, onAddToCart }: ProductCardProps) {
+export function ProductCard({ product, onAddToCart, onViewDetails }: ProductCardProps) {
   const formattedPrice = product.price.toFixed(2);
   const hasDiscount = product.compare_at_price && product.compare_at_price > product.price;
+
+  const renderStars = (rating: number) => {
+    return (
+      <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            size={14}
+            fill={star <= Math.round(rating) ? theme.colors.accent.main : 'none'}
+            color={star <= Math.round(rating) ? theme.colors.accent.main : theme.colors.text.light}
+          />
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div
@@ -24,6 +41,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         display: 'flex',
         flexDirection: 'column',
       }}
+      onClick={() => onViewDetails?.(product)}
       onMouseEnter={(e) => {
         e.currentTarget.style.boxShadow = theme.shadow.hover;
         e.currentTarget.style.transform = 'translateY(-4px)';
@@ -118,6 +136,28 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           {product.name}
         </h3>
 
+        {product.review_count > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: theme.spacing.xs,
+              marginBottom: theme.spacing.sm,
+            }}
+          >
+            {renderStars(product.average_rating)}
+            <span
+              style={{
+                fontFamily: theme.typography.fontFamily.body,
+                fontSize: theme.typography.fontSize.xs,
+                color: theme.colors.text.light,
+              }}
+            >
+              ({product.review_count})
+            </span>
+          </div>
+        )}
+
         {product.short_description && (
           <p
             style={{
@@ -177,7 +217,10 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         <Button
           variant="primary"
           fullWidth
-          onClick={() => onAddToCart?.(product)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onAddToCart?.(product);
+          }}
           disabled={product.stock_status === 'out_of_stock'}
         >
           Ajouter au panier

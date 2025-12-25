@@ -7,9 +7,10 @@ import { supabase, Product } from '../lib/supabase';
 
 interface HomePageProps {
   onNavigate?: (page: string) => void;
+  onViewProduct?: (product: Product) => void;
 }
 
-export function HomePage({ onNavigate }: HomePageProps) {
+export function HomePage({ onNavigate, onViewProduct }: HomePageProps) {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -257,7 +258,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 }}
               >
                 {featuredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard key={product.id} product={product} onViewDetails={onViewProduct} />
                 ))}
               </div>
               <div style={{ textAlign: 'center' }}>

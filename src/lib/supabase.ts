@@ -25,6 +25,8 @@ export type Product = {
   ingredients: string;
   usage: string;
   benefits: string[];
+  average_rating: number;
+  review_count: number;
   created_at: string;
   updated_at: string;
   categories?: Category;
@@ -62,6 +64,20 @@ export type FAQ = {
   answer: string;
   category: string;
   display_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProductReview = {
+  id: string;
+  product_id: string;
+  customer_name: string;
+  customer_email: string;
+  rating: number;
+  title: string;
+  comment: string;
+  is_verified_purchase: boolean;
+  helpful_count: number;
   created_at: string;
   updated_at: string;
 };

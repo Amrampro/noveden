@@ -5,7 +5,11 @@ import { Button } from '../components/Button';
 import { ProductCard } from '../components/ProductCard';
 import { supabase, Product, Category } from '../lib/supabase';
 
-export function ShopPage() {
+interface ShopPageProps {
+  onViewProduct?: (product: Product) => void;
+}
+
+export function ShopPage({ onViewProduct }: ShopPageProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -197,7 +201,7 @@ export function ShopPage() {
               }}
             >
               {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} onViewDetails={onViewProduct} />
               ))}
             </div>
           ) : (
