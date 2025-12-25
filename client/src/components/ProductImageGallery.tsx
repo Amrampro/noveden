@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { theme } from '../config/theme';
-import { ProductImage } from '../lib/supabase';
+import { ProductImage } from '../lib/types';
 
 interface ProductImageGalleryProps {
   images: ProductImage[];

@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Clock, Eye } from 'lucide-react';
 import { theme } from '../config/theme';
 import { Button } from '../components/Button';
-import { supabase, BlogPost } from '../lib/supabase';
+import { BlogPost } from '../lib/types';
+import { api } from '../services/api';
 
 interface BlogPageProps {
   onViewBlogPost?: (post: BlogPost) => void;
@@ -30,12 +31,7 @@ export function BlogPage({ onViewBlogPost }: BlogPageProps) {
 
   const fetchPosts = async () => {
     try {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .order('published_at', { ascending: false });
-
-      if (error) throw error;
+      const { posts: data } = await api.getBlogPosts();
       setPosts(data || []);
       setFilteredPosts(data || []);
     } catch (error) {

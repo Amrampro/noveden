@@ -4,7 +4,8 @@ import { theme } from '../config/theme';
 import { Button } from '../components/Button';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase, Coupon } from '../lib/supabase';
+import { Coupon } from '../lib/types';
+import { api } from '../services/api';
 
 interface CartPageProps {
   onNavigate?: (page: string) => void;
@@ -14,7 +15,7 @@ export function CartPage({ onNavigate }: CartPageProps) {
   const { items, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
   const { user } = useAuth();
   const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [couponError, setCouponError] = useState('');
   const [couponLoading, setCouponLoading] = useState(false);
 
@@ -22,20 +23,7 @@ export function CartPage({ onNavigate }: CartPageProps) {
 
   const calculateDiscount = () => {
     if (!appliedCoupon) return 0;
-
-    const subtotal = getCartTotal();
-    let discount = 0;
-
-    if (appliedCoupon.discount_type === 'percentage') {
-      discount = (subtotal * appliedCoupon.discount_value) / 100;
-      if (appliedCoupon.max_discount_amount && discount > appliedCoupon.max_discount_amount) {
-        discount = appliedCoupon.max_discount_amount;
-      }
-    } else {
-      discount = appliedCoupon.discount_value;
-    }
-
-    return Math.min(discount, subtotal);
+    return appliedCoupon.discount_amount || 0;
   };
 
   const getTotal = () => {
@@ -57,98 +45,12 @@ export function CartPage({ onNavigate }: CartPageProps) {
     setCouponError('');
 
     try {
-      const { data: coupon, error: couponFetchError } = await supabase
-        .from('coupons')
-        .select('*')
-        .eq('code', couponCode.trim().toUpperCase())
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (couponFetchError) throw couponFetchError;
-      if (!coupon) {
-        setCouponError('Code de coupon invalide');
-        setCouponLoading(false);
-        return;
-      }
-
-      const now = new Date();
-      const validFrom = new Date(coupon.valid_from);
-      const validUntil = coupon.valid_until ? new Date(coupon.valid_until) : null;
-
-      if (now < validFrom) {
-        setCouponError('Ce coupon n\'est pas encore valide');
-        setCouponLoading(false);
-        return;
-      }
-
-      if (validUntil && now > validUntil) {
-        setCouponError('Ce coupon a expiré');
-        setCouponLoading(false);
-        return;
-      }
-
-      if (coupon.min_purchase_amount && getCartTotal() < coupon.min_purchase_amount) {
-        setCouponError(`Montant minimum de ${formatPrice(coupon.min_purchase_amount)}€ requis`);
-        setCouponLoading(false);
-        return;
-      }
-
-      const { data: usageData, error: usageError } = await supabase
-        .from('coupon_usage')
-        .select('*')
-        .eq('coupon_id', coupon.id)
-        .eq('user_id', user.id);
-
-      if (usageError) throw usageError;
-
-      if (usageData && usageData.length >= coupon.usage_limit_per_user) {
-        setCouponError('Vous avez déjà utilisé ce coupon');
-        setCouponLoading(false);
-        return;
-      }
-
-      if (coupon.requires_first_order) {
-        const { data: orders, error: ordersError } = await supabase
-          .from('orders')
-          .select('id')
-          .eq('user_id', user.id)
-          .limit(1);
-
-        if (ordersError) throw ordersError;
-
-        if (orders && orders.length > 0) {
-          setCouponError('Ce coupon est réservé aux nouveaux clients');
-          setCouponLoading(false);
-          return;
-        }
-      }
-
-      if (coupon.requires_min_orders > 0) {
-        const { data: orders, error: ordersError } = await supabase
-          .from('orders')
-          .select('id')
-          .eq('user_id', user.id);
-
-        if (ordersError) throw ordersError;
-
-        if (!orders || orders.length < coupon.requires_min_orders) {
-          setCouponError(`Ce coupon nécessite au moins ${coupon.requires_min_orders} commande(s)`);
-          setCouponLoading(false);
-          return;
-        }
-      }
-
-      if (coupon.total_usage_limit && coupon.current_usage_count >= coupon.total_usage_limit) {
-        setCouponError('Ce coupon a atteint sa limite d\'utilisation');
-        setCouponLoading(false);
-        return;
-      }
-
+      const { coupon } = await api.validateCoupon(couponCode.trim().toUpperCase(), getCartTotal());
       setAppliedCoupon(coupon);
       setCouponError('');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error applying coupon:', error);
-      setCouponError('Erreur lors de l\'application du coupon');
+      setCouponError(error.message || 'Erreur lors de l\'application du coupon');
     } finally {
       setCouponLoading(false);
     }

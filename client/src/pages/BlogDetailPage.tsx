@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { ArrowLeft, Clock, Calendar, Tag } from 'lucide-react';
 import { theme } from '../config/theme';
 import { Button } from '../components/Button';
-import { supabase, BlogPost } from '../lib/supabase';
+import { BlogPost } from '../lib/types';
+import { api } from '../services/api';
 
 interface BlogDetailPageProps {
   slug: string;
@@ -19,13 +20,7 @@ export function BlogDetailPage({ slug, onNavigate }: BlogDetailPageProps) {
 
   const fetchBlogPost = async () => {
     try {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .eq('slug', slug)
-        .maybeSingle();
-
-      if (error) throw error;
+      const { post: data } = await api.getBlogPostBySlug(slug);
       setPost(data);
     } catch (error) {
       console.error('Error fetching blog post:', error);

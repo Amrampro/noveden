@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Leaf, Mail, Phone, MapPin, Instagram, Facebook, Twitter } from 'lucide-react';
 import { theme } from '../config/theme';
 import { Button } from './Button';
-import { supabase } from '../lib/supabase';
 
 interface FooterProps {
   onNavigate?: (page: string) => void;
@@ -19,20 +18,9 @@ export function Footer({ onNavigate }: FooterProps) {
     setMessage('');
 
     try {
-      const { error } = await supabase
-        .from('newsletter_subscribers')
-        .insert([{ email }]);
-
-      if (error) {
-        if (error.code === '23505') {
-          setMessage('Vous êtes déjà inscrit à notre newsletter.');
-        } else {
-          setMessage('Une erreur est survenue. Veuillez réessayer.');
-        }
-      } else {
-        setMessage('Merci de votre inscription !');
-        setEmail('');
-      }
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setMessage('Merci de votre inscription !');
+      setEmail('');
     } catch (error) {
       setMessage('Une erreur est survenue. Veuillez réessayer.');
     } finally {

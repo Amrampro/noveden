@@ -3,8 +3,9 @@ import { Search } from 'lucide-react';
 import { theme } from '../config/theme';
 import { Button } from '../components/Button';
 import { ProductCard } from '../components/ProductCard';
-import { supabase, Product, Category } from '../lib/supabase';
+import { Product, Category } from '../lib/types';
 import { useCart } from '../contexts/CartContext';
+import { api } from '../services/api';
 
 interface ShopPageProps {
   onViewProduct?: (product: Product) => void;
@@ -29,12 +30,7 @@ export function ShopPage({ onViewProduct }: ShopPageProps) {
 
   const fetchCategories = async () => {
     try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('display_order');
-
-      if (error) throw error;
+      const { categories: data } = await api.getCategories();
       setCategories(data || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -44,15 +40,12 @@ export function ShopPage({ onViewProduct }: ShopPageProps) {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      let query = supabase.from('products').select('*, categories(*)');
-
+      const params: any = {};
       if (selectedCategory !== 'all') {
-        query = query.eq('category_id', selectedCategory);
+        params.category = categories.find(c => c.id === selectedCategory)?.slug;
       }
 
-      const { data, error } = await query;
-
-      if (error) throw error;
+      const { products: data } = await api.getProducts(params);
       setProducts(data || []);
     } catch (error) {
       console.error('Error fetching products:', error);

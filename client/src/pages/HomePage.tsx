@@ -3,8 +3,9 @@ import { Sparkles, Truck, Award, Heart } from 'lucide-react';
 import { theme } from '../config/theme';
 import { Button } from '../components/Button';
 import { ProductCard } from '../components/ProductCard';
-import { supabase, Product } from '../lib/supabase';
+import { Product } from '../lib/types';
 import { useCart } from '../contexts/CartContext';
+import { api } from '../services/api';
 
 interface HomePageProps {
   onNavigate?: (page: string) => void;
@@ -22,14 +23,8 @@ export function HomePage({ onNavigate, onViewProduct }: HomePageProps) {
 
   const fetchFeaturedProducts = async () => {
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*, categories(*)')
-        .eq('is_featured', true)
-        .limit(6);
-
-      if (error) throw error;
-      setFeaturedProducts(data || []);
+      const { products } = await api.getProducts({ featured: true });
+      setFeaturedProducts((products || []).slice(0, 6));
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {

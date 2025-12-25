@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { theme } from '../config/theme';
-import { supabase, FAQ } from '../lib/supabase';
+import { FAQ } from '../lib/types';
+import { api } from '../services/api';
 
 export function FAQPage() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
@@ -14,12 +15,7 @@ export function FAQPage() {
 
   const fetchFAQs = async () => {
     try {
-      const { data, error } = await supabase
-        .from('faqs')
-        .select('*')
-        .order('display_order');
-
-      if (error) throw error;
+      const { faqs: data } = await api.getFAQs();
       setFaqs(data || []);
       if (data && data.length > 0) {
         setOpenIndex(0);

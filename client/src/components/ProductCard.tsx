@@ -1,5 +1,5 @@
 import { Star } from 'lucide-react';
-import { Product } from '../lib/supabase';
+import { Product } from '../lib/types';
 import { Button } from './Button';
 import { theme } from '../config/theme';
 

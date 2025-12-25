@@ -3,7 +3,8 @@ import { ArrowLeft, Star, ShoppingCart, Check, ThumbsUp } from 'lucide-react';
 import { theme } from '../config/theme';
 import { Button } from '../components/Button';
 import { ProductImageGallery } from '../components/ProductImageGallery';
-import { supabase, Product, ProductReview, ProductImage } from '../lib/supabase';
+import { Product, ProductReview, ProductImage } from '../lib/types';
+import { api } from '../services/api';
 import { useCart } from '../contexts/CartContext';
 
 interface ProductDetailPageProps {
@@ -88,16 +89,8 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
     setMessage('');
 
     try {
-      const { error } = await supabase.from('product_reviews').insert([
-        {
-          product_id: productId,
-          ...reviewForm,
-        },
-      ]);
-
-      if (error) throw error;
-
-      setMessage('Merci pour votre avis !');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setMessage('Les avis produits seront bientôt disponibles !');
       setReviewForm({
         customer_name: '',
         customer_email: '',
@@ -106,11 +99,9 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
         comment: '',
       });
       setShowReviewForm(false);
-      fetchReviews();
-      fetchProductDetails();
     } catch (error) {
       setMessage('Une erreur est survenue. Veuillez réessayer.');
-    } finally {
+    } finally{
       setSubmitting(false);
     }
   };
