@@ -4,6 +4,7 @@ import { theme } from '../config/theme';
 import { Button } from '../components/Button';
 import { ProductCard } from '../components/ProductCard';
 import { supabase, Product } from '../lib/supabase';
+import { useCart } from '../contexts/CartContext';
 
 interface HomePageProps {
   onNavigate?: (page: string) => void;
@@ -11,6 +12,7 @@ interface HomePageProps {
 }
 
 export function HomePage({ onNavigate, onViewProduct }: HomePageProps) {
+  const { addToCart } = useCart();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -258,7 +260,12 @@ export function HomePage({ onNavigate, onViewProduct }: HomePageProps) {
                 }}
               >
                 {featuredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} onViewDetails={onViewProduct} />
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onViewDetails={onViewProduct}
+                    onAddToCart={addToCart}
+                  />
                 ))}
               </div>
               <div style={{ textAlign: 'center' }}>

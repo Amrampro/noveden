@@ -4,12 +4,14 @@ import { theme } from '../config/theme';
 import { Button } from '../components/Button';
 import { ProductCard } from '../components/ProductCard';
 import { supabase, Product, Category } from '../lib/supabase';
+import { useCart } from '../contexts/CartContext';
 
 interface ShopPageProps {
   onViewProduct?: (product: Product) => void;
 }
 
 export function ShopPage({ onViewProduct }: ShopPageProps) {
+  const { addToCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -201,7 +203,12 @@ export function ShopPage({ onViewProduct }: ShopPageProps) {
               }}
             >
               {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} onViewDetails={onViewProduct} />
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onViewDetails={onViewProduct}
+                  onAddToCart={addToCart}
+                />
               ))}
             </div>
           ) : (

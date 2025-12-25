@@ -4,7 +4,11 @@ import { theme } from '../config/theme';
 import { Button } from '../components/Button';
 import { supabase, BlogPost } from '../lib/supabase';
 
-export function BlogPage() {
+interface BlogPageProps {
+  onViewBlogPost?: (post: BlogPost) => void;
+}
+
+export function BlogPage({ onViewBlogPost }: BlogPageProps) {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -141,6 +145,7 @@ export function BlogPage() {
               {filteredPosts.map((post) => (
                 <article
                   key={post.id}
+                  onClick={() => onViewBlogPost?.(post)}
                   style={{
                     backgroundColor: theme.colors.background.primary,
                     borderRadius: theme.borderRadius.lg,

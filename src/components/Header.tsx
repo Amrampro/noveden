@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Menu, X, ShoppingCart, Leaf } from 'lucide-react';
 import { theme } from '../config/theme';
+import { useCart } from '../contexts/CartContext';
 
 interface HeaderProps {
   currentPage?: string;
@@ -8,6 +9,7 @@ interface HeaderProps {
 }
 
 export function Header({ currentPage = 'home', onNavigate }: HeaderProps) {
+  const { getCartCount } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
@@ -160,6 +162,10 @@ export function Header({ currentPage = 'home', onNavigate }: HeaderProps) {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.md }}>
               <button
+                onClick={() => {
+                  onNavigate?.('cart');
+                  setMobileMenuOpen(false);
+                }}
                 style={{
                   border: 'none',
                   background: 'none',
@@ -169,25 +175,27 @@ export function Header({ currentPage = 'home', onNavigate }: HeaderProps) {
                 aria-label="Panier"
               >
                 <ShoppingCart size={24} color={theme.colors.text.primary} />
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: -8,
-                    right: -8,
-                    backgroundColor: theme.colors.primary.main,
-                    color: theme.colors.text.inverse,
-                    borderRadius: theme.borderRadius.full,
-                    width: 20,
-                    height: 20,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: theme.typography.fontSize.xs,
-                    fontWeight: theme.typography.fontWeight.bold,
-                  }}
-                >
-                  0
-                </span>
+                {getCartCount() > 0 && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: -8,
+                      right: -8,
+                      backgroundColor: theme.colors.primary.main,
+                      color: theme.colors.text.inverse,
+                      borderRadius: theme.borderRadius.full,
+                      width: 20,
+                      height: 20,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: theme.typography.fontSize.xs,
+                      fontWeight: theme.typography.fontWeight.bold,
+                    }}
+                  >
+                    {getCartCount()}
+                  </span>
+                )}
               </button>
 
               <button

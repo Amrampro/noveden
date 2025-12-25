@@ -5,15 +5,18 @@ import { HomePage } from './pages/HomePage';
 import { ShopPage } from './pages/ShopPage';
 import { AboutPage } from './pages/AboutPage';
 import { BlogPage } from './pages/BlogPage';
+import { BlogDetailPage } from './pages/BlogDetailPage';
 import { FAQPage } from './pages/FAQPage';
 import { ContactPage } from './pages/ContactPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
+import { CartPage } from './pages/CartPage';
 import { theme } from './config/theme';
-import { Product } from './lib/supabase';
+import { Product, BlogPost } from './lib/supabase';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [selectedBlogSlug, setSelectedBlogSlug] = useState<string | null>(null);
 
   const handleViewProduct = (product: Product) => {
     setSelectedProductId(product.id);
@@ -21,9 +24,16 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleViewBlogPost = (post: BlogPost) => {
+    setSelectedBlogSlug(post.slug);
+    setCurrentPage('blog-detail');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleNavigate = (page: string) => {
     setCurrentPage(page);
     setSelectedProductId(null);
+    setSelectedBlogSlug(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -38,11 +48,20 @@ function App() {
       case 'à propos':
         return <AboutPage />;
       case 'blog':
-        return <BlogPage />;
+        return <BlogPage onViewBlogPost={handleViewBlogPost} />;
+      case 'blog-detail':
+        return selectedBlogSlug ? (
+          <BlogDetailPage slug={selectedBlogSlug} onNavigate={handleNavigate} />
+        ) : (
+          <BlogPage onViewBlogPost={handleViewBlogPost} />
+        );
       case 'faq':
         return <FAQPage />;
       case 'contact':
         return <ContactPage />;
+      case 'cart':
+      case 'panier':
+        return <CartPage onNavigate={handleNavigate} />;
       case 'product-detail':
         return selectedProductId ? (
           <ProductDetailPage productId={selectedProductId} onNavigate={handleNavigate} />

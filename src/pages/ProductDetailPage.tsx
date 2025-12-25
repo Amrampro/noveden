@@ -4,6 +4,7 @@ import { theme } from '../config/theme';
 import { Button } from '../components/Button';
 import { ProductImageGallery } from '../components/ProductImageGallery';
 import { supabase, Product, ProductReview, ProductImage } from '../lib/supabase';
+import { useCart } from '../contexts/CartContext';
 
 interface ProductDetailPageProps {
   productId: string;
@@ -11,6 +12,7 @@ interface ProductDetailPageProps {
 }
 
 export function ProductDetailPage({ productId, onNavigate }: ProductDetailPageProps) {
+  const { addToCart } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
   const [productImages, setProductImages] = useState<ProductImage[]>([]);
   const [reviews, setReviews] = useState<ProductReview[]>([]);
@@ -25,6 +27,7 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
   });
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
+  const [addedToCart, setAddedToCart] = useState(false);
 
   useEffect(() => {
     fetchProductDetails();
@@ -374,10 +377,24 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                 size="large"
                 fullWidth
                 disabled={product.stock_status === 'out_of_stock'}
+                onClick={() => {
+                  addToCart(product);
+                  setAddedToCart(true);
+                  setTimeout(() => setAddedToCart(false), 2000);
+                }}
                 style={{ marginBottom: theme.spacing.md }}
               >
-                <ShoppingCart size={20} style={{ marginRight: theme.spacing.sm }} />
-                Ajouter au panier
+                {addedToCart ? (
+                  <>
+                    <Check size={20} style={{ marginRight: theme.spacing.sm }} />
+                    Ajouté au panier !
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart size={20} style={{ marginRight: theme.spacing.sm }} />
+                    Ajouter au panier
+                  </>
+                )}
               </Button>
 
               {product.benefits && product.benefits.length > 0 && (
