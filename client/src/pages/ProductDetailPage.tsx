@@ -4,6 +4,7 @@ import { theme } from '../config/theme';
 import { Button } from '../components/Button';
 import { ProductImageGallery } from '../components/ProductImageGallery';
 import { Product, ProductReview, ProductImage } from '../lib/types';
+import { supabase } from '../lib/supabase';
 import { api } from '../services/api';
 import { useCart } from '../contexts/CartContext';
 

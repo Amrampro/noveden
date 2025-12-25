@@ -18,13 +18,22 @@ import { AdminProductsPage } from './pages/admin/AdminProductsPage';
 import { AdminBlogPage } from './pages/admin/AdminBlogPage';
 import { AdminFAQPage } from './pages/admin/AdminFAQPage';
 import { AdminCouponsPage } from './pages/admin/AdminCouponsPage';
+import { AdminThemePage } from './pages/admin/AdminThemePage';
 import { theme } from './config/theme';
 import { Product, BlogPost } from './lib/supabase';
+import { loadAndApplyTheme } from './utils/loadTheme';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [selectedBlogSlug, setSelectedBlogSlug] = useState<string | null>(null);
+  const [themeLoaded, setThemeLoaded] = useState(false);
+
+  useEffect(() => {
+    loadAndApplyTheme().then(() => {
+      setThemeLoaded(true);
+    });
+  }, []);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -108,12 +117,28 @@ function App() {
         return <AdminFAQPage />;
       case 'admin-coupons':
         return <AdminCouponsPage />;
+      case 'admin-theme':
+        return <AdminThemePage />;
       default:
         return <HomePage onNavigate={handleNavigate} onViewProduct={handleViewProduct} />;
     }
   };
 
   const isAdminPage = currentPage.startsWith('admin');
+
+  if (!themeLoaded) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#F9FAF8'
+      }}>
+        <p style={{ fontSize: '1.125rem', color: '#545F4F' }}>Chargement...</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: theme.colors.background.primary }}>

@@ -1,5 +1,5 @@
 import { ReactNode, useState, useEffect } from 'react';
-import { Users, Package, BookOpen, HelpCircle, Tag, LayoutDashboard, LogOut } from 'lucide-react';
+import { Users, Package, BookOpen, HelpCircle, Tag, LayoutDashboard, LogOut, Palette } from 'lucide-react';
 import { theme } from '../config/theme';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -40,6 +40,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { page: 'admin-blog', label: 'Blog', icon: <BookOpen size={20} /> },
     { page: 'admin-faq', label: 'FAQ', icon: <HelpCircle size={20} /> },
     { page: 'admin-coupons', label: 'Coupons', icon: <Tag size={20} /> },
+    { page: 'admin-theme', label: 'Configuration du thème', icon: <Palette size={20} /> },
   ];
 
   const navigate = (page: string) => {
