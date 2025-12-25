@@ -1,10 +1,17 @@
-import express from 'express';
-import { getAllProducts, getProductBySlug, getCategories } from '../controllers/productsController.js';
+// api/src/routes/products.js
+import { Router } from "express";
+import * as ProductsController from "../controllers/productsController.js";
 
-const router = express.Router();
+const router = Router();
 
-router.get('/', getAllProducts);
-router.get('/categories', getCategories);
-router.get('/:slug', getProductBySlug);
+// Public
+router.get("/", ProductsController.getAllProducts);
+router.get("/slug/:slug", ProductsController.getProductBySlug);
+
+// Admin CRUD (later you will protect with auth middleware + isAdmin)
+router.get("/admin/:id", ProductsController.getProductByIdAdmin);
+router.post("/admin", ProductsController.createProduct);
+router.put("/admin/:id", ProductsController.updateProduct);
+router.delete("/admin/:id", ProductsController.deleteProduct);
 
 export default router;

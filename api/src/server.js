@@ -6,9 +6,13 @@ import authRoutes from './routes/auth.js';
 import productsRoutes from './routes/products.js';
 import couponsRoutes from './routes/coupons.js';
 import blogRoutes from './routes/blog.js';
-import faqRoutes from './routes/faq.js';
 import themeRoutes from './routes/theme.js';
 import adminRoutes from './routes/admin/index.js';
+import uploadsRouter from "./routes/uploads.routes.js";
+import faqsRoutes from "./routes/faqs.routes.js";
+import bannersRoutes from "./routes/banners.routes.js";
+import legalLinksRoutes from "./routes/legalLinks.routes.js";
+import parametersRoutes from "./routes/parameters.routes.js";
 
 import pool from './config/database.js';
 
@@ -41,13 +45,22 @@ app.get('/', (req, res) => {
   });
 });
 
+import path from "path";
+
+app.use("/uploads", express.static(path.join(process.cwd(), "public", "uploads")));
+
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productsRoutes);
-app.use('/api/coupons', couponsRoutes);
+// app.use('/api/coupons', couponsRoutes);
 app.use('/api/blog', blogRoutes);
-app.use('/api/faq', faqRoutes);
-app.use('/api/theme', themeRoutes);
+// app.use('/api/faq', faqRoutes);
+// app.use('/api/theme', themeRoutes);
 app.use('/api/admin', adminRoutes);
+app.use("/api/uploads", uploadsRouter);
+app.use("/api/faqs", faqsRoutes);
+app.use("/api/banners", bannersRoutes);
+app.use("/api/legal-links", legalLinksRoutes);
+app.use("/api/parameters", parametersRoutes);
 
 app.use((err, req, res, next) => {
   console.error('Error:', err);

@@ -1,129 +1,200 @@
-import { useEffect, useState } from 'react';
-import { Clock, Eye } from 'lucide-react';
-import { theme } from '../config/theme';
-import { Button } from '../components/Button';
-import { BlogPost } from '../lib/types';
-import { api } from '../services/api';
+// client/src/pages/BlogPage.tsx
+import { useEffect, useMemo, useState } from "react";
+import { Clock, Eye, Newspaper } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { theme } from "../config/theme";
+import { Button } from "../components/Button";
+import { blogService, type BlogPost, type BlogCategory } from "../services/blogService";
 
-interface BlogPageProps {
-  onViewBlogPost?: (post: BlogPost) => void;
-}
+export function BlogPage() {
+  const navigate = useNavigate();
 
-export function BlogPage({ onViewBlogPost }: BlogPageProps) {
   const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [loading, setLoading] = useState(true);
-
-  const categories = ['Tous les articles', 'Accessoires Beauté', 'Cheveux', 'Peaux'];
+  const [categories, setCategories] = useState<BlogCategory[]>([]);
+  const [selectedCategorySlug, setSelectedCategorySlug] = useState<string>("all");
+  const [loadingPosts, setLoadingPosts] = useState(true);
+  const [loadingCategories, setLoadingCategories] = useState(true);
 
   useEffect(() => {
-    fetchPosts();
+    void fetchCategories();
   }, []);
 
   useEffect(() => {
-    if (selectedCategory === 'all') {
-      setFilteredPosts(posts);
-    } else {
-      setFilteredPosts(posts.filter((post) => post.category === selectedCategory));
-    }
-  }, [selectedCategory, posts]);
+    void fetchPosts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategorySlug]);
 
-  const fetchPosts = async () => {
+  const fetchCategories = async () => {
+    setLoadingCategories(true);
     try {
-      const { posts: data } = await api.getBlogPosts();
-      setPosts(data || []);
-      setFilteredPosts(data || []);
-    } catch (error) {
-      console.error('Error fetching blog posts:', error);
+      const { categories } = await blogService.listCategories();
+      setCategories(categories || []);
+    } catch (e) {
+      console.error("Error fetching blog categories:", e);
+      setCategories([]);
     } finally {
-      setLoading(false);
+      setLoadingCategories(false);
     }
   };
 
-  const getCategoryValue = (label: string): string => {
-    if (label === 'Tous les articles') return 'all';
-    if (label === 'Accessoires Beauté') return 'Article Vedette';
-    return label;
+  const fetchPosts = async () => {
+    setLoadingPosts(true);
+    try {
+      const { posts } = await blogService.listPosts({
+        category: selectedCategorySlug !== "all" ? selectedCategorySlug : undefined,
+        limit: 60,
+        offset: 0,
+      });
+      setPosts(posts || []);
+    } catch (e) {
+      console.error("Error fetching blog posts:", e);
+      setPosts([]);
+    } finally {
+      setLoadingPosts(false);
+    }
+  };
+
+  const sortedCategories = useMemo(() => {
+    const sorted = [...categories].sort((a, b) => {
+      const ao = a.display_order ?? 0;
+      const bo = b.display_order ?? 0;
+      if (ao !== bo) return ao - bo;
+      return (a.name || "").localeCompare(b.name || "");
+    });
+    return sorted;
+  }, [categories]);
+
+  const filteredPosts = useMemo(() => {
+    if (selectedCategorySlug === "all") return posts;
+
+    // si backend filtre déjà c’est OK, sinon on filtre côté client
+    return posts.filter((p) =>
+      (p.categories || []).some((c) => c.slug === selectedCategorySlug)
+    );
+  }, [posts, selectedCategorySlug]);
+
+  const goToPost = (post: BlogPost) => {
+    // route detail: /blog/:slug
+    navigate(`/blog/${post.slug}`);
   };
 
   return (
     <div>
+
+      {/* HERO */}
       <section
         style={{
           backgroundColor: theme.colors.background.sage,
-          padding: `${theme.spacing['3xl']} ${theme.spacing.lg}`,
+          padding: `${theme.spacing["3xl"]} ${theme.spacing.lg}`,
         }}
       >
         <div
           style={{
             maxWidth: theme.container.maxWidth,
-            margin: '0 auto',
-            textAlign: 'center',
+            margin: "0 auto",
+            textAlign: "center",
           }}
         >
-          <h1
+          <div
             style={{
-              ...theme.heading.h1,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: theme.spacing.sm,
+              padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
+              borderRadius: theme.borderRadius.full,
+              backgroundColor: theme.colors.background.primary,
+              border: `1px solid ${theme.colors.border.light}`,
               marginBottom: theme.spacing.lg,
             }}
           >
+            <Newspaper size={18} color={theme.colors.primary.main} />
+            <span
+              style={{
+                fontFamily: theme.typography.fontFamily.body,
+                fontSize: theme.typography.fontSize.sm,
+                color: theme.colors.text.secondary,
+                textTransform: "uppercase",
+                letterSpacing: theme.typography.letterSpacing.wide,
+              }}
+            >
+              Conseils & routines
+            </span>
+          </div>
+
+          <h1 style={{ ...theme.heading.h1, marginBottom: theme.spacing.lg }}>
             Blog
           </h1>
+
           <p
             style={{
               fontFamily: theme.typography.fontFamily.body,
               fontSize: theme.typography.fontSize.lg,
               color: theme.colors.text.secondary,
-              maxWidth: '700px',
-              margin: '0 auto',
+              maxWidth: "760px",
+              margin: "0 auto",
+              lineHeight: theme.typography.lineHeight.body,
             }}
           >
-            Découvrez nos conseils beauté et nos articles sur les soins naturels
+            Découvrez nos conseils beauté et nos articles sur les soins naturels pour la peau et les cheveux.
           </p>
         </div>
       </section>
 
+      {/* CONTENT */}
       <section
         style={{
           backgroundColor: theme.colors.background.primary,
-          padding: `${theme.spacing['2xl']} ${theme.spacing.lg}`,
+          padding: `${theme.spacing["2xl"]} ${theme.spacing.lg}`,
         }}
       >
-        <div
-          style={{
-            maxWidth: theme.container.maxWidth,
-            margin: '0 auto',
-          }}
-        >
+        <div style={{ maxWidth: theme.container.maxWidth, margin: "0 auto" }}>
+          {/* Categories */}
           <div
             style={{
-              display: 'flex',
-              flexWrap: 'wrap',
+              display: "flex",
+              flexWrap: "wrap",
               gap: theme.spacing.md,
-              justifyContent: 'center',
-              marginBottom: theme.spacing['2xl'],
+              justifyContent: "center",
+              marginBottom: theme.spacing["2xl"],
             }}
           >
-            {categories.map((category) => {
-              const categoryValue = getCategoryValue(category);
-              return (
+            <Button
+              variant={selectedCategorySlug === "all" ? "primary" : "outline"}
+              onClick={() => setSelectedCategorySlug("all")}
+            >
+              Tous les articles
+            </Button>
+
+            {loadingCategories ? (
+              <span
+                style={{
+                  fontFamily: theme.typography.fontFamily.body,
+                  fontSize: theme.typography.fontSize.sm,
+                  color: theme.colors.text.secondary,
+                  alignSelf: "center",
+                }}
+              >
+                Chargement des catégories...
+              </span>
+            ) : (
+              sortedCategories.map((c) => (
                 <Button
-                  key={category}
-                  variant={selectedCategory === categoryValue ? 'primary' : 'outline'}
-                  onClick={() => setSelectedCategory(categoryValue)}
+                  key={c.id}
+                  variant={selectedCategorySlug === c.slug ? "primary" : "outline"}
+                  onClick={() => setSelectedCategorySlug(c.slug)}
                 >
-                  {category}
+                  {c.name}
                 </Button>
-              );
-            })}
+              ))
+            )}
           </div>
 
-          {loading ? (
+          {/* Posts */}
+          {loadingPosts ? (
             <div
               style={{
-                textAlign: 'center',
-                padding: theme.spacing['4xl'],
+                textAlign: "center",
+                padding: theme.spacing["4xl"],
                 color: theme.colors.text.secondary,
                 fontFamily: theme.typography.fontFamily.body,
               }}
@@ -133,133 +204,169 @@ export function BlogPage({ onViewBlogPost }: BlogPageProps) {
           ) : filteredPosts.length > 0 ? (
             <div
               style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
                 gap: theme.spacing.xl,
               }}
             >
-              {filteredPosts.map((post) => (
-                <article
-                  key={post.id}
-                  onClick={() => onViewBlogPost?.(post)}
-                  style={{
-                    backgroundColor: theme.colors.background.primary,
-                    borderRadius: theme.borderRadius.lg,
-                    overflow: 'hidden',
-                    boxShadow: theme.shadow.card,
-                    transition: theme.transition.normal,
-                    cursor: 'pointer',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow = theme.shadow.hover;
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.boxShadow = theme.shadow.card;
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  {post.image_url && (
+              {filteredPosts.map((post) => {
+                const primaryCategory = (post.categories || [])[0];
+
+                return (
+                  <article
+                    key={post.id}
+                    onClick={() => goToPost(post)}
+                    style={{
+                      backgroundColor: theme.colors.background.secondary,
+                      borderRadius: theme.borderRadius.lg,
+                      overflow: "hidden",
+                      boxShadow: theme.shadow.card,
+                      transition: theme.transition.normal,
+                      cursor: "pointer",
+                      border: `1px solid ${theme.colors.border.light}`,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = theme.shadow.hover;
+                      e.currentTarget.style.transform = "translateY(-4px)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = theme.shadow.card;
+                      e.currentTarget.style.transform = "translateY(0)";
+                    }}
+                  >
                     <div
                       style={{
-                        width: '100%',
-                        height: '240px',
-                        backgroundColor: theme.colors.background.secondary,
-                        position: 'relative',
-                        overflow: 'hidden',
+                        width: "100%",
+                        height: "240px",
+                        backgroundColor: theme.colors.background.sage,
+                        position: "relative",
+                        overflow: "hidden",
                       }}
                     >
-                      <span
+                      {primaryCategory?.name && (
+                        <span
+                          style={{
+                            position: "absolute",
+                            top: theme.spacing.md,
+                            left: theme.spacing.md,
+                            backgroundColor: theme.colors.primary.main,
+                            color: theme.colors.text.inverse,
+                            padding: `${theme.spacing.xs} ${theme.spacing.md}`,
+                            borderRadius: theme.borderRadius.md,
+                            fontSize: theme.typography.fontSize.xs,
+                            fontWeight: theme.typography.fontWeight.medium,
+                            fontFamily: theme.typography.fontFamily.body,
+                            zIndex: 2,
+                          }}
+                        >
+                          {primaryCategory.name}
+                        </span>
+                      )}
+
+                      {post.image_url ? (
+                        <img
+                          src={post.image_url}
+                          alt={post.title}
+                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: theme.colors.text.light,
+                            fontFamily: theme.typography.fontFamily.body,
+                          }}
+                        >
+                          Aucun visuel
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ padding: theme.spacing.lg }}>
+                      <div
                         style={{
-                          position: 'absolute',
-                          top: theme.spacing.md,
-                          left: theme.spacing.md,
-                          backgroundColor: theme.colors.primary.main,
-                          color: theme.colors.text.inverse,
-                          padding: `${theme.spacing.xs} ${theme.spacing.md}`,
-                          borderRadius: theme.borderRadius.md,
-                          fontSize: theme.typography.fontSize.xs,
-                          fontWeight: theme.typography.fontWeight.medium,
+                          display: "flex",
+                          alignItems: "center",
+                          flexWrap: "wrap",
+                          gap: theme.spacing.md,
+                          marginBottom: theme.spacing.md,
+                          fontSize: theme.typography.fontSize.sm,
+                          color: theme.colors.text.light,
                           fontFamily: theme.typography.fontFamily.body,
                         }}
                       >
-                        {post.category}
-                      </span>
-                      <img
-                        src={post.image_url}
-                        alt={post.title}
+                        <span style={{ display: "flex", alignItems: "center", gap: theme.spacing.xs }}>
+                          <Clock size={14} />
+                          {post.reading_time ?? 5} min
+                        </span>
+
+                        <span style={{ display: "flex", alignItems: "center", gap: theme.spacing.xs }}>
+                          <Eye size={14} />
+                          {post.views ?? 0}
+                        </span>
+
+                        {post.published_at && (
+                          <span>
+                            {new Date(post.published_at).toLocaleDateString("fr-FR", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })}
+                          </span>
+                        )}
+                      </div>
+
+                      <h3
                         style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
+                          ...theme.heading.h4,
+                          fontSize: theme.typography.fontSize.xl,
+                          marginBottom: theme.spacing.sm,
                         }}
-                      />
+                      >
+                        {post.title}
+                      </h3>
+
+                      <p
+                        style={{
+                          fontFamily: theme.typography.fontFamily.body,
+                          fontSize: theme.typography.fontSize.sm,
+                          color: theme.colors.text.secondary,
+                          lineHeight: theme.typography.lineHeight.body,
+                          marginBottom: theme.spacing.md,
+                          display: "-webkit-box",
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                        }}
+                      >
+                        {post.excerpt || "Découvrez nos conseils pour une routine simple, naturelle et efficace."}
+                      </p>
+
+                      {/* ✅ bouton qui navigue aussi (et empêche l’event du parent si tu veux) */}
+                      <Button
+                        variant="outline"
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          goToPost(post);
+                        }}
+                      >
+                        Lire l&apos;article
+                      </Button>
                     </div>
-                  )}
-
-                  <div style={{ padding: theme.spacing.lg }}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: theme.spacing.md,
-                        marginBottom: theme.spacing.md,
-                        fontSize: theme.typography.fontSize.sm,
-                        color: theme.colors.text.light,
-                        fontFamily: theme.typography.fontFamily.body,
-                      }}
-                    >
-                      <span style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.xs }}>
-                        <Clock size={14} />
-                        {post.reading_time} min
-                      </span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.xs }}>
-                        <Eye size={14} />
-                        {post.views}
-                      </span>
-                      <span>
-                        {new Date(post.published_at).toLocaleDateString('fr-FR', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                        })}
-                      </span>
-                    </div>
-
-                    <h3
-                      style={{
-                        ...theme.heading.h4,
-                        fontSize: theme.typography.fontSize.xl,
-                        marginBottom: theme.spacing.sm,
-                      }}
-                    >
-                      {post.title}
-                    </h3>
-
-                    <p
-                      style={{
-                        fontFamily: theme.typography.fontFamily.body,
-                        fontSize: theme.typography.fontSize.sm,
-                        color: theme.colors.text.secondary,
-                        lineHeight: theme.typography.lineHeight.body,
-                        marginBottom: theme.spacing.md,
-                      }}
-                    >
-                      {post.excerpt}
-                    </p>
-
-                    <Button variant="outline" size="small">
-                      Lire l'article
-                    </Button>
-                  </div>
-                </article>
-              ))}
+                  </article>
+                );
+              })}
             </div>
           ) : (
             <div
               style={{
-                textAlign: 'center',
-                padding: theme.spacing['4xl'],
+                textAlign: "center",
+                padding: theme.spacing["4xl"],
                 color: theme.colors.text.secondary,
                 fontFamily: theme.typography.fontFamily.body,
               }}
@@ -269,6 +376,7 @@ export function BlogPage({ onViewBlogPost }: BlogPageProps) {
           )}
         </div>
       </section>
+
     </div>
   );
 }

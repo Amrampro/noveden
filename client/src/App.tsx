@@ -1,151 +1,98 @@
-import { useState, useEffect } from 'react';
-import { Header } from './components/Header';
-import { Footer } from './components/Footer';
-import { HomePage } from './pages/HomePage';
-import { ShopPage } from './pages/ShopPage';
-import { AboutPage } from './pages/AboutPage';
-import { BlogPage } from './pages/BlogPage';
-import { BlogDetailPage } from './pages/BlogDetailPage';
-import { FAQPage } from './pages/FAQPage';
-import { ContactPage } from './pages/ContactPage';
-import { ProductDetailPage } from './pages/ProductDetailPage';
-import { CartPage } from './pages/CartPage';
-import { LoginPage } from './pages/LoginPage';
-import { SignupPage } from './pages/SignupPage';
-import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
-import { AdminUsersPage } from './pages/admin/AdminUsersPage';
-import { AdminProductsPage } from './pages/admin/AdminProductsPage';
-import { AdminBlogPage } from './pages/admin/AdminBlogPage';
-import { AdminFAQPage } from './pages/admin/AdminFAQPage';
-import { AdminCouponsPage } from './pages/admin/AdminCouponsPage';
-import { AdminThemePage } from './pages/admin/AdminThemePage';
-import { theme } from './config/theme';
-import { Product, BlogPost } from './lib/types';
-import { loadAndApplyTheme } from './utils/loadTheme';
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+import { HomePage } from "./pages/HomePage";
+import { ShopPage } from "./pages/ShopPage";
+import { AboutPage } from "./pages/AboutPage";
+import { BlogPage } from "./pages/BlogPage";
+import { ContactPage } from "./pages/ContactPage";
+import ProductDetailPage from "./pages/ProductDetailPage";
+import { LoginPage } from "./pages/LoginPage";
+import { SignupPage } from "./pages/SignupPage";
+import { CartPage } from "./pages/CartPage";
+import { BlogDetailRoute } from "./routes/BlogDetailRoute";
+import { FAQPage } from "./pages/FAQPage";
+
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import ProductCategoriesPage from "./pages/admin/ProductCategoriesPage";
+import AdminProductsListPage from "./pages/admin/AdminProductsListPage";
+import AdminProductFormPage from "./pages/admin/AdminProductFormPage";
+import AdminBlogCategoriesPage from "./pages/admin/AdminBlogCategoriesPage";
+import AdminBlogPostFormPage from "./pages/admin/AdminBlogPostFormPage";
+import AdminBlogPostsListPage from "./pages/admin/AdminBlogPostsListPage";
+import AdminFaqsPage from "./pages/admin/AdminFaqsPage";
+import AdminBannersListPage from "./pages/admin/AdminBannersListPage";
+import AdminBannerFormPage from "./pages/admin/AdminBannerFormPage";
+import AdminLegalLinksListPage from "./pages/admin/AdminLegalLinksListPage";
+import AdminLegalLinkFormPage from "./pages/admin/AdminLegalLinkFormPage";
+import AdminParametersPage from "./pages/admin/AdminParametersPage";
+
+import PublicLayout from "./layouts/PublicLayout";
+import { SiteParamsProvider } from "./contexts/SiteParamsContext";
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('home');
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
-  const [selectedBlogSlug, setSelectedBlogSlug] = useState<string | null>(null);
-  const [themeLoaded, setThemeLoaded] = useState(false);
-
-  useEffect(() => {
-    loadAndApplyTheme().then(() => {
-      setThemeLoaded(true);
-    });
-  }, []);
-
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.slice(1);
-      if (hash) {
-        setCurrentPage(hash);
-      }
-    };
-
-    handleHashChange();
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
-
-  const handleViewProduct = (product: Product) => {
-    setSelectedProductId(product.id);
-    setCurrentPage('product-detail');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleViewBlogPost = (post: BlogPost) => {
-    setSelectedBlogSlug(post.slug);
-    setCurrentPage('blog-detail');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleNavigate = (page: string) => {
-    window.location.hash = page;
-    setCurrentPage(page);
-    setSelectedProductId(null);
-    setSelectedBlogSlug(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'home':
-        return <HomePage onNavigate={handleNavigate} onViewProduct={handleViewProduct} />;
-      case 'shop':
-      case 'boutique':
-        return <ShopPage onViewProduct={handleViewProduct} />;
-      case 'about':
-      case 'à propos':
-        return <AboutPage />;
-      case 'blog':
-        return <BlogPage onViewBlogPost={handleViewBlogPost} />;
-      case 'blog-detail':
-        return selectedBlogSlug ? (
-          <BlogDetailPage slug={selectedBlogSlug} onNavigate={handleNavigate} />
-        ) : (
-          <BlogPage onViewBlogPost={handleViewBlogPost} />
-        );
-      case 'faq':
-        return <FAQPage />;
-      case 'contact':
-        return <ContactPage />;
-      case 'cart':
-      case 'panier':
-        return <CartPage onNavigate={handleNavigate} />;
-      case 'login':
-      case 'connexion':
-        return <LoginPage onNavigate={handleNavigate} />;
-      case 'signup':
-      case 'inscription':
-        return <SignupPage onNavigate={handleNavigate} />;
-      case 'product-detail':
-        return selectedProductId ? (
-          <ProductDetailPage productId={selectedProductId} onNavigate={handleNavigate} />
-        ) : (
-          <HomePage onNavigate={handleNavigate} onViewProduct={handleViewProduct} />
-        );
-      case 'admin':
-        return <AdminDashboardPage />;
-      case 'admin-users':
-        return <AdminUsersPage />;
-      case 'admin-products':
-        return <AdminProductsPage />;
-      case 'admin-blog':
-        return <AdminBlogPage />;
-      case 'admin-faq':
-        return <AdminFAQPage />;
-      case 'admin-coupons':
-        return <AdminCouponsPage />;
-      case 'admin-theme':
-        return <AdminThemePage />;
-      default:
-        return <HomePage onNavigate={handleNavigate} onViewProduct={handleViewProduct} />;
-    }
-  };
-
-  const isAdminPage = currentPage.startsWith('admin');
-
-  if (!themeLoaded) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#F9FAF8'
-      }}>
-        <p style={{ fontSize: '1.125rem', color: '#545F4F' }}>Chargement...</p>
-      </div>
-    );
-  }
-
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: theme.colors.background.primary }}>
-      {!isAdminPage && <Header currentPage={currentPage} onNavigate={handleNavigate} />}
-      <main>{renderPage()}</main>
-      {!isAdminPage && <Footer onNavigate={handleNavigate} />}
-    </div>
+    <BrowserRouter>
+      <SiteParamsProvider>
+        <Routes>
+          {/* ✅ Public layout (Header + Footer) */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/shop" element={<ShopPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:slug" element={<BlogDetailRoute />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/products/:slug" element={<ProductDetailPage />} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/faqs" element={<FAQPage />} />
+          </Route>
+
+          {/* Auth pages (souvent sans header/footer, mais tu peux aussi les mettre dedans si tu veux) */}
+          <Route path="/auth" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+
+          {/* ✅ Admin layout */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminDashboardPage />} />
+            <Route path="product-categories" element={<ProductCategoriesPage />} />
+
+            {/* Products */}
+            <Route path="products" element={<AdminProductsListPage />} />
+            <Route path="products/new" element={<AdminProductFormPage />} />
+            <Route path="products/:id/edit" element={<AdminProductFormPage />} />
+
+            {/* Blog Posts */}
+            <Route path="blog-posts" element={<AdminBlogPostsListPage />} />
+            <Route path="blog-posts/new" element={<AdminBlogPostFormPage />} />
+            <Route path="blog-posts/:id/edit" element={<AdminBlogPostFormPage />} />
+
+            {/* Blog Categories */}
+            <Route path="blog-categories" element={<AdminBlogCategoriesPage />} />
+
+            {/* FAQs */}
+            <Route path="faqs" element={<AdminFaqsPage />} />
+
+            {/* Banners */}
+            <Route path="banners" element={<AdminBannersListPage />} />
+            <Route path="banners/new" element={<AdminBannerFormPage />} />
+            <Route path="banners/:id/edit" element={<AdminBannerFormPage />} />
+
+            {/* Legal Links */}
+            <Route path="legal-links" element={<AdminLegalLinksListPage />} />
+            <Route path="legal-links/new" element={<AdminLegalLinkFormPage />} />
+            <Route path="legal-links/:id/edit" element={<AdminLegalLinkFormPage />} />
+
+            {/* Parameters */}
+            <Route path="parameters" element={<AdminParametersPage />} />
+          </Route>
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </SiteParamsProvider>
+    </BrowserRouter>
   );
 }
 

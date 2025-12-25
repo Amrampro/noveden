@@ -1,72 +1,123 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// client/src/services/apiEndpoints.ts
+const API_BASE_URL =
+  (import.meta as any).env?.VITE_API_URL?.replace(/\/+$/, "") ||
+  "http://localhost:3001/api";
 
-export const API_ENDPOINTS = {
-  BASE_URL: API_BASE_URL,
+export const apiEndpoints = {
+  base: API_BASE_URL,
 
-  AUTH: {
-    SIGNUP: `${API_BASE_URL}/auth/signup`,
-    LOGIN: `${API_BASE_URL}/auth/login`,
-    PROFILE: `${API_BASE_URL}/auth/profile`,
-    UPDATE_PROFILE: `${API_BASE_URL}/auth/profile`,
+  auth: {
+    base: `${API_BASE_URL}/auth`,
+    signup: `${API_BASE_URL}/auth/signup`,
+    signin: `${API_BASE_URL}/auth/signin`,
+    me: `${API_BASE_URL}/auth/me`,
   },
 
-  PRODUCTS: {
-    LIST: `${API_BASE_URL}/products`,
-    BY_SLUG: (slug: string) => `${API_BASE_URL}/products/${slug}`,
-    CATEGORIES: `${API_BASE_URL}/products/categories`,
+  products: {
+    base: `${API_BASE_URL}/products`,
+    list: `${API_BASE_URL}/products`,
+    bySlug: (slug: string) => `${API_BASE_URL}/products/slug/${encodeURIComponent(slug)}`,
+
+    admin: {
+      create: `${API_BASE_URL}/products/admin`,
+      byId: (id: string) => `${API_BASE_URL}/products/admin/${encodeURIComponent(id)}`,
+      update: (id: string) => `${API_BASE_URL}/products/admin/${encodeURIComponent(id)}`,
+      delete: (id: string) => `${API_BASE_URL}/products/admin/${encodeURIComponent(id)}`,
+    },
   },
 
-  COUPONS: {
-    VALIDATE: `${API_BASE_URL}/coupons/validate`,
+  // ✅ ---------------- Uploads (NEW) ----------------
+  uploads: {
+    // POST multipart/form-data with field name: "file"
+    // returns: { url: "https://your-domain/uploads/products/xxxx.jpg" }
+    productImage: `${API_BASE_URL}/uploads/product-image`,
   },
 
-  BLOG: {
-    LIST: `${API_BASE_URL}/blog`,
-    BY_SLUG: (slug: string) => `${API_BASE_URL}/blog/${slug}`,
+  productCategories: {
+    base: `${API_BASE_URL}/admin/product-categories`,
+    list: `${API_BASE_URL}/admin/product-categories`,
+    create: `${API_BASE_URL}/admin/product-categories`,
+    update: (id: string) =>
+      `${API_BASE_URL}/admin/product-categories/${encodeURIComponent(id)}`,
+    delete: (id: string) =>
+      `${API_BASE_URL}/admin/product-categories/${encodeURIComponent(id)}`,
   },
 
-  FAQ: {
-    LIST: `${API_BASE_URL}/faq`,
+  blog: {
+    base: `${API_BASE_URL}/blog`,
+    list: `${API_BASE_URL}/blog`,
+    bySlug: (slug: string) => `${API_BASE_URL}/blog/slug/${encodeURIComponent(slug)}`,
+
+    admin: {
+      list: `${API_BASE_URL}/blog/admin`,
+      create: `${API_BASE_URL}/blog/admin`,
+      byId: (id: string) => `${API_BASE_URL}/blog/admin/${encodeURIComponent(id)}`,
+      update: (id: string) => `${API_BASE_URL}/blog/admin/${encodeURIComponent(id)}`,
+      delete: (id: string) => `${API_BASE_URL}/blog/admin/${encodeURIComponent(id)}`,
+      publish: (id: string) =>
+        `${API_BASE_URL}/blog/admin/${encodeURIComponent(id)}/publish`,
+      unpublish: (id: string) =>
+        `${API_BASE_URL}/blog/admin/${encodeURIComponent(id)}/unpublish`,
+    },
   },
 
-  ADMIN: {
-    USERS: {
-      LIST: `${API_BASE_URL}/admin/users`,
-      BY_ID: (id: string) => `${API_BASE_URL}/admin/users/${id}`,
-      UPDATE: (id: string) => `${API_BASE_URL}/admin/users/${id}`,
-      DELETE: (id: string) => `${API_BASE_URL}/admin/users/${id}`,
+  blogCategories: {
+    base: `${API_BASE_URL}/admin/blog-categories`,
+    list: `${API_BASE_URL}/admin/blog-categories`,
+    create: `${API_BASE_URL}/admin/blog-categories`,
+    update: (id: string) =>
+      `${API_BASE_URL}/admin/blog-categories/${encodeURIComponent(id)}`,
+    delete: (id: string) =>
+      `${API_BASE_URL}/admin/blog-categories/${encodeURIComponent(id)}`,
+  },
+
+  coupons: {
+    base: `${API_BASE_URL}/coupons`,
+  },
+
+  theme: {
+    base: `${API_BASE_URL}/theme`,
+  },
+
+  admin: {
+    base: `${API_BASE_URL}/admin`,
+  },
+  faqs: {
+    list: `${API_BASE_URL}/faqs`,
+    byId: (id: string) => `${API_BASE_URL}/faqs/${id}`,
+
+    admin: {
+      create: `${API_BASE_URL}/faqs/admin`,
+      update: (id: string) => `${API_BASE_URL}/faqs/admin/${id}`,
+      delete: (id: string) => `${API_BASE_URL}/faqs/admin/${id}`,
     },
-    PRODUCTS: {
-      LIST: `${API_BASE_URL}/admin/products`,
-      CREATE: `${API_BASE_URL}/admin/products`,
-      UPDATE: (id: string) => `${API_BASE_URL}/admin/products/${id}`,
-      DELETE: (id: string) => `${API_BASE_URL}/admin/products/${id}`,
+  },
+  banners: {
+    list: `${API_BASE_URL}/banners`,
+    byId: (id: string) => `${API_BASE_URL}/banners/${id}`,
+    // inside apiEndpoints.banners
+    activeByPage: (pageName: string) => `${API_BASE_URL}/banners/active/${encodeURIComponent(pageName)}`,
+
+    admin: {
+      create: `${API_BASE_URL}/banners`,
+      update: (id: string) => `${API_BASE_URL}/banners/${id}`,
+      delete: (id: string) => `${API_BASE_URL}/banners/${id}`,
     },
-    COUPONS: {
-      LIST: `${API_BASE_URL}/admin/coupons`,
-      CREATE: `${API_BASE_URL}/admin/coupons`,
-      UPDATE: (id: string) => `${API_BASE_URL}/admin/coupons/${id}`,
-      DELETE: (id: string) => `${API_BASE_URL}/admin/coupons/${id}`,
+  },
+
+  legalLinks: {
+    list: `${API_BASE_URL}/legal-links`,
+    byId: (id: string) => `${API_BASE_URL}/legal-links/${id}`,
+    admin: {
+      create: `${API_BASE_URL}/legal-links`,
+      update: (id: string) => `${API_BASE_URL}/legal-links/${id}`,
+      delete: (id: string) => `${API_BASE_URL}/legal-links/${id}`,
     },
-    BLOG: {
-      LIST: `${API_BASE_URL}/admin/blog`,
-      CREATE: `${API_BASE_URL}/admin/blog`,
-      UPDATE: (id: string) => `${API_BASE_URL}/admin/blog/${id}`,
-      DELETE: (id: string) => `${API_BASE_URL}/admin/blog/${id}`,
-    },
-    FAQ: {
-      LIST: `${API_BASE_URL}/admin/faq`,
-      CREATE: `${API_BASE_URL}/admin/faq`,
-      UPDATE: (id: string) => `${API_BASE_URL}/admin/faq/${id}`,
-      DELETE: (id: string) => `${API_BASE_URL}/admin/faq/${id}`,
-    },
-    ORDERS: {
-      LIST: `${API_BASE_URL}/admin/orders`,
-      BY_ID: (id: string) => `${API_BASE_URL}/admin/orders/${id}`,
-      UPDATE_STATUS: (id: string) => `${API_BASE_URL}/admin/orders/${id}/status`,
-      DELETE: (id: string) => `${API_BASE_URL}/admin/orders/${id}`,
-    },
+  },
+  parameters: {
+    get: `${API_BASE_URL}/parameters`,
+    upsert: `${API_BASE_URL}/parameters`, // PUT
   },
 } as const;
 
-export default API_ENDPOINTS;
+export type ApiEndpoints = typeof apiEndpoints;

@@ -1,25 +1,24 @@
-import { useState } from 'react';
-import { Mail, Lock, User, Phone, UserPlus } from 'lucide-react';
-import { theme } from '../config/theme';
-import { Button } from '../components/Button';
-import { useAuth } from '../contexts/AuthContext';
+import { useState } from "react";
+import { Mail, Lock, User, Phone, UserPlus } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import { theme } from "../config/theme";
+import { Button } from "../components/Button";
+import { useAuth } from "../contexts/AuthContext";
 
-interface SignupPageProps {
-  onNavigate?: (page: string) => void;
-}
-
-export function SignupPage({ onNavigate }: SignupPageProps) {
+export function SignupPage() {
+  const navigate = useNavigate();
   const { signUp } = useAuth();
+
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: '',
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -27,15 +26,15 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Les mots de passe ne correspondent pas');
+      setError("Les mots de passe ne correspondent pas");
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères');
+      setError("Le mot de passe doit contenir au moins 6 caractères");
       return;
     }
 
@@ -52,31 +51,28 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
     if (error) {
       setError(error.message);
       setLoading(false);
-    } else {
-      onNavigate?.('home');
+      return;
     }
+
+    navigate("/", { replace: true });
   };
 
   return (
-    <div>
+    <div style={{ minHeight: "100vh", backgroundColor: theme.colors.background.primary }}>
+  
+
       <section
         style={{
           backgroundColor: theme.colors.background.sage,
-          padding: `${theme.spacing['3xl']} ${theme.spacing.lg}`,
+          padding: `${theme.spacing["3xl"]} ${theme.spacing.lg}`,
         }}
       >
-        <div
-          style={{
-            maxWidth: '600px',
-            margin: '0 auto',
-            textAlign: 'center',
-          }}
-        >
+        <div style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center" }}>
           <h1 style={{ ...theme.heading.h1, marginBottom: theme.spacing.lg }}>
             Créer un compte
           </h1>
           <p style={{ ...theme.body.large, color: theme.colors.text.secondary }}>
-            Rejoignez-nous pour profiter d'une expérience d'achat personnalisée
+            Rejoignez-nous pour profiter d&apos;une expérience d&apos;achat personnalisée
           </p>
         </div>
       </section>
@@ -84,16 +80,11 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
       <section
         style={{
           backgroundColor: theme.colors.background.primary,
-          padding: `${theme.spacing['4xl']} ${theme.spacing.lg}`,
-          minHeight: '60vh',
+          padding: `${theme.spacing["4xl"]} ${theme.spacing.lg}`,
+          minHeight: "60vh",
         }}
       >
-        <div
-          style={{
-            maxWidth: '500px',
-            margin: '0 auto',
-          }}
-        >
+        <div style={{ maxWidth: "500px", margin: "0 auto" }}>
           <form onSubmit={handleSubmit}>
             {error && (
               <div
@@ -105,16 +96,14 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
                   marginBottom: theme.spacing.lg,
                 }}
               >
-                <p style={{ ...theme.body.base, color: theme.colors.error.main }}>
-                  {error}
-                </p>
+                <p style={{ ...theme.body.base, color: theme.colors.error.main }}>{error}</p>
               </div>
             )}
 
             <div
               style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
                 gap: theme.spacing.lg,
                 marginBottom: theme.spacing.lg,
               }}
@@ -123,7 +112,7 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
                 <label
                   htmlFor="firstName"
                   style={{
-                    display: 'block',
+                    display: "block",
                     ...theme.body.base,
                     fontWeight: theme.typography.fontWeight.medium,
                     marginBottom: theme.spacing.sm,
@@ -131,14 +120,14 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
                 >
                   Prénom *
                 </label>
-                <div style={{ position: 'relative' }}>
+                <div style={{ position: "relative" }}>
                   <User
                     size={20}
                     style={{
-                      position: 'absolute',
+                      position: "absolute",
                       left: theme.spacing.md,
-                      top: '50%',
-                      transform: 'translateY(-50%)',
+                      top: "50%",
+                      transform: "translateY(-50%)",
                       color: theme.colors.text.light,
                     }}
                   />
@@ -146,10 +135,10 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
                     id="firstName"
                     type="text"
                     value={formData.firstName}
-                    onChange={(e) => handleChange('firstName', e.target.value)}
+                    onChange={(e) => handleChange("firstName", e.target.value)}
                     required
                     style={{
-                      width: '100%',
+                      width: "100%",
                       padding: `${theme.spacing.md} ${theme.spacing.md} ${theme.spacing.md} 48px`,
                       border: `1px solid ${theme.colors.border.main}`,
                       borderRadius: theme.borderRadius.md,
@@ -164,7 +153,7 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
                 <label
                   htmlFor="lastName"
                   style={{
-                    display: 'block',
+                    display: "block",
                     ...theme.body.base,
                     fontWeight: theme.typography.fontWeight.medium,
                     marginBottom: theme.spacing.sm,
@@ -172,14 +161,14 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
                 >
                   Nom *
                 </label>
-                <div style={{ position: 'relative' }}>
+                <div style={{ position: "relative" }}>
                   <User
                     size={20}
                     style={{
-                      position: 'absolute',
+                      position: "absolute",
                       left: theme.spacing.md,
-                      top: '50%',
-                      transform: 'translateY(-50%)',
+                      top: "50%",
+                      transform: "translateY(-50%)",
                       color: theme.colors.text.light,
                     }}
                   />
@@ -187,10 +176,10 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
                     id="lastName"
                     type="text"
                     value={formData.lastName}
-                    onChange={(e) => handleChange('lastName', e.target.value)}
+                    onChange={(e) => handleChange("lastName", e.target.value)}
                     required
                     style={{
-                      width: '100%',
+                      width: "100%",
                       padding: `${theme.spacing.md} ${theme.spacing.md} ${theme.spacing.md} 48px`,
                       border: `1px solid ${theme.colors.border.main}`,
                       borderRadius: theme.borderRadius.md,
@@ -206,7 +195,7 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
               <label
                 htmlFor="email"
                 style={{
-                  display: 'block',
+                  display: "block",
                   ...theme.body.base,
                   fontWeight: theme.typography.fontWeight.medium,
                   marginBottom: theme.spacing.sm,
@@ -214,14 +203,14 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
               >
                 Adresse email *
               </label>
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: "relative" }}>
                 <Mail
                   size={20}
                   style={{
-                    position: 'absolute',
+                    position: "absolute",
                     left: theme.spacing.md,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
+                    top: "50%",
+                    transform: "translateY(-50%)",
                     color: theme.colors.text.light,
                   }}
                 />
@@ -229,10 +218,10 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
                   id="email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) => handleChange('email', e.target.value)}
+                  onChange={(e) => handleChange("email", e.target.value)}
                   required
                   style={{
-                    width: '100%',
+                    width: "100%",
                     padding: `${theme.spacing.md} ${theme.spacing.md} ${theme.spacing.md} 48px`,
                     border: `1px solid ${theme.colors.border.main}`,
                     borderRadius: theme.borderRadius.md,
@@ -247,7 +236,7 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
               <label
                 htmlFor="phone"
                 style={{
-                  display: 'block',
+                  display: "block",
                   ...theme.body.base,
                   fontWeight: theme.typography.fontWeight.medium,
                   marginBottom: theme.spacing.sm,
@@ -255,14 +244,14 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
               >
                 Téléphone *
               </label>
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: "relative" }}>
                 <Phone
                   size={20}
                   style={{
-                    position: 'absolute',
+                    position: "absolute",
                     left: theme.spacing.md,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
+                    top: "50%",
+                    transform: "translateY(-50%)",
                     color: theme.colors.text.light,
                   }}
                 />
@@ -270,10 +259,10 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
                   id="phone"
                   type="tel"
                   value={formData.phone}
-                  onChange={(e) => handleChange('phone', e.target.value)}
+                  onChange={(e) => handleChange("phone", e.target.value)}
                   required
                   style={{
-                    width: '100%',
+                    width: "100%",
                     padding: `${theme.spacing.md} ${theme.spacing.md} ${theme.spacing.md} 48px`,
                     border: `1px solid ${theme.colors.border.main}`,
                     borderRadius: theme.borderRadius.md,
@@ -288,7 +277,7 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
               <label
                 htmlFor="password"
                 style={{
-                  display: 'block',
+                  display: "block",
                   ...theme.body.base,
                   fontWeight: theme.typography.fontWeight.medium,
                   marginBottom: theme.spacing.sm,
@@ -296,14 +285,14 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
               >
                 Mot de passe *
               </label>
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: "relative" }}>
                 <Lock
                   size={20}
                   style={{
-                    position: 'absolute',
+                    position: "absolute",
                     left: theme.spacing.md,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
+                    top: "50%",
+                    transform: "translateY(-50%)",
                     color: theme.colors.text.light,
                   }}
                 />
@@ -311,10 +300,10 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
                   id="password"
                   type="password"
                   value={formData.password}
-                  onChange={(e) => handleChange('password', e.target.value)}
+                  onChange={(e) => handleChange("password", e.target.value)}
                   required
                   style={{
-                    width: '100%',
+                    width: "100%",
                     padding: `${theme.spacing.md} ${theme.spacing.md} ${theme.spacing.md} 48px`,
                     border: `1px solid ${theme.colors.border.main}`,
                     borderRadius: theme.borderRadius.md,
@@ -329,7 +318,7 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
               <label
                 htmlFor="confirmPassword"
                 style={{
-                  display: 'block',
+                  display: "block",
                   ...theme.body.base,
                   fontWeight: theme.typography.fontWeight.medium,
                   marginBottom: theme.spacing.sm,
@@ -337,14 +326,14 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
               >
                 Confirmer le mot de passe *
               </label>
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: "relative" }}>
                 <Lock
                   size={20}
                   style={{
-                    position: 'absolute',
+                    position: "absolute",
                     left: theme.spacing.md,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
+                    top: "50%",
+                    transform: "translateY(-50%)",
                     color: theme.colors.text.light,
                   }}
                 />
@@ -352,10 +341,10 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
                   id="confirmPassword"
                   type="password"
                   value={formData.confirmPassword}
-                  onChange={(e) => handleChange('confirmPassword', e.target.value)}
+                  onChange={(e) => handleChange("confirmPassword", e.target.value)}
                   required
                   style={{
-                    width: '100%',
+                    width: "100%",
                     padding: `${theme.spacing.md} ${theme.spacing.md} ${theme.spacing.md} 48px`,
                     border: `1px solid ${theme.colors.border.main}`,
                     borderRadius: theme.borderRadius.md,
@@ -375,7 +364,7 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
               style={{ marginBottom: theme.spacing.md }}
             >
               {loading ? (
-                'Création du compte...'
+                "Création du compte..."
               ) : (
                 <>
                   <UserPlus size={20} style={{ marginRight: theme.spacing.sm }} />
@@ -384,27 +373,24 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
               )}
             </Button>
 
-            <p style={{ ...theme.body.base, textAlign: 'center' }}>
-              Vous avez déjà un compte?{' '}
-              <button
-                type="button"
-                onClick={() => onNavigate?.('login')}
+            <p style={{ ...theme.body.base, textAlign: "center" }}>
+              Vous avez déjà un compte ?{" "}
+              <Link
+                to="/auth"
                 style={{
-                  background: 'none',
-                  border: 'none',
                   color: theme.colors.primary.main,
-                  cursor: 'pointer',
-                  textDecoration: 'underline',
+                  textDecoration: "underline",
                   fontSize: theme.typography.fontSize.base,
                   fontFamily: theme.typography.fontFamily.body,
                 }}
               >
                 Se connecter
-              </button>
+              </Link>
             </p>
           </form>
         </div>
       </section>
+
     </div>
   );
 }

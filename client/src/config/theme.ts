@@ -1,3 +1,4 @@
+// client/src/config/theme.ts
 export const theme = {
   colors: {
     primary: {
@@ -28,7 +29,7 @@ export const theme = {
     background: {
       primary: '#FFFFFF',
       secondary: '#F9FAF8',
-      tertiary: '#A8B89F',
+      tertiary: '#b8a79fff',
       sage: '#D4DCC9',
     },
     text: {
@@ -43,7 +44,7 @@ export const theme = {
       dark: '#A8B89F',
     },
     success: {
-      main: '#6D9B6E',
+      main: '#9b7d6dff',
       light: '#8FB590',
       dark: '#558457',
       50: '#F3F8F3',

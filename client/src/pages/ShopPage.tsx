@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
-import { Search } from 'lucide-react';
-import { theme } from '../config/theme';
-import { Button } from '../components/Button';
-import { ProductCard } from '../components/ProductCard';
-import { Product, Category } from '../lib/types';
-import { useCart } from '../contexts/CartContext';
-import { api } from '../services/api';
+// client/src/pages/ShopPage.tsx
+import { useEffect, useMemo, useState } from "react";
+import { Search, X } from "lucide-react";
+import { theme } from "../config/theme";
+import { Button } from "../components/Button";
+import { ProductCard } from "../components/ProductCard";
+import type { Product, ProductCategory } from "../lib/types";
+import { useCart } from "../contexts/CartContext";
+import { productService } from "../services/productService";
 
 interface ShopPageProps {
   onViewProduct?: (product: Product) => void;
@@ -13,73 +14,107 @@ interface ShopPageProps {
 
 export function ShopPage({ onViewProduct }: ShopPageProps) {
   const { addToCart } = useCart();
+
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<ProductCategory[]>([]);
+  const [selectedCategorySlug, setSelectedCategorySlug] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [loadingCategories, setLoadingCategories] = useState(true);
 
   useEffect(() => {
-    fetchCategories();
-    fetchProducts();
+    void fetchCategories();
   }, []);
 
   useEffect(() => {
-    fetchProducts();
-  }, [selectedCategory]);
+    void fetchProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategorySlug]);
 
   const fetchCategories = async () => {
+    setLoadingCategories(true);
     try {
-      const { categories: data } = await api.getCategories();
+      const { categories: data } = await productService.listCategories();
       setCategories(data || []);
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      console.error("Error fetching categories:", error);
+      setCategories([]);
+    } finally {
+      setLoadingCategories(false);
     }
   };
 
   const fetchProducts = async () => {
-    setLoading(true);
+    setLoadingProducts(true);
     try {
-      const params: any = {};
-      if (selectedCategory !== 'all') {
-        params.category = categories.find(c => c.id === selectedCategory)?.slug;
-      }
-
-      const { products: data } = await api.getProducts(params);
+      const params = {
+        category: selectedCategorySlug !== "all" ? selectedCategorySlug : undefined,
+        limit: 200,
+        offset: 0,
+      };
+      const { products: data } = await productService.listProducts(params);
       setProducts(data || []);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error("Error fetching products:", error);
+      setProducts([]);
     } finally {
-      setLoading(false);
+      setLoadingProducts(false);
     }
   };
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProducts = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return products;
+
+    return products.filter((p) => {
+      const name = (p.name || "").toLowerCase();
+      const desc = (p.description || "").toLowerCase();
+      const shortDesc = (p.short_description || "").toLowerCase();
+      const ing = (p.ingredients || "").toLowerCase();
+
+      const catMatch =
+        (p.categories || []).some((c) => (c.name || "").toLowerCase().includes(q)) ||
+        (p.categories || []).some((c) => (c.slug || "").toLowerCase().includes(q));
+
+      return (
+        name.includes(q) ||
+        desc.includes(q) ||
+        shortDesc.includes(q) ||
+        ing.includes(q) ||
+        catMatch
+      );
+    });
+  }, [products, searchQuery]);
+
+  const categoryButtons = useMemo(() => {
+    // sort by display_order then name
+    const sorted = [...categories].sort((a, b) => {
+      const ao = a.display_order ?? 0;
+      const bo = b.display_order ?? 0;
+      if (ao !== bo) return ao - bo;
+      return (a.name || "").localeCompare(b.name || "");
+    });
+    return sorted;
+  }, [categories]);
 
   return (
     <div>
+
+      {/* HERO */}
       <section
         style={{
           backgroundColor: theme.colors.background.sage,
-          padding: `${theme.spacing['3xl']} ${theme.spacing.lg}`,
+          padding: `${theme.spacing["3xl"]} ${theme.spacing.lg}`,
         }}
       >
         <div
           style={{
             maxWidth: theme.container.maxWidth,
-            margin: '0 auto',
-            textAlign: 'center',
+            margin: "0 auto",
+            textAlign: "center",
           }}
         >
-          <h1
-            style={{
-              ...theme.heading.h1,
-              marginBottom: theme.spacing.lg,
-            }}
-          >
+          <h1 style={{ ...theme.heading.h1, marginBottom: theme.spacing.lg }}>
             Boutique
           </h1>
           <p
@@ -87,84 +122,117 @@ export function ShopPage({ onViewProduct }: ShopPageProps) {
               fontFamily: theme.typography.fontFamily.body,
               fontSize: theme.typography.fontSize.lg,
               color: theme.colors.text.secondary,
-              maxWidth: '700px',
-              margin: '0 auto',
+              maxWidth: "760px",
+              margin: "0 auto",
             }}
           >
-            Découvrez notre collection complète de produits naturels pour la beauté
+            Découvrez notre collection complète de produits naturels pour sublimer vos cheveux et votre peau.
           </p>
         </div>
       </section>
 
+      {/* CONTENT */}
       <section
         style={{
           backgroundColor: theme.colors.background.primary,
-          padding: `${theme.spacing['2xl']} ${theme.spacing.lg}`,
+          padding: `${theme.spacing["2xl"]} ${theme.spacing.lg}`,
         }}
       >
-        <div
-          style={{
-            maxWidth: theme.container.maxWidth,
-            margin: '0 auto',
-          }}
-        >
+        <div style={{ maxWidth: theme.container.maxWidth, margin: "0 auto" }}>
+          {/* Filters */}
           <div
             style={{
-              display: 'flex',
-              flexDirection: 'column',
+              display: "flex",
+              flexDirection: "column",
               gap: theme.spacing.xl,
-              marginBottom: theme.spacing['2xl'],
+              marginBottom: theme.spacing["2xl"],
             }}
           >
+            {/* Categories */}
             <div
               style={{
-                display: 'flex',
-                flexWrap: 'wrap',
+                display: "flex",
+                flexWrap: "wrap",
                 gap: theme.spacing.md,
-                justifyContent: 'center',
+                justifyContent: "center",
               }}
             >
               <Button
-                variant={selectedCategory === 'all' ? 'primary' : 'outline'}
-                onClick={() => setSelectedCategory('all')}
+                variant={selectedCategorySlug === "all" ? "primary" : "outline"}
+                onClick={() => setSelectedCategorySlug("all")}
               >
                 Tous les produits
               </Button>
-              {categories.map((category) => (
-                <Button
-                  key={category.id}
-                  variant={selectedCategory === category.id ? 'primary' : 'outline'}
-                  onClick={() => setSelectedCategory(category.id)}
+
+              {loadingCategories ? (
+                <span
+                  style={{
+                    fontFamily: theme.typography.fontFamily.body,
+                    fontSize: theme.typography.fontSize.sm,
+                    color: theme.colors.text.secondary,
+                    alignSelf: "center",
+                  }}
                 >
-                  {category.name}
-                </Button>
-              ))}
+                  Chargement des catégories...
+                </span>
+              ) : (
+                categoryButtons.map((c) => (
+                  <Button
+                    key={c.id}
+                    variant={selectedCategorySlug === c.slug ? "primary" : "outline"}
+                    onClick={() => setSelectedCategorySlug(c.slug)}
+                  >
+                    {c.name}
+                  </Button>
+                ))
+              )}
             </div>
 
-            <div style={{ maxWidth: '500px', margin: '0 auto', width: '100%', position: 'relative' }}>
+            {/* Search */}
+            <div style={{ maxWidth: "560px", margin: "0 auto", width: "100%", position: "relative" }}>
               <Search
                 size={20}
                 color={theme.colors.text.light}
                 style={{
-                  position: 'absolute',
+                  position: "absolute",
                   left: theme.spacing.md,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
+                  top: "50%",
+                  transform: "translateY(-50%)",
                 }}
               />
+
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  aria-label="Effacer la recherche"
+                  style={{
+                    position: "absolute",
+                    right: theme.spacing.md,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    border: "none",
+                    background: "transparent",
+                    cursor: "pointer",
+                    padding: 4,
+                  }}
+                >
+                  <X size={18} color={theme.colors.text.light} />
+                </button>
+              )}
+
               <input
                 type="text"
-                placeholder="Rechercher des produits..."
+                placeholder="Rechercher (nom, description, ingrédients, catégorie)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
-                  width: '100%',
-                  padding: `${theme.spacing.md} ${theme.spacing.md} ${theme.spacing.md} 3rem`,
+                  width: "100%",
+                  padding: `${theme.spacing.md} ${theme.spacing["3xl"]} ${theme.spacing.md} 3rem`,
                   borderRadius: theme.borderRadius.lg,
                   border: `2px solid ${theme.colors.border.main}`,
                   fontFamily: theme.typography.fontFamily.body,
                   fontSize: theme.typography.fontSize.base,
-                  outline: 'none',
+                  outline: "none",
                 }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = theme.colors.primary.main;
@@ -174,13 +242,27 @@ export function ShopPage({ onViewProduct }: ShopPageProps) {
                 }}
               />
             </div>
-          </div>
 
-          {loading ? (
+            {/* Result meta */}
             <div
               style={{
-                textAlign: 'center',
-                padding: theme.spacing['4xl'],
+                textAlign: "center",
+                fontFamily: theme.typography.fontFamily.body,
+                fontSize: theme.typography.fontSize.sm,
+                color: theme.colors.text.secondary,
+              }}
+            >
+              {loadingProducts ? "Chargement..." : `${filteredProducts.length} produit(s)`}
+              {selectedCategorySlug !== "all" && !loadingProducts ? " dans cette catégorie" : ""}
+            </div>
+          </div>
+
+          {/* Grid */}
+          {loadingProducts ? (
+            <div
+              style={{
+                textAlign: "center",
+                padding: theme.spacing["4xl"],
                 color: theme.colors.text.secondary,
                 fontFamily: theme.typography.fontFamily.body,
               }}
@@ -190,8 +272,8 @@ export function ShopPage({ onViewProduct }: ShopPageProps) {
           ) : filteredProducts.length > 0 ? (
             <div
               style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
                 gap: theme.spacing.xl,
               }}
             >
@@ -207,15 +289,17 @@ export function ShopPage({ onViewProduct }: ShopPageProps) {
           ) : (
             <div
               style={{
-                textAlign: 'center',
-                padding: theme.spacing['4xl'],
+                textAlign: "center",
+                padding: theme.spacing["4xl"],
                 color: theme.colors.text.secondary,
                 fontFamily: theme.typography.fontFamily.body,
               }}
             >
               {searchQuery
-                ? 'Aucun produit ne correspond à votre recherche.'
-                : 'Aucun produit disponible dans cette catégorie.'}
+                ? "Aucun produit ne correspond à votre recherche."
+                : selectedCategorySlug !== "all"
+                ? "Aucun produit disponible dans cette catégorie."
+                : "Aucun produit à afficher pour le moment."}
             </div>
           )}
         </div>

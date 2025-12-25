@@ -1,172 +1,205 @@
-import { useEffect, useState } from 'react';
-import { ArrowLeft, Star, ShoppingCart, Check, ThumbsUp } from 'lucide-react';
-import { theme } from '../config/theme';
-import { Button } from '../components/Button';
-import { ProductImageGallery } from '../components/ProductImageGallery';
-import { Product, ProductReview, ProductImage } from '../lib/types';
-import { api } from '../services/api';
-import { useCart } from '../contexts/CartContext';
+// client/src/pages/ProductDetailPage.tsx
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Star, ShoppingCart, Check, ThumbsUp } from "lucide-react";
 
-interface ProductDetailPageProps {
-  productId: string;
-  onNavigate?: (page: string) => void;
-}
+import { theme } from "../config/theme";
+import { Button } from "../components/Button";
+import { ProductImageGallery } from "../components/ProductImageGallery";
 
-export function ProductDetailPage({ productId, onNavigate }: ProductDetailPageProps) {
+import { useCart } from "../contexts/CartContext";
+import { productService, type Product, type ProductImage, type ProductReview } from "../services/productService";
+
+type RouteParams = { slug?: string };
+
+export default function ProductDetailPage() {
+  const navigate = useNavigate();
+  const { slug } = useParams<RouteParams>();
   const { addToCart } = useCart();
+
   const [product, setProduct] = useState<Product | null>(null);
   const [productImages, setProductImages] = useState<ProductImage[]>([]);
   const [reviews, setReviews] = useState<ProductReview[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewForm, setReviewForm] = useState({
-    customer_name: '',
-    customer_email: '',
+    customer_name: "",
+    customer_email: "",
     rating: 5,
-    title: '',
-    comment: '',
+    title: "",
+    comment: "",
   });
   const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const [addedToCart, setAddedToCart] = useState(false);
 
   useEffect(() => {
-    fetchProductDetails();
-    fetchProductImages();
-    fetchReviews();
-  }, [productId]);
+    let mounted = true;
 
-  const fetchProductDetails = async () => {
-    try {
-      console.log('Product detail page - fetching by ID:', productId);
-      setProduct(null);
-      setProductImages([]);
-      setReviews([]);
-    } catch (error) {
-      console.error('Error fetching product:', error);
-    } finally {
-      setLoading(false);
+    async function load() {
+      if (!slug) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setMessage("");
+      try {
+        const { product } = await productService.getProductBySlug(slug);
+
+        if (!mounted) return;
+
+        setProduct(product);
+
+        // images + reviews are already attached by backend in getProductBySlug
+        setProductImages((product.images || []) as ProductImage[]);
+        setReviews((product.reviews || []) as ProductReview[]);
+      } catch (e: any) {
+        if (!mounted) return;
+        console.error("Error loading product detail:", e);
+        setProduct(null);
+        setProductImages([]);
+        setReviews([]);
+      } finally {
+        if (!mounted) return;
+        setLoading(false);
+      }
     }
-  };
 
-  const fetchProductImages = async () => {
-    try {
-      console.log('Product images fetch disabled - using API');
-    } catch (error) {
-      console.error('Error fetching product images:', error);
-    }
-  };
-
-  const fetchReviews = async () => {
-    try {
-      console.log('Product reviews fetch disabled - using API');
-    } catch (error) {
-      console.error('Error fetching reviews:', error);
-    }
-  };
-
-  const handleSubmitReview = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setMessage('');
-
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setMessage('Les avis produits seront bientôt disponibles !');
-      setReviewForm({
-        customer_name: '',
-        customer_email: '',
-        rating: 5,
-        title: '',
-        comment: '',
-      });
-      setShowReviewForm(false);
-    } catch (error) {
-      setMessage('Une erreur est survenue. Veuillez réessayer.');
-    } finally{
-      setSubmitting(false);
-    }
-  };
+    void load();
+    return () => {
+      mounted = false;
+    };
+  }, [slug]);
 
   const renderStars = (rating: number, size: number = 20) => {
+    const r = Math.max(0, Math.min(5, rating));
     return (
-      <div style={{ display: 'flex', gap: '2px' }}>
+      <div style={{ display: "flex", gap: "2px" }}>
         {[1, 2, 3, 4, 5].map((star) => (
           <Star
             key={star}
             size={size}
-            fill={star <= rating ? theme.colors.accent.main : 'none'}
-            color={star <= rating ? theme.colors.accent.main : theme.colors.text.light}
+            fill={star <= r ? theme.colors.accent.main : "none"}
+            color={star <= r ? theme.colors.accent.main : theme.colors.text.light}
           />
         ))}
       </div>
     );
   };
 
-  const getRatingDistribution = () => {
-    const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-    reviews.forEach((review) => {
-      distribution[review.rating as keyof typeof distribution]++;
-    });
-    return distribution;
+  const distribution = useMemo(() => {
+    const dist: Record<1 | 2 | 3 | 4 | 5, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    for (const r of reviews) {
+      const key = (Number(r.rating) as 1 | 2 | 3 | 4 | 5) || 5;
+      dist[key] = (dist[key] ?? 0) + 1;
+    }
+    return dist;
+  }, [reviews]);
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setMessage("");
+
+    // TODO: hook to backend endpoint later (POST /api/products/:id/reviews)
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      setMessage("Les avis produits seront bientôt disponibles !");
+      setReviewForm({
+        customer_name: "",
+        customer_email: "",
+        rating: 5,
+        title: "",
+        comment: "",
+      });
+      setShowReviewForm(false);
+    } catch {
+      setMessage("Une erreur est survenue. Veuillez réessayer.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (loading) {
     return (
-      <div
-        style={{
-          padding: theme.spacing['4xl'],
-          textAlign: 'center',
-          fontFamily: theme.typography.fontFamily.body,
-          color: theme.colors.text.secondary,
-        }}
-      >
-        Chargement...
+      <div>
+        <div
+          style={{
+            padding: theme.spacing["4xl"],
+            textAlign: "center",
+            fontFamily: theme.typography.fontFamily.body,
+            color: theme.colors.text.secondary,
+            backgroundColor: theme.colors.background.primary,
+          }}
+        >
+          Chargement...
+        </div>
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div
-        style={{
-          padding: theme.spacing['4xl'],
-          textAlign: 'center',
-        }}
-      >
-        <h2 style={{ ...theme.heading.h2, marginBottom: theme.spacing.lg }}>Produit non trouvé</h2>
-        <Button variant="primary" onClick={() => onNavigate?.('shop')}>
-          Retour à la boutique
-        </Button>
+      <div>
+        <div
+          style={{
+            padding: theme.spacing["4xl"],
+            textAlign: "center",
+            backgroundColor: theme.colors.background.primary,
+          }}
+        >
+          <h2 style={{ ...theme.heading.h2, marginBottom: theme.spacing.lg }}>Produit non trouvé</h2>
+          <Button variant="primary" onClick={() => navigate("/shop")}>
+            Retour à la boutique
+          </Button>
+        </div>
       </div>
     );
   }
 
-  const distribution = getRatingDistribution();
+  const mainCategory =
+    Array.isArray(product.categories) && product.categories.length
+      ? product.categories[0]
+      : undefined;
+
+  const galleryImages: ProductImage[] =
+    productImages.length > 0
+      ? productImages
+      : product.image_url
+      ? [
+          {
+            id: "fallback",
+            product_id: String(product.id),
+            image_url: product.image_url,
+            alt_text: product.name,
+            display_order: 0,
+            is_primary: true,
+            created_at: product.created_at,
+          },
+        ]
+      : [];
 
   return (
     <div>
+
       <section
         style={{
           backgroundColor: theme.colors.background.primary,
-          padding: `${theme.spacing['2xl']} ${theme.spacing.lg}`,
+          padding: `${theme.spacing["2xl"]} ${theme.spacing.lg}`,
         }}
       >
-        <div
-          style={{
-            maxWidth: theme.container.maxWidth,
-            margin: '0 auto',
-          }}
-        >
+        <div style={{ maxWidth: theme.container.maxWidth, margin: "0 auto" }}>
           <button
-            onClick={() => onNavigate?.('shop')}
+            onClick={() => navigate("/shop")}
             style={{
-              display: 'flex',
-              alignItems: 'center',
+              display: "flex",
+              alignItems: "center",
               gap: theme.spacing.sm,
-              border: 'none',
-              background: 'none',
-              cursor: 'pointer',
+              border: "none",
+              background: "none",
+              cursor: "pointer",
               fontFamily: theme.typography.fontFamily.body,
               fontSize: theme.typography.fontSize.base,
               color: theme.colors.primary.main,
@@ -179,41 +212,21 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
 
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-              gap: theme.spacing['3xl'],
-              marginBottom: theme.spacing['4xl'],
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+              gap: theme.spacing["3xl"],
+              marginBottom: theme.spacing["4xl"],
             }}
           >
             <div>
-              <ProductImageGallery
-                images={
-                  productImages.length > 0
-                    ? productImages
-                    : product.image_url
-                    ? [
-                        {
-                          id: 'fallback',
-                          product_id: product.id,
-                          image_url: product.image_url,
-                          alt_text: product.name,
-                          display_order: 0,
-                          is_primary: true,
-                          created_at: product.created_at,
-                        },
-                      ]
-                    : []
-                }
-                productName={product.name}
-                isNew={product.is_new}
-              />
+              <ProductImageGallery images={galleryImages} productName={product.name} isNew={!!product.is_new} />
             </div>
 
             <div>
-              {product.categories && (
+              {mainCategory && (
                 <span
                   style={{
-                    display: 'inline-block',
+                    display: "inline-block",
                     backgroundColor: theme.colors.primary[100],
                     color: theme.colors.primary[700],
                     padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
@@ -224,14 +237,14 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                     marginBottom: theme.spacing.md,
                   }}
                 >
-                  {product.categories.name}
+                  {mainCategory.name}
                 </span>
               )}
 
               <h1
                 style={{
                   ...theme.heading.h1,
-                  fontSize: theme.typography.fontSize['4xl'],
+                  fontSize: theme.typography.fontSize["4xl"],
                   marginBottom: theme.spacing.md,
                 }}
               >
@@ -240,13 +253,13 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
 
               <div
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
+                  display: "flex",
+                  alignItems: "center",
                   gap: theme.spacing.md,
                   marginBottom: theme.spacing.lg,
                 }}
               >
-                {renderStars(Math.round(product.average_rating), 24)}
+                {renderStars(Math.round(Number(product.average_rating || 0)), 24)}
                 <span
                   style={{
                     fontFamily: theme.typography.fontFamily.body,
@@ -254,44 +267,47 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                     color: theme.colors.text.secondary,
                   }}
                 >
-                  {Number(product.average_rating).toFixed(1)} ({product.review_count}{' '}
-                  {product.review_count === 1 ? 'avis' : 'avis'})
+                  {Number(product.average_rating || 0).toFixed(1)} ({Number(product.review_count || 0)} avis)
                 </span>
               </div>
 
               <div style={{ marginBottom: theme.spacing.xl }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm, marginBottom: theme.spacing.sm }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: theme.spacing.sm,
+                    marginBottom: theme.spacing.sm,
+                  }}
+                >
                   <span
                     style={{
                       fontFamily: theme.typography.fontFamily.body,
-                      fontSize: theme.typography.fontSize['3xl'],
+                      fontSize: theme.typography.fontSize["3xl"],
                       fontWeight: theme.typography.fontWeight.bold,
                       color: theme.colors.text.primary,
                     }}
                   >
                     {Number(product.price).toFixed(2)} €
                   </span>
-                  {product.compare_at_price && Number(product.compare_at_price) > Number(product.price) && (
-                    <span
-                      style={{
-                        fontFamily: theme.typography.fontFamily.body,
-                        fontSize: theme.typography.fontSize.lg,
-                        color: theme.colors.text.light,
-                        textDecoration: 'line-through',
-                      }}
-                    >
-                      {Number(product.compare_at_price).toFixed(2)} €
-                    </span>
-                  )}
+
+                  {product.compare_at_price != null &&
+                    Number(product.compare_at_price) > Number(product.price) && (
+                      <span
+                        style={{
+                          fontFamily: theme.typography.fontFamily.body,
+                          fontSize: theme.typography.fontSize.lg,
+                          color: theme.colors.text.light,
+                          textDecoration: "line-through",
+                        }}
+                      >
+                        {Number(product.compare_at_price).toFixed(2)} €
+                      </span>
+                    )}
                 </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: theme.spacing.sm,
-                  }}
-                >
-                  {product.stock_status === 'in_stock' && (
+
+                <div style={{ display: "flex", alignItems: "center", gap: theme.spacing.sm }}>
+                  {product.stock_status === "in_stock" && (
                     <>
                       <Check size={16} color={theme.colors.status.success} />
                       <span
@@ -306,7 +322,7 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                       </span>
                     </>
                   )}
-                  {product.stock_status === 'limited' && (
+                  {product.stock_status === "limited" && (
                     <span
                       style={{
                         fontFamily: theme.typography.fontFamily.body,
@@ -318,7 +334,7 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                       Stock limité
                     </span>
                   )}
-                  {product.stock_status === 'out_of_stock' && (
+                  {product.stock_status === "out_of_stock" && (
                     <span
                       style={{
                         fontFamily: theme.typography.fontFamily.body,
@@ -333,25 +349,27 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                 </div>
               </div>
 
-              <p
-                style={{
-                  fontFamily: theme.typography.fontFamily.body,
-                  fontSize: theme.typography.fontSize.lg,
-                  color: theme.colors.text.secondary,
-                  lineHeight: theme.typography.lineHeight.body,
-                  marginBottom: theme.spacing.xl,
-                }}
-              >
-                {product.description}
-              </p>
+              {product.description && (
+                <p
+                  style={{
+                    fontFamily: theme.typography.fontFamily.body,
+                    fontSize: theme.typography.fontSize.lg,
+                    color: theme.colors.text.secondary,
+                    lineHeight: theme.typography.lineHeight.body,
+                    marginBottom: theme.spacing.xl,
+                  }}
+                >
+                  {product.description}
+                </p>
+              )}
 
               <Button
                 variant="primary"
                 size="large"
                 fullWidth
-                disabled={product.stock_status === 'out_of_stock'}
+                disabled={product.stock_status === "out_of_stock"}
                 onClick={() => {
-                  addToCart(product);
+                  addToCart(product as any);
                   setAddedToCart(true);
                   setTimeout(() => setAddedToCart(false), 2000);
                 }}
@@ -370,29 +388,16 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                 )}
               </Button>
 
-              {product.benefits && product.benefits.length > 0 && (
+              {Array.isArray(product.benefits) && product.benefits.length > 0 && (
                 <div style={{ marginTop: theme.spacing.xl }}>
-                  <h3
-                    style={{
-                      ...theme.heading.h4,
-                      marginBottom: theme.spacing.md,
-                    }}
-                  >
-                    Avantages
-                  </h3>
-                  <ul
-                    style={{
-                      listStyle: 'none',
-                      margin: 0,
-                      padding: 0,
-                    }}
-                  >
+                  <h3 style={{ ...theme.heading.h4, marginBottom: theme.spacing.md }}>Avantages</h3>
+                  <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
                     {product.benefits.map((benefit, index) => (
                       <li
                         key={index}
                         style={{
-                          display: 'flex',
-                          alignItems: 'flex-start',
+                          display: "flex",
+                          alignItems: "flex-start",
                           gap: theme.spacing.sm,
                           marginBottom: theme.spacing.sm,
                           fontFamily: theme.typography.fontFamily.body,
@@ -400,8 +405,8 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                           color: theme.colors.text.secondary,
                         }}
                       >
-                        <Check size={20} color={theme.colors.status.success} style={{ flexShrink: 0, marginTop: '2px' }} />
-                        {benefit}
+                        <Check size={20} color={theme.colors.status.success} style={{ flexShrink: 0, marginTop: 2 }} />
+                        {String(benefit)}
                       </li>
                     ))}
                   </ul>
@@ -416,23 +421,18 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                 backgroundColor: theme.colors.background.secondary,
                 padding: theme.spacing.xl,
                 borderRadius: theme.borderRadius.lg,
+                border: `1px solid ${theme.colors.border.light}`,
                 marginBottom: theme.spacing.xl,
               }}
             >
-              <h3
-                style={{
-                  ...theme.heading.h4,
-                  marginBottom: theme.spacing.md,
-                }}
-              >
-                Ingrédients
-              </h3>
+              <h3 style={{ ...theme.heading.h4, marginBottom: theme.spacing.md }}>Ingrédients</h3>
               <p
                 style={{
                   fontFamily: theme.typography.fontFamily.body,
                   fontSize: theme.typography.fontSize.base,
                   color: theme.colors.text.secondary,
                   lineHeight: theme.typography.lineHeight.body,
+                  margin: 0,
                 }}
               >
                 {product.ingredients}
@@ -446,23 +446,18 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                 backgroundColor: theme.colors.background.secondary,
                 padding: theme.spacing.xl,
                 borderRadius: theme.borderRadius.lg,
-                marginBottom: theme.spacing['3xl'],
+                border: `1px solid ${theme.colors.border.light}`,
+                marginBottom: theme.spacing["3xl"],
               }}
             >
-              <h3
-                style={{
-                  ...theme.heading.h4,
-                  marginBottom: theme.spacing.md,
-                }}
-              >
-                Mode d'emploi
-              </h3>
+              <h3 style={{ ...theme.heading.h4, marginBottom: theme.spacing.md }}>Mode d&apos;emploi</h3>
               <p
                 style={{
                   fontFamily: theme.typography.fontFamily.body,
                   fontSize: theme.typography.fontSize.base,
                   color: theme.colors.text.secondary,
                   lineHeight: theme.typography.lineHeight.body,
+                  margin: 0,
                 }}
               >
                 {product.usage}
@@ -470,20 +465,21 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
             </div>
           )}
 
+          {/* REVIEWS */}
           <div id="reviews">
             <div
               style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
                 marginBottom: theme.spacing.xl,
-                flexWrap: 'wrap',
+                flexWrap: "wrap",
                 gap: theme.spacing.md,
               }}
             >
               <h2 style={{ ...theme.heading.h2 }}>Avis clients</h2>
-              <Button variant="primary" onClick={() => setShowReviewForm(!showReviewForm)}>
-                {showReviewForm ? 'Annuler' : 'Écrire un avis'}
+              <Button variant="primary" onClick={() => setShowReviewForm((v) => !v)}>
+                {showReviewForm ? "Annuler" : "Écrire un avis"}
               </Button>
             </div>
 
@@ -493,22 +489,17 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                   backgroundColor: theme.colors.background.secondary,
                   padding: theme.spacing.xl,
                   borderRadius: theme.borderRadius.lg,
+                  border: `1px solid ${theme.colors.border.light}`,
                   marginBottom: theme.spacing.xl,
                 }}
               >
-                <h3
-                  style={{
-                    ...theme.heading.h4,
-                    marginBottom: theme.spacing.lg,
-                  }}
-                >
-                  Partagez votre avis
-                </h3>
+                <h3 style={{ ...theme.heading.h4, marginBottom: theme.spacing.lg }}>Partagez votre avis</h3>
+
                 <form onSubmit={handleSubmitReview}>
                   <div style={{ marginBottom: theme.spacing.lg }}>
                     <label
                       style={{
-                        display: 'block',
+                        display: "block",
                         fontFamily: theme.typography.fontFamily.body,
                         fontSize: theme.typography.fontSize.sm,
                         fontWeight: theme.typography.fontWeight.medium,
@@ -518,130 +509,67 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                     >
                       Note
                     </label>
-                    <div style={{ display: 'flex', gap: theme.spacing.xs }}>
-                      {[1, 2, 3, 4, 5].map((star) => (
+                    <div style={{ display: "flex", gap: theme.spacing.xs }}>
+                      {[1, 2, 3, 4, 5].map((s) => (
                         <button
-                          key={star}
+                          key={s}
                           type="button"
-                          onClick={() => setReviewForm({ ...reviewForm, rating: star })}
-                          style={{
-                            border: 'none',
-                            background: 'none',
-                            cursor: 'pointer',
-                            padding: 0,
-                          }}
+                          onClick={() => setReviewForm((p) => ({ ...p, rating: s }))}
+                          style={{ border: "none", background: "none", cursor: "pointer", padding: 0 }}
                         >
                           <Star
                             size={32}
-                            fill={star <= reviewForm.rating ? theme.colors.accent.main : 'none'}
-                            color={star <= reviewForm.rating ? theme.colors.accent.main : theme.colors.text.light}
+                            fill={s <= reviewForm.rating ? theme.colors.accent.main : "none"}
+                            color={s <= reviewForm.rating ? theme.colors.accent.main : theme.colors.text.light}
                           />
                         </button>
                       ))}
                     </div>
                   </div>
 
-                  <div style={{ marginBottom: theme.spacing.lg }}>
-                    <label
-                      htmlFor="review-name"
-                      style={{
-                        display: 'block',
-                        fontFamily: theme.typography.fontFamily.body,
-                        fontSize: theme.typography.fontSize.sm,
-                        fontWeight: theme.typography.fontWeight.medium,
-                        color: theme.colors.text.primary,
-                        marginBottom: theme.spacing.sm,
-                      }}
-                    >
-                      Nom
-                    </label>
-                    <input
-                      type="text"
-                      id="review-name"
-                      value={reviewForm.customer_name}
-                      onChange={(e) => setReviewForm({ ...reviewForm, customer_name: e.target.value })}
-                      required
-                      style={{
-                        width: '100%',
-                        padding: theme.spacing.md,
-                        borderRadius: theme.borderRadius.md,
-                        border: `2px solid ${theme.colors.border.main}`,
-                        fontFamily: theme.typography.fontFamily.body,
-                        fontSize: theme.typography.fontSize.base,
-                        outline: 'none',
-                      }}
-                    />
-                  </div>
-
-                  <div style={{ marginBottom: theme.spacing.lg }}>
-                    <label
-                      htmlFor="review-email"
-                      style={{
-                        display: 'block',
-                        fontFamily: theme.typography.fontFamily.body,
-                        fontSize: theme.typography.fontSize.sm,
-                        fontWeight: theme.typography.fontWeight.medium,
-                        color: theme.colors.text.primary,
-                        marginBottom: theme.spacing.sm,
-                      }}
-                    >
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      id="review-email"
-                      value={reviewForm.customer_email}
-                      onChange={(e) => setReviewForm({ ...reviewForm, customer_email: e.target.value })}
-                      required
-                      style={{
-                        width: '100%',
-                        padding: theme.spacing.md,
-                        borderRadius: theme.borderRadius.md,
-                        border: `2px solid ${theme.colors.border.main}`,
-                        fontFamily: theme.typography.fontFamily.body,
-                        fontSize: theme.typography.fontSize.base,
-                        outline: 'none',
-                      }}
-                    />
-                  </div>
-
-                  <div style={{ marginBottom: theme.spacing.lg }}>
-                    <label
-                      htmlFor="review-title"
-                      style={{
-                        display: 'block',
-                        fontFamily: theme.typography.fontFamily.body,
-                        fontSize: theme.typography.fontSize.sm,
-                        fontWeight: theme.typography.fontWeight.medium,
-                        color: theme.colors.text.primary,
-                        marginBottom: theme.spacing.sm,
-                      }}
-                    >
-                      Titre de l'avis
-                    </label>
-                    <input
-                      type="text"
-                      id="review-title"
-                      value={reviewForm.title}
-                      onChange={(e) => setReviewForm({ ...reviewForm, title: e.target.value })}
-                      required
-                      style={{
-                        width: '100%',
-                        padding: theme.spacing.md,
-                        borderRadius: theme.borderRadius.md,
-                        border: `2px solid ${theme.colors.border.main}`,
-                        fontFamily: theme.typography.fontFamily.body,
-                        fontSize: theme.typography.fontSize.base,
-                        outline: 'none',
-                      }}
-                    />
-                  </div>
+                  {[
+                    { id: "review-name", label: "Nom", type: "text", key: "customer_name" as const },
+                    { id: "review-email", label: "Email", type: "email", key: "customer_email" as const },
+                    { id: "review-title", label: "Titre de l'avis", type: "text", key: "title" as const },
+                  ].map((f) => (
+                    <div key={f.id} style={{ marginBottom: theme.spacing.lg }}>
+                      <label
+                        htmlFor={f.id}
+                        style={{
+                          display: "block",
+                          fontFamily: theme.typography.fontFamily.body,
+                          fontSize: theme.typography.fontSize.sm,
+                          fontWeight: theme.typography.fontWeight.medium,
+                          color: theme.colors.text.primary,
+                          marginBottom: theme.spacing.sm,
+                        }}
+                      >
+                        {f.label}
+                      </label>
+                      <input
+                        id={f.id}
+                        type={f.type}
+                        required
+                        value={reviewForm[f.key] as any}
+                        onChange={(e) => setReviewForm((p) => ({ ...p, [f.key]: e.target.value }))}
+                        style={{
+                          width: "100%",
+                          padding: theme.spacing.md,
+                          borderRadius: theme.borderRadius.md,
+                          border: `2px solid ${theme.colors.border.main}`,
+                          fontFamily: theme.typography.fontFamily.body,
+                          fontSize: theme.typography.fontSize.base,
+                          outline: "none",
+                        }}
+                      />
+                    </div>
+                  ))}
 
                   <div style={{ marginBottom: theme.spacing.lg }}>
                     <label
                       htmlFor="review-comment"
                       style={{
-                        display: 'block',
+                        display: "block",
                         fontFamily: theme.typography.fontFamily.body,
                         fontSize: theme.typography.fontSize.sm,
                         fontWeight: theme.typography.fontWeight.medium,
@@ -653,25 +581,25 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                     </label>
                     <textarea
                       id="review-comment"
-                      value={reviewForm.comment}
-                      onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
                       required
                       rows={5}
+                      value={reviewForm.comment}
+                      onChange={(e) => setReviewForm((p) => ({ ...p, comment: e.target.value }))}
                       style={{
-                        width: '100%',
+                        width: "100%",
                         padding: theme.spacing.md,
                         borderRadius: theme.borderRadius.md,
                         border: `2px solid ${theme.colors.border.main}`,
                         fontFamily: theme.typography.fontFamily.body,
                         fontSize: theme.typography.fontSize.base,
-                        outline: 'none',
-                        resize: 'vertical',
+                        outline: "none",
+                        resize: "vertical",
                       }}
                     />
                   </div>
 
                   <Button type="submit" variant="primary" disabled={submitting}>
-                    {submitting ? 'Envoi en cours...' : 'Publier l\'avis'}
+                    {submitting ? "Envoi en cours..." : "Publier l'avis"}
                   </Button>
 
                   {message && (
@@ -680,7 +608,7 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                         marginTop: theme.spacing.md,
                         fontFamily: theme.typography.fontFamily.body,
                         fontSize: theme.typography.fontSize.sm,
-                        color: message.includes('erreur')
+                        color: message.toLowerCase().includes("erreur")
                           ? theme.colors.status.error
                           : theme.colors.status.success,
                       }}
@@ -699,30 +627,31 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                     backgroundColor: theme.colors.background.secondary,
                     padding: theme.spacing.xl,
                     borderRadius: theme.borderRadius.lg,
+                    border: `1px solid ${theme.colors.border.light}`,
                     marginBottom: theme.spacing.xl,
                   }}
                 >
                   <div
                     style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'auto 1fr',
+                      display: "grid",
+                      gridTemplateColumns: "auto 1fr",
                       gap: theme.spacing.xl,
-                      alignItems: 'center',
+                      alignItems: "center",
                     }}
                   >
-                    <div style={{ textAlign: 'center' }}>
+                    <div style={{ textAlign: "center" }}>
                       <div
                         style={{
-                          fontSize: '3rem',
+                          fontSize: "3rem",
                           fontWeight: theme.typography.fontWeight.bold,
                           fontFamily: theme.typography.fontFamily.body,
                           color: theme.colors.text.primary,
                           marginBottom: theme.spacing.xs,
                         }}
                       >
-                        {Number(product.average_rating).toFixed(1)}
+                        {Number(product.average_rating || 0).toFixed(1)}
                       </div>
-                      {renderStars(Math.round(Number(product.average_rating)), 24)}
+                      {renderStars(Math.round(Number(product.average_rating || 0)), 24)}
                       <div
                         style={{
                           fontFamily: theme.typography.fontFamily.body,
@@ -731,7 +660,7 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                           marginTop: theme.spacing.xs,
                         }}
                       >
-                        {product.review_count} avis
+                        {Number(product.review_count || 0)} avis
                       </div>
                     </div>
 
@@ -740,10 +669,10 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                         <div
                           key={rating}
                           style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'auto 1fr auto',
+                            display: "grid",
+                            gridTemplateColumns: "auto 1fr auto",
                             gap: theme.spacing.sm,
-                            alignItems: 'center',
+                            alignItems: "center",
                             marginBottom: theme.spacing.xs,
                           }}
                         >
@@ -756,34 +685,34 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                           >
                             {rating} ★
                           </span>
+
                           <div
                             style={{
-                              height: '8px',
+                              height: 8,
                               backgroundColor: theme.colors.border.light,
                               borderRadius: theme.borderRadius.full,
-                              overflow: 'hidden',
+                              overflow: "hidden",
                             }}
                           >
                             <div
                               style={{
-                                height: '100%',
-                                width: `${
-                                  reviews.length > 0 ? (distribution[rating as keyof typeof distribution] / reviews.length) * 100 : 0
-                                }%`,
+                                height: "100%",
+                                width: `${reviews.length ? (distribution[rating as 1 | 2 | 3 | 4 | 5] / reviews.length) * 100 : 0}%`,
                                 backgroundColor: theme.colors.accent.main,
                               }}
                             />
                           </div>
+
                           <span
                             style={{
                               fontFamily: theme.typography.fontFamily.body,
                               fontSize: theme.typography.fontSize.sm,
                               color: theme.colors.text.secondary,
-                              minWidth: '30px',
-                              textAlign: 'right',
+                              minWidth: 30,
+                              textAlign: "right",
                             }}
                           >
-                            {distribution[rating as keyof typeof distribution]}
+                            {distribution[rating as 1 | 2 | 3 | 4 | 5]}
                           </span>
                         </div>
                       ))}
@@ -791,7 +720,7 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.lg }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: theme.spacing.lg }}>
                   {reviews.map((review) => (
                     <div
                       key={review.id}
@@ -799,22 +728,30 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                         backgroundColor: theme.colors.background.secondary,
                         padding: theme.spacing.xl,
                         borderRadius: theme.borderRadius.lg,
+                        border: `1px solid ${theme.colors.border.light}`,
                       }}
                     >
                       <div
                         style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'flex-start',
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
                           marginBottom: theme.spacing.md,
-                          flexWrap: 'wrap',
+                          flexWrap: "wrap",
                           gap: theme.spacing.md,
                         }}
                       >
                         <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm, marginBottom: theme.spacing.xs }}>
-                            {renderStars(review.rating, 18)}
-                            {review.is_verified_purchase && (
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: theme.spacing.sm,
+                              marginBottom: theme.spacing.xs,
+                            }}
+                          >
+                            {renderStars(Number(review.rating), 18)}
+                            {!!review.is_verified_purchase && (
                               <span
                                 style={{
                                   backgroundColor: theme.colors.status.success,
@@ -830,6 +767,7 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                               </span>
                             )}
                           </div>
+
                           <h4
                             style={{
                               ...theme.heading.h5,
@@ -837,52 +775,57 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                               marginBottom: theme.spacing.xs,
                             }}
                           >
-                            {review.title}
+                            {review.title || "Avis client"}
                           </h4>
+
                           <p
                             style={{
                               fontFamily: theme.typography.fontFamily.body,
                               fontSize: theme.typography.fontSize.sm,
                               color: theme.colors.text.light,
+                              margin: 0,
                             }}
                           >
-                            Par {review.customer_name} le{' '}
-                            {new Date(review.created_at).toLocaleDateString('fr-FR', {
-                              day: 'numeric',
-                              month: 'long',
-                              year: 'numeric',
+                            Par {review.customer_name} le{" "}
+                            {new Date(review.created_at).toLocaleDateString("fr-FR", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
                             })}
                           </p>
                         </div>
                       </div>
 
-                      <p
-                        style={{
-                          fontFamily: theme.typography.fontFamily.body,
-                          fontSize: theme.typography.fontSize.base,
-                          color: theme.colors.text.secondary,
-                          lineHeight: theme.typography.lineHeight.body,
-                          marginBottom: theme.spacing.md,
-                        }}
-                      >
-                        {review.comment}
-                      </p>
+                      {review.comment && (
+                        <p
+                          style={{
+                            fontFamily: theme.typography.fontFamily.body,
+                            fontSize: theme.typography.fontSize.base,
+                            color: theme.colors.text.secondary,
+                            lineHeight: theme.typography.lineHeight.body,
+                            marginBottom: theme.spacing.md,
+                          }}
+                        >
+                          {review.comment}
+                        </p>
+                      )}
 
                       <button
+                        type="button"
                         style={{
-                          display: 'flex',
-                          alignItems: 'center',
+                          display: "flex",
+                          alignItems: "center",
                           gap: theme.spacing.xs,
-                          border: 'none',
-                          background: 'none',
-                          cursor: 'pointer',
+                          border: "none",
+                          background: "none",
+                          cursor: "pointer",
                           fontFamily: theme.typography.fontFamily.body,
                           fontSize: theme.typography.fontSize.sm,
                           color: theme.colors.text.light,
                         }}
                       >
                         <ThumbsUp size={16} />
-                        Utile ({review.helpful_count})
+                        Utile ({Number(review.helpful_count || 0)})
                       </button>
                     </div>
                   ))}
@@ -892,9 +835,10 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
               <div
                 style={{
                   backgroundColor: theme.colors.background.secondary,
-                  padding: theme.spacing['3xl'],
+                  padding: theme.spacing["3xl"],
                   borderRadius: theme.borderRadius.lg,
-                  textAlign: 'center',
+                  border: `1px solid ${theme.colors.border.light}`,
+                  textAlign: "center",
                 }}
               >
                 <p
@@ -902,6 +846,7 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
                     fontFamily: theme.typography.fontFamily.body,
                     fontSize: theme.typography.fontSize.lg,
                     color: theme.colors.text.secondary,
+                    margin: 0,
                   }}
                 >
                   Aucun avis pour le moment. Soyez le premier à laisser votre avis !
@@ -911,6 +856,7 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
           </div>
         </div>
       </section>
+
     </div>
   );
 }

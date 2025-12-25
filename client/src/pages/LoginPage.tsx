@@ -1,23 +1,22 @@
-import { useState } from 'react';
-import { Mail, Lock, LogIn } from 'lucide-react';
-import { theme } from '../config/theme';
-import { Button } from '../components/Button';
-import { useAuth } from '../contexts/AuthContext';
+import { useState } from "react";
+import { Mail, Lock, LogIn } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import { theme } from "../config/theme";
+import { Button } from "../components/Button";
+import { useAuth } from "../contexts/AuthContext";
 
-interface LoginPageProps {
-  onNavigate?: (page: string) => void;
-}
-
-export function LoginPage({ onNavigate }: LoginPageProps) {
+export function LoginPage() {
+  const navigate = useNavigate();
   const { signIn } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     const { error } = await signIn(email, password);
@@ -25,26 +24,22 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
     if (error) {
       setError(error.message);
       setLoading(false);
-    } else {
-      onNavigate?.('home');
+      return;
     }
+
+    navigate("/", { replace: true });
   };
 
   return (
-    <div>
+    <div style={{ minHeight: "100vh", backgroundColor: theme.colors.background.primary }}>
+
       <section
         style={{
           backgroundColor: theme.colors.background.sage,
-          padding: `${theme.spacing['3xl']} ${theme.spacing.lg}`,
+          padding: `${theme.spacing["3xl"]} ${theme.spacing.lg}`,
         }}
       >
-        <div
-          style={{
-            maxWidth: '600px',
-            margin: '0 auto',
-            textAlign: 'center',
-          }}
-        >
+        <div style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center" }}>
           <h1 style={{ ...theme.heading.h1, marginBottom: theme.spacing.lg }}>
             Connexion
           </h1>
@@ -57,16 +52,11 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
       <section
         style={{
           backgroundColor: theme.colors.background.primary,
-          padding: `${theme.spacing['4xl']} ${theme.spacing.lg}`,
-          minHeight: '60vh',
+          padding: `${theme.spacing["4xl"]} ${theme.spacing.lg}`,
+          minHeight: "60vh",
         }}
       >
-        <div
-          style={{
-            maxWidth: '500px',
-            margin: '0 auto',
-          }}
-        >
+        <div style={{ maxWidth: "500px", margin: "0 auto" }}>
           <form onSubmit={handleSubmit}>
             {error && (
               <div
@@ -88,7 +78,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
               <label
                 htmlFor="email"
                 style={{
-                  display: 'block',
+                  display: "block",
                   ...theme.body.base,
                   fontWeight: theme.typography.fontWeight.medium,
                   marginBottom: theme.spacing.sm,
@@ -96,14 +86,14 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
               >
                 Adresse email
               </label>
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: "relative" }}>
                 <Mail
                   size={20}
                   style={{
-                    position: 'absolute',
+                    position: "absolute",
                     left: theme.spacing.md,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
+                    top: "50%",
+                    transform: "translateY(-50%)",
                     color: theme.colors.text.light,
                   }}
                 />
@@ -114,7 +104,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   style={{
-                    width: '100%',
+                    width: "100%",
                     padding: `${theme.spacing.md} ${theme.spacing.md} ${theme.spacing.md} 48px`,
                     border: `1px solid ${theme.colors.border.main}`,
                     borderRadius: theme.borderRadius.md,
@@ -129,7 +119,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
               <label
                 htmlFor="password"
                 style={{
-                  display: 'block',
+                  display: "block",
                   ...theme.body.base,
                   fontWeight: theme.typography.fontWeight.medium,
                   marginBottom: theme.spacing.sm,
@@ -137,14 +127,14 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
               >
                 Mot de passe
               </label>
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: "relative" }}>
                 <Lock
                   size={20}
                   style={{
-                    position: 'absolute',
+                    position: "absolute",
                     left: theme.spacing.md,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
+                    top: "50%",
+                    transform: "translateY(-50%)",
                     color: theme.colors.text.light,
                   }}
                 />
@@ -155,7 +145,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   style={{
-                    width: '100%',
+                    width: "100%",
                     padding: `${theme.spacing.md} ${theme.spacing.md} ${theme.spacing.md} 48px`,
                     border: `1px solid ${theme.colors.border.main}`,
                     borderRadius: theme.borderRadius.md,
@@ -175,7 +165,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
               style={{ marginBottom: theme.spacing.md }}
             >
               {loading ? (
-                'Connexion en cours...'
+                "Connexion en cours..."
               ) : (
                 <>
                   <LogIn size={20} style={{ marginRight: theme.spacing.sm }} />
@@ -184,27 +174,24 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
               )}
             </Button>
 
-            <p style={{ ...theme.body.base, textAlign: 'center' }}>
-              Pas encore de compte?{' '}
-              <button
-                type="button"
-                onClick={() => onNavigate?.('signup')}
+            <p style={{ ...theme.body.base, textAlign: "center" }}>
+              Pas encore de compte ?{" "}
+              <Link
+                to="/signup"
                 style={{
-                  background: 'none',
-                  border: 'none',
                   color: theme.colors.primary.main,
-                  cursor: 'pointer',
-                  textDecoration: 'underline',
+                  textDecoration: "underline",
                   fontSize: theme.typography.fontSize.base,
                   fontFamily: theme.typography.fontFamily.body,
                 }}
               >
                 Créer un compte
-              </button>
+              </Link>
             </p>
           </form>
         </div>
       </section>
+
     </div>
   );
 }

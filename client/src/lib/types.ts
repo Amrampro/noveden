@@ -1,99 +1,37 @@
-export type Product = {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  short_description: string;
-  price: number;
-  compare_at_price?: number;
-  image_url: string;
-  category_id?: string;
-  stock_status: 'in_stock' | 'limited' | 'out_of_stock';
-  is_featured: boolean;
-  is_new: boolean;
-  ingredients: string;
-  usage: string;
-  benefits: string[];
-  average_rating: number;
-  review_count: number;
-  created_at: string;
-  updated_at: string;
-  categories?: Category;
-};
+// client/src/lib/types.ts
 
-export type Category = {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  image_url: string;
-  display_order: number;
-  created_at: string;
-  updated_at: string;
-};
+// =====================================================
+// SHARED
+// =====================================================
 
-export type BlogPost = {
-  id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  content: string;
-  image_url: string;
-  category: string;
-  reading_time: number;
-  views: number;
-  published_at: string;
-  created_at: string;
-  updated_at: string;
-};
+export type UUID = string;
 
-export type FAQ = {
-  id: string;
-  question: string;
-  answer: string;
-  category: string;
-  display_order: number;
-  created_at: string;
-  updated_at: string;
-};
+export type StockStatus = "in_stock" | "limited" | "out_of_stock";
+export type OrderStatus = "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+export type DiscountType = "percentage" | "fixed";
 
-export type ProductReview = {
-  id: string;
-  product_id: string;
-  customer_name: string;
-  customer_email: string;
-  rating: number;
-  title: string;
-  comment: string;
-  is_verified_purchase: boolean;
-  helpful_count: number;
-  created_at: string;
-  updated_at: string;
-};
+// MySQL timestamps coming as string
+export type Timestamp = string;
 
-export type ProductImage = {
-  id: string;
-  product_id: string;
-  image_url: string;
-  alt_text: string;
-  display_order: number;
-  is_primary: boolean;
-  created_at: string;
-};
+// =====================================================
+// USERS
+// =====================================================
 
 export type UserProfile = {
-  id: string;
+  id: UUID;
+  email: string;
+  password_hash?: string; // never use in UI, but exists in DB
   first_name: string;
   last_name: string;
   phone: string;
   is_admin: boolean;
-  created_at: string;
-  updated_at: string;
+  created_at: Timestamp;
+  updated_at: Timestamp;
 };
 
 export type UserAddress = {
-  id: string;
-  user_id: string;
+  id: UUID;
+  user_id: UUID;
   first_name: string;
   last_name: string;
   email: string;
@@ -104,67 +42,218 @@ export type UserAddress = {
   postal_code: string;
   country: string;
   is_default: boolean;
-  created_at: string;
+  created_at: Timestamp;
 };
 
+// =====================================================
+// PRODUCT CATEGORIES (product_categories + pivot)
+// =====================================================
+
+export type ProductCategory = {
+  id: UUID;
+  parent_id: UUID | null;
+  name: string;
+  slug: string;
+  description: string | null;
+  image_url: string | null;
+  display_order: number;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+};
+
+export type ProductImage = {
+  id: UUID;
+  product_id: UUID;
+  image_url: string;
+  alt_text: string | null;
+  display_order: number;
+  is_primary: boolean;
+  created_at: Timestamp;
+};
+
+export type ProductReview = {
+  id: UUID;
+  product_id: UUID;
+  customer_name: string;
+  customer_email: string;
+  rating: number; // 1..5
+  title: string | null;
+  comment: string | null;
+  is_verified_purchase: boolean;
+  helpful_count: number;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+};
+
+export type Product = {
+  id: UUID;
+  name: string;
+  slug: string;
+  description: string | null;
+  short_description: string | null;
+
+  // DB is DECIMAL(10,2) so it may come as string depending on driver
+  price: number | string;
+  compare_at_price: number | string | null;
+
+  image_url: string | null;
+
+  stock_status: StockStatus;
+  is_featured: boolean;
+  is_new: boolean;
+
+  ingredients: string | null;
+  usage: string | null;
+
+  // DB is JSON; API parses, but keep safe
+  benefits: string[];
+
+  average_rating: number | string;
+  review_count: number;
+
+  created_at: Timestamp;
+  updated_at: Timestamp;
+
+  // Relations (from API)
+  categories?: ProductCategory[];
+  images?: ProductImage[];
+  reviews?: ProductReview[];
+};
+
+export type ProductCategoryPivot = {
+  product_id: UUID;
+  category_id: UUID;
+};
+
+// =====================================================
+// BLOG (blog_posts + blog_categories + pivot)
+// =====================================================
+
+export type BlogCategory = {
+  id: UUID;
+  parent_id: UUID | null;
+  name: string;
+  slug: string;
+  description: string | null;
+  image_url: string | null;
+  display_order: number;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+};
+
+export type BlogPost = {
+  id: UUID;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  content: string;
+  image_url: string | null;
+  reading_time: number;
+  views: number;
+  published_at: Timestamp | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+
+  // Relations (from API)
+  categories?: BlogCategory[];
+};
+
+export type BlogPostCategoryPivot = {
+  blog_post_id: UUID;
+  category_id: UUID;
+};
+
+// =====================================================
+// ORDERS
+// =====================================================
+
 export type Order = {
-  id: string;
-  user_id: string;
-  order_number: string;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  subtotal: number;
-  discount_amount: number;
-  total: number;
-  coupon_id?: string;
-  shipping_first_name: string;
-  shipping_last_name: string;
-  shipping_email: string;
-  shipping_phone: string;
-  shipping_address_line1: string;
-  shipping_address_line2: string;
-  shipping_town: string;
-  shipping_postal_code: string;
-  shipping_country: string;
-  notes: string;
-  created_at: string;
-  updated_at: string;
+  id: UUID;
+  user_id: UUID | null;
+  order_number: string | null; // generated by trigger, but column allows null
+  status: OrderStatus;
+
+  subtotal: number | string;
+  discount_amount: number | string;
+  total: number | string;
+
+  coupon_id: UUID | null;
+
+  shipping_first_name: string | null;
+  shipping_last_name: string | null;
+  shipping_email: string | null;
+  shipping_phone: string | null;
+  shipping_address_line1: string | null;
+  shipping_address_line2: string | null;
+  shipping_town: string | null;
+  shipping_postal_code: string | null;
+  shipping_country: string | null;
+
+  notes: string | null;
+
+  created_at: Timestamp;
+  updated_at: Timestamp;
 };
 
 export type OrderItem = {
-  id: string;
-  order_id: string;
-  product_id: string;
-  product_name: string;
-  product_price: number;
+  id: UUID;
+  order_id: UUID;
+  product_id: UUID | null;
+  product_name: string | null;
+  product_price: number | string | null;
   quantity: number;
-  subtotal: number;
-  created_at: string;
+  subtotal: number | string | null;
+  created_at: Timestamp;
 };
 
+// =====================================================
+// COUPONS
+// =====================================================
+
 export type Coupon = {
-  id: string;
+  id: UUID;
   code: string;
   description: string;
-  discount_type: 'percentage' | 'fixed';
-  discount_value: number;
-  min_purchase_amount: number;
-  max_discount_amount?: number;
-  valid_from: string;
-  valid_until?: string;
+  discount_type: DiscountType;
+  discount_value: number | string;
+
+  min_purchase_amount: number | string;
+  max_discount_amount: number | string | null;
+
+  valid_from: Timestamp;
+  valid_until: Timestamp | null;
+
   usage_limit_per_user: number;
-  total_usage_limit?: number;
+  total_usage_limit: number | null;
   current_usage_count: number;
+
   is_active: boolean;
+
   requires_first_order: boolean;
   requires_min_orders: number;
-  created_at: string;
+
+  created_at: Timestamp;
 };
 
 export type CouponUsage = {
-  id: string;
-  coupon_id: string;
-  user_id: string;
-  order_id: string;
-  discount_applied: number;
-  created_at: string;
+  id: UUID;
+  coupon_id: UUID | null;
+  user_id: UUID | null;
+  order_id: UUID | null;
+  discount_applied: number | string | null;
+  created_at: Timestamp;
+};
+
+// =====================================================
+// FAQ
+// =====================================================
+
+export type FAQ = {
+  id: UUID;
+  question: string | null;
+  answer: string | null;
+  category: string | null;
+  display_order: number;
+  created_at: Timestamp;
+  updated_at: Timestamp;
 };
