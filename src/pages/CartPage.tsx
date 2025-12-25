@@ -1,7 +1,10 @@
-import { ArrowLeft, Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Minus, Plus, Trash2, ShoppingBag, Tag, Check, X } from 'lucide-react';
 import { theme } from '../config/theme';
 import { Button } from '../components/Button';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase, Coupon } from '../lib/supabase';
 
 interface CartPageProps {
   onNavigate?: (page: string) => void;
@@ -9,8 +12,153 @@ interface CartPageProps {
 
 export function CartPage({ onNavigate }: CartPageProps) {
   const { items, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
+  const { user } = useAuth();
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [couponError, setCouponError] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
 
   const formatPrice = (price: number) => price.toFixed(2);
+
+  const calculateDiscount = () => {
+    if (!appliedCoupon) return 0;
+
+    const subtotal = getCartTotal();
+    let discount = 0;
+
+    if (appliedCoupon.discount_type === 'percentage') {
+      discount = (subtotal * appliedCoupon.discount_value) / 100;
+      if (appliedCoupon.max_discount_amount && discount > appliedCoupon.max_discount_amount) {
+        discount = appliedCoupon.max_discount_amount;
+      }
+    } else {
+      discount = appliedCoupon.discount_value;
+    }
+
+    return Math.min(discount, subtotal);
+  };
+
+  const getTotal = () => {
+    return getCartTotal() - calculateDiscount();
+  };
+
+  const applyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('Veuillez entrer un code de coupon');
+      return;
+    }
+
+    if (!user) {
+      setCouponError('Vous devez être connecté pour utiliser un coupon');
+      return;
+    }
+
+    setCouponLoading(true);
+    setCouponError('');
+
+    try {
+      const { data: coupon, error: couponFetchError } = await supabase
+        .from('coupons')
+        .select('*')
+        .eq('code', couponCode.trim().toUpperCase())
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (couponFetchError) throw couponFetchError;
+      if (!coupon) {
+        setCouponError('Code de coupon invalide');
+        setCouponLoading(false);
+        return;
+      }
+
+      const now = new Date();
+      const validFrom = new Date(coupon.valid_from);
+      const validUntil = coupon.valid_until ? new Date(coupon.valid_until) : null;
+
+      if (now < validFrom) {
+        setCouponError('Ce coupon n\'est pas encore valide');
+        setCouponLoading(false);
+        return;
+      }
+
+      if (validUntil && now > validUntil) {
+        setCouponError('Ce coupon a expiré');
+        setCouponLoading(false);
+        return;
+      }
+
+      if (coupon.min_purchase_amount && getCartTotal() < coupon.min_purchase_amount) {
+        setCouponError(`Montant minimum de ${formatPrice(coupon.min_purchase_amount)}€ requis`);
+        setCouponLoading(false);
+        return;
+      }
+
+      const { data: usageData, error: usageError } = await supabase
+        .from('coupon_usage')
+        .select('*')
+        .eq('coupon_id', coupon.id)
+        .eq('user_id', user.id);
+
+      if (usageError) throw usageError;
+
+      if (usageData && usageData.length >= coupon.usage_limit_per_user) {
+        setCouponError('Vous avez déjà utilisé ce coupon');
+        setCouponLoading(false);
+        return;
+      }
+
+      if (coupon.requires_first_order) {
+        const { data: orders, error: ordersError } = await supabase
+          .from('orders')
+          .select('id')
+          .eq('user_id', user.id)
+          .limit(1);
+
+        if (ordersError) throw ordersError;
+
+        if (orders && orders.length > 0) {
+          setCouponError('Ce coupon est réservé aux nouveaux clients');
+          setCouponLoading(false);
+          return;
+        }
+      }
+
+      if (coupon.requires_min_orders > 0) {
+        const { data: orders, error: ordersError } = await supabase
+          .from('orders')
+          .select('id')
+          .eq('user_id', user.id);
+
+        if (ordersError) throw ordersError;
+
+        if (!orders || orders.length < coupon.requires_min_orders) {
+          setCouponError(`Ce coupon nécessite au moins ${coupon.requires_min_orders} commande(s)`);
+          setCouponLoading(false);
+          return;
+        }
+      }
+
+      if (coupon.total_usage_limit && coupon.current_usage_count >= coupon.total_usage_limit) {
+        setCouponError('Ce coupon a atteint sa limite d\'utilisation');
+        setCouponLoading(false);
+        return;
+      }
+
+      setAppliedCoupon(coupon);
+      setCouponError('');
+    } catch (error) {
+      console.error('Error applying coupon:', error);
+      setCouponError('Erreur lors de l\'application du coupon');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError('');
+  };
 
   if (items.length === 0) {
     return (
@@ -389,6 +537,105 @@ export function CartPage({ onNavigate }: CartPageProps) {
 
                 <div
                   style={{
+                    marginBottom: theme.spacing.lg,
+                    paddingBottom: theme.spacing.lg,
+                    borderBottom: `1px solid ${theme.colors.border.light}`,
+                  }}
+                >
+                  <label
+                    style={{
+                      display: 'block',
+                      ...theme.body.base,
+                      fontWeight: theme.typography.fontWeight.medium,
+                      marginBottom: theme.spacing.sm,
+                    }}
+                  >
+                    Code promo
+                  </label>
+                  {appliedCoupon ? (
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        backgroundColor: theme.colors.success[50],
+                        border: `1px solid ${theme.colors.success.main}`,
+                        borderRadius: theme.borderRadius.md,
+                        padding: theme.spacing.md,
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
+                        <Check size={20} color={theme.colors.success.main} />
+                        <span style={{ ...theme.body.base, color: theme.colors.success.main, fontWeight: theme.typography.fontWeight.medium }}>
+                          {appliedCoupon.code}
+                        </span>
+                      </div>
+                      <button
+                        onClick={removeCoupon}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: theme.spacing.xs,
+                        }}
+                      >
+                        <X size={20} color={theme.colors.success.main} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <div style={{ display: 'flex', gap: theme.spacing.sm }}>
+                        <div style={{ position: 'relative', flex: 1 }}>
+                          <Tag
+                            size={20}
+                            style={{
+                              position: 'absolute',
+                              left: theme.spacing.md,
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              color: theme.colors.text.light,
+                            }}
+                          />
+                          <input
+                            type="text"
+                            value={couponCode}
+                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                            placeholder="Entrez votre code"
+                            style={{
+                              width: '100%',
+                              padding: `${theme.spacing.md} ${theme.spacing.md} ${theme.spacing.md} 48px`,
+                              border: `1px solid ${theme.colors.border.main}`,
+                              borderRadius: theme.borderRadius.md,
+                              fontSize: theme.typography.fontSize.base,
+                              fontFamily: theme.typography.fontFamily.body,
+                            }}
+                          />
+                        </div>
+                        <Button
+                          variant="outline"
+                          onClick={applyCoupon}
+                          disabled={couponLoading || !couponCode.trim()}
+                        >
+                          {couponLoading ? 'Vérification...' : 'Appliquer'}
+                        </Button>
+                      </div>
+                      {couponError && (
+                        <p
+                          style={{
+                            ...theme.body.small,
+                            color: theme.colors.error.main,
+                            marginTop: theme.spacing.sm,
+                          }}
+                        >
+                          {couponError}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div
+                  style={{
                     borderBottom: `1px solid ${theme.colors.border.light}`,
                     paddingBottom: theme.spacing.lg,
                     marginBottom: theme.spacing.lg,
@@ -408,6 +655,23 @@ export function CartPage({ onNavigate }: CartPageProps) {
                       {formatPrice(getCartTotal())} €
                     </span>
                   </div>
+
+                  {appliedCoupon && calculateDiscount() > 0 && (
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        marginBottom: theme.spacing.sm,
+                      }}
+                    >
+                      <span style={{ ...theme.body.base, color: theme.colors.success.main }}>
+                        Réduction ({appliedCoupon.code})
+                      </span>
+                      <span style={{ ...theme.body.base, color: theme.colors.success.main, fontWeight: theme.typography.fontWeight.medium }}>
+                        -{formatPrice(calculateDiscount())} €
+                      </span>
+                    </div>
+                  )}
 
                   <div
                     style={{
@@ -434,13 +698,30 @@ export function CartPage({ onNavigate }: CartPageProps) {
                 >
                   <span style={{ ...theme.heading.h5 }}>Total</span>
                   <span style={{ ...theme.heading.h4, color: theme.colors.primary.main }}>
-                    {formatPrice(getCartTotal())} €
+                    {formatPrice(getTotal())} €
                   </span>
                 </div>
 
-                <Button variant="primary" size="large" fullWidth style={{ marginBottom: theme.spacing.md }}>
-                  Procéder au paiement
-                </Button>
+                {!user ? (
+                  <div>
+                    <Button
+                      variant="primary"
+                      size="large"
+                      fullWidth
+                      onClick={() => onNavigate?.('login')}
+                      style={{ marginBottom: theme.spacing.sm }}
+                    >
+                      Se connecter pour commander
+                    </Button>
+                    <p style={{ ...theme.body.small, textAlign: 'center', color: theme.colors.text.light }}>
+                      Vous devez être connecté pour passer une commande
+                    </p>
+                  </div>
+                ) : (
+                  <Button variant="primary" size="large" fullWidth style={{ marginBottom: theme.spacing.md }}>
+                    Procéder au paiement
+                  </Button>
+                )}
 
                 <Button variant="outline" fullWidth onClick={() => onNavigate?.('shop')}>
                   Continuer les achats

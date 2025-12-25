@@ -42,6 +42,23 @@ export const theme = {
       main: '#D4DCC9',
       dark: '#A8B89F',
     },
+    success: {
+      main: '#6D9B6E',
+      light: '#8FB590',
+      dark: '#558457',
+      50: '#F3F8F3',
+    },
+    error: {
+      main: '#C86B6B',
+      light: '#DC9191',
+      dark: '#A84747',
+      50: '#FCF3F3',
+    },
+    warning: {
+      main: '#D4A574',
+      light: '#E8C9A5',
+      dark: '#B58951',
+    },
     status: {
       success: '#6D9B6E',
       warning: '#D4A574',
@@ -86,6 +103,30 @@ export const theme = {
       normal: '0',
       wide: '0.02em',
       wider: '0.05em',
+    },
+  },
+
+  body: {
+    small: {
+      fontFamily: "'Inter', 'Segoe UI', sans-serif",
+      fontSize: '0.875rem',
+      fontWeight: 400,
+      lineHeight: 1.6,
+      color: '#2C3E2D',
+    },
+    base: {
+      fontFamily: "'Inter', 'Segoe UI', sans-serif",
+      fontSize: '1rem',
+      fontWeight: 400,
+      lineHeight: 1.6,
+      color: '#2C3E2D',
+    },
+    large: {
+      fontFamily: "'Inter', 'Segoe UI', sans-serif",
+      fontSize: '1.125rem',
+      fontWeight: 400,
+      lineHeight: 1.6,
+      color: '#2C3E2D',
     },
   },
 

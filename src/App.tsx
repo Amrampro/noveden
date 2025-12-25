@@ -10,6 +10,8 @@ import { FAQPage } from './pages/FAQPage';
 import { ContactPage } from './pages/ContactPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
 import { CartPage } from './pages/CartPage';
+import { LoginPage } from './pages/LoginPage';
+import { SignupPage } from './pages/SignupPage';
 import { theme } from './config/theme';
 import { Product, BlogPost } from './lib/supabase';
 
@@ -62,6 +64,12 @@ function App() {
       case 'cart':
       case 'panier':
         return <CartPage onNavigate={handleNavigate} />;
+      case 'login':
+      case 'connexion':
+        return <LoginPage onNavigate={handleNavigate} />;
+      case 'signup':
+      case 'inscription':
+        return <SignupPage onNavigate={handleNavigate} />;
       case 'product-detail':
         return selectedProductId ? (
           <ProductDetailPage productId={selectedProductId} onNavigate={handleNavigate} />

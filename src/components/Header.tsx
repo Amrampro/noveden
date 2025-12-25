@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Menu, X, ShoppingCart, Leaf } from 'lucide-react';
+import { Menu, X, ShoppingCart, Leaf, User, LogOut } from 'lucide-react';
 import { theme } from '../config/theme';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
 
 interface HeaderProps {
   currentPage?: string;
@@ -10,7 +11,13 @@ interface HeaderProps {
 
 export function Header({ currentPage = 'home', onNavigate }: HeaderProps) {
   const { getCartCount } = useCart();
+  const { user, profile, signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut();
+    onNavigate?.('home');
+  };
 
   const navItems = [
     { label: 'Accueil', value: 'home' },
@@ -197,6 +204,51 @@ export function Header({ currentPage = 'home', onNavigate }: HeaderProps) {
                   </span>
                 )}
               </button>
+
+              {user ? (
+                <button
+                  onClick={handleSignOut}
+                  style={{
+                    border: 'none',
+                    background: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: theme.spacing.xs,
+                    color: theme.colors.text.primary,
+                    fontFamily: theme.typography.fontFamily.body,
+                    fontSize: theme.typography.fontSize.sm,
+                  }}
+                  aria-label="Déconnexion"
+                  title={`${profile?.first_name || ''} ${profile?.last_name || ''}`}
+                >
+                  <LogOut size={20} />
+                  <span className="hide-mobile" style={{ display: 'none' }}>
+                    Déconnexion
+                  </span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => onNavigate?.('login')}
+                  style={{
+                    border: 'none',
+                    background: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: theme.spacing.xs,
+                    color: theme.colors.text.primary,
+                    fontFamily: theme.typography.fontFamily.body,
+                    fontSize: theme.typography.fontSize.sm,
+                  }}
+                  aria-label="Connexion"
+                >
+                  <User size={20} />
+                  <span className="hide-mobile" style={{ display: 'none' }}>
+                    Connexion
+                  </span>
+                </button>
+              )}
 
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
