@@ -1,0 +1,245 @@
+export const theme = {
+  colors: {
+    primary: {
+      main: '#A8B89F',
+      light: '#C8D5BF',
+      dark: '#8A9B82',
+      50: '#F5F7F4',
+      100: '#E8EDE4',
+      200: '#D4DCC9',
+      300: '#C8D5BF',
+      400: '#B8C7AA',
+      500: '#A8B89F',
+      600: '#8A9B82',
+      700: '#6D7D67',
+      800: '#545F4F',
+      900: '#3A4137',
+    },
+    secondary: {
+      main: '#2C3E2D',
+      light: '#455645',
+      dark: '#1A2419',
+    },
+    accent: {
+      main: '#D4A574',
+      light: '#E8C9A5',
+      dark: '#B58951',
+    },
+    background: {
+      primary: '#FFFFFF',
+      secondary: '#F9FAF8',
+      tertiary: '#A8B89F',
+      sage: '#D4DCC9',
+    },
+    text: {
+      primary: '#2C3E2D',
+      secondary: '#545F4F',
+      light: '#6D7D67',
+      inverse: '#FFFFFF',
+    },
+    border: {
+      light: '#E8EDE4',
+      main: '#D4DCC9',
+      dark: '#A8B89F',
+    },
+    status: {
+      success: '#6D9B6E',
+      warning: '#D4A574',
+      error: '#C86B6B',
+      info: '#7A9CB8',
+    },
+  },
+
+  typography: {
+    fontFamily: {
+      primary: "'Playfair Display', serif",
+      secondary: "'Inter', 'Segoe UI', sans-serif",
+      body: "'Inter', 'Segoe UI', sans-serif",
+    },
+    fontSize: {
+      xs: '0.75rem',      // 12px
+      sm: '0.875rem',     // 14px
+      base: '1rem',       // 16px
+      lg: '1.125rem',     // 18px
+      xl: '1.25rem',      // 20px
+      '2xl': '1.5rem',    // 24px
+      '3xl': '1.875rem',  // 30px
+      '4xl': '2.25rem',   // 36px
+      '5xl': '3rem',      // 48px
+      '6xl': '3.75rem',   // 60px
+    },
+    fontWeight: {
+      light: 300,
+      normal: 400,
+      medium: 500,
+      semibold: 600,
+      bold: 700,
+    },
+    lineHeight: {
+      tight: 1.2,
+      heading: 1.3,
+      body: 1.6,
+      relaxed: 1.75,
+    },
+    letterSpacing: {
+      tight: '-0.02em',
+      normal: '0',
+      wide: '0.02em',
+      wider: '0.05em',
+    },
+  },
+
+  heading: {
+    h1: {
+      fontFamily: "'Playfair Display', serif",
+      fontSize: '3rem',
+      fontWeight: 700,
+      lineHeight: 1.2,
+      color: '#2C3E2D',
+      letterSpacing: '-0.02em',
+    },
+    h2: {
+      fontFamily: "'Playfair Display', serif",
+      fontSize: '2.25rem',
+      fontWeight: 600,
+      lineHeight: 1.3,
+      color: '#2C3E2D',
+      letterSpacing: '-0.01em',
+    },
+    h3: {
+      fontFamily: "'Playfair Display', serif",
+      fontSize: '1.875rem',
+      fontWeight: 600,
+      lineHeight: 1.3,
+      color: '#2C3E2D',
+    },
+    h4: {
+      fontFamily: "'Inter', sans-serif",
+      fontSize: '1.5rem',
+      fontWeight: 600,
+      lineHeight: 1.4,
+      color: '#2C3E2D',
+    },
+    h5: {
+      fontFamily: "'Inter', sans-serif",
+      fontSize: '1.25rem',
+      fontWeight: 600,
+      lineHeight: 1.4,
+      color: '#2C3E2D',
+    },
+    h6: {
+      fontFamily: "'Inter', sans-serif",
+      fontSize: '1.125rem',
+      fontWeight: 600,
+      lineHeight: 1.4,
+      color: '#2C3E2D',
+    },
+  },
+
+  button: {
+    primary: {
+      backgroundColor: '#A8B89F',
+      color: '#FFFFFF',
+      hoverBackgroundColor: '#8A9B82',
+      activeBackgroundColor: '#6D7D67',
+      borderRadius: '0.375rem',
+      padding: '0.75rem 2rem',
+      fontSize: '1rem',
+      fontWeight: 500,
+      fontFamily: "'Inter', sans-serif",
+      border: 'none',
+      transition: 'all 0.3s ease',
+    },
+    secondary: {
+      backgroundColor: 'transparent',
+      color: '#2C3E2D',
+      hoverBackgroundColor: '#F5F7F4',
+      activeBackgroundColor: '#E8EDE4',
+      borderRadius: '0.375rem',
+      padding: '0.75rem 2rem',
+      fontSize: '1rem',
+      fontWeight: 500,
+      fontFamily: "'Inter', sans-serif",
+      border: '2px solid #A8B89F',
+      transition: 'all 0.3s ease',
+    },
+    outline: {
+      backgroundColor: 'transparent',
+      color: '#A8B89F',
+      hoverBackgroundColor: '#A8B89F',
+      hoverColor: '#FFFFFF',
+      activeBackgroundColor: '#8A9B82',
+      borderRadius: '0.375rem',
+      padding: '0.75rem 2rem',
+      fontSize: '1rem',
+      fontWeight: 500,
+      fontFamily: "'Inter', sans-serif",
+      border: '2px solid #A8B89F',
+      transition: 'all 0.3s ease',
+    },
+    small: {
+      padding: '0.5rem 1.25rem',
+      fontSize: '0.875rem',
+    },
+    large: {
+      padding: '1rem 2.5rem',
+      fontSize: '1.125rem',
+    },
+  },
+
+  spacing: {
+    xs: '0.25rem',    // 4px
+    sm: '0.5rem',     // 8px
+    md: '1rem',       // 16px
+    lg: '1.5rem',     // 24px
+    xl: '2rem',       // 32px
+    '2xl': '3rem',    // 48px
+    '3xl': '4rem',    // 64px
+    '4xl': '6rem',    // 96px
+    '5xl': '8rem',    // 128px
+  },
+
+  borderRadius: {
+    none: '0',
+    sm: '0.25rem',
+    md: '0.375rem',
+    lg: '0.5rem',
+    xl: '0.75rem',
+    '2xl': '1rem',
+    full: '9999px',
+  },
+
+  shadow: {
+    sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+    md: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+    lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+    xl: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+    card: '0 2px 8px rgba(44, 62, 45, 0.08)',
+    hover: '0 8px 16px rgba(44, 62, 45, 0.12)',
+  },
+
+  transition: {
+    fast: '150ms ease-in-out',
+    normal: '300ms ease-in-out',
+    slow: '500ms ease-in-out',
+  },
+
+  breakpoints: {
+    sm: '640px',
+    md: '768px',
+    lg: '1024px',
+    xl: '1280px',
+    '2xl': '1536px',
+  },
+
+  container: {
+    maxWidth: '1280px',
+    padding: {
+      mobile: '1rem',
+      tablet: '2rem',
+      desktop: '3rem',
+    },
+  },
+};
+
+export type Theme = typeof theme;
