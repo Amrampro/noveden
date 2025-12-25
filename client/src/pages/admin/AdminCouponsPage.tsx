@@ -1,27 +1,29 @@
 import { useEffect, useState } from 'react';
 import { AdminLayout } from '../../components/AdminLayout';
 import { theme } from '../../config/theme';
-import { Search, Trash2, Tag, Calendar, Percent } from 'lucide-react';
+import { Search, Trash2, Tag, Calendar, Percent, Plus, Edit } from 'lucide-react';
 import { api } from '../../services/api';
+import { Modal } from '../../components/Modal';
+import { CouponForm } from '../../components/admin/CouponForm';
+import { Button } from '../../components/Button';
 
 interface Coupon {
   id: string;
   code: string;
   discount_type: 'percentage' | 'fixed';
-  discount_value: string;
-  min_purchase_amount?: string;
-  max_discount_amount?: string;
-  usage_limit?: number;
-  usage_count?: number;
-  valid_from: string;
+  discount_value: number;
+  min_purchase_amount?: number;
+  max_uses?: number | null;
   valid_until: string;
-  is_active: boolean;
+  active: boolean;
 }
 
 export function AdminCouponsPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
 
   useEffect(() => {
     loadCoupons();
@@ -53,6 +55,33 @@ export function AdminCouponsPage() {
     }
   };
 
+  const handleCreate = () => {
+    setEditingCoupon(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (coupon: Coupon) => {
+    setEditingCoupon(coupon);
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (data: Partial<Coupon>) => {
+    try {
+      if (editingCoupon) {
+        await api.adminUpdateCoupon(editingCoupon.id, data);
+        await loadCoupons();
+      } else {
+        await api.adminCreateCoupon(data);
+        await loadCoupons();
+      }
+      setIsModalOpen(false);
+      setEditingCoupon(null);
+    } catch (error) {
+      console.error('Error saving coupon:', error);
+      throw error;
+    }
+  };
+
   const filteredCoupons = coupons.filter((coupon) =>
     coupon.code.toLowerCase().includes(search.toLowerCase())
   );
@@ -64,23 +93,29 @@ export function AdminCouponsPage() {
   return (
     <AdminLayout>
       <div style={{ animation: 'fadeIn 0.3s ease-in' }}>
-        <div style={{ marginBottom: theme.spacing.xl }}>
-          <h1
-            style={{
-              ...theme.heading.h2,
-              marginBottom: theme.spacing.md,
-            }}
-          >
-            Coupons
-          </h1>
-          <p
-            style={{
-              ...theme.body.large,
-              color: theme.colors.text.secondary,
-            }}
-          >
-            Gérer les codes promotionnels
-          </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: theme.spacing.xl }}>
+          <div>
+            <h1
+              style={{
+                ...theme.heading.h2,
+                marginBottom: theme.spacing.md,
+              }}
+            >
+              Coupons
+            </h1>
+            <p
+              style={{
+                ...theme.body.large,
+                color: theme.colors.text.secondary,
+              }}
+            >
+              Gérer les codes promotionnels
+            </p>
+          </div>
+          <Button onClick={handleCreate}>
+            <Plus size={20} style={{ marginRight: theme.spacing.xs }} />
+            Nouveau coupon
+          </Button>
         </div>
 
         <div
@@ -246,29 +281,55 @@ export function AdminCouponsPage() {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => handleDelete(coupon.id, coupon.code)}
-                    style={{
-                      padding: theme.spacing.md,
-                      border: `1px solid ${theme.colors.error.main}`,
-                      backgroundColor: 'transparent',
-                      color: theme.colors.error.main,
-                      borderRadius: theme.borderRadius.md,
-                      cursor: 'pointer',
-                      transition: theme.transition.fast,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = theme.colors.error[50];
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }}
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                  <div style={{ display: 'flex', gap: theme.spacing.sm }}>
+                    <button
+                      onClick={() => handleEdit(coupon)}
+                      style={{
+                        padding: theme.spacing.md,
+                        border: `1px solid ${theme.colors.primary.main}`,
+                        backgroundColor: 'transparent',
+                        color: theme.colors.primary.main,
+                        borderRadius: theme.borderRadius.md,
+                        cursor: 'pointer',
+                        transition: theme.transition.fast,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = theme.colors.primary[50];
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
+                    >
+                      <Edit size={18} />
+                    </button>
+
+                    <button
+                      onClick={() => handleDelete(coupon.id, coupon.code)}
+                      style={{
+                        padding: theme.spacing.md,
+                        border: `1px solid ${theme.colors.error.main}`,
+                        backgroundColor: 'transparent',
+                        color: theme.colors.error.main,
+                        borderRadius: theme.borderRadius.md,
+                        cursor: 'pointer',
+                        transition: theme.transition.fast,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = theme.colors.error[50];
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -290,6 +351,25 @@ export function AdminCouponsPage() {
           </div>
         )}
       </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingCoupon(null);
+        }}
+        title={editingCoupon ? 'Modifier le coupon' : 'Nouveau coupon'}
+        maxWidth="700px"
+      >
+        <CouponForm
+          coupon={editingCoupon || undefined}
+          onSubmit={handleSubmit}
+          onCancel={() => {
+            setIsModalOpen(false);
+            setEditingCoupon(null);
+          }}
+        />
+      </Modal>
 
       <style>{`
         @keyframes fadeIn {

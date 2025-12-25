@@ -1,24 +1,19 @@
 import { useEffect, useState } from 'react';
 import { AdminLayout } from '../../components/AdminLayout';
 import { theme } from '../../config/theme';
-import { Search, Trash2, Calendar, Eye } from 'lucide-react';
+import { Search, Trash2, Calendar, Eye, Plus, Edit } from 'lucide-react';
 import { api } from '../../services/api';
-
-interface BlogPost {
-  id: string;
-  title: string;
-  slug: string;
-  excerpt?: string;
-  image_url?: string;
-  published_at: string;
-  views?: number;
-  categories?: { name: string };
-}
+import { Modal } from '../../components/Modal';
+import { BlogForm } from '../../components/admin/BlogForm';
+import { Button } from '../../components/Button';
+import { BlogPost } from '../../lib/supabase';
 
 export function AdminBlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
 
   useEffect(() => {
     loadPosts();
@@ -50,6 +45,33 @@ export function AdminBlogPage() {
     }
   };
 
+  const handleCreate = () => {
+    setEditingPost(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (post: BlogPost) => {
+    setEditingPost(post);
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (data: Partial<BlogPost>) => {
+    try {
+      if (editingPost) {
+        await api.adminUpdateBlogPost(editingPost.id, data);
+        await loadPosts();
+      } else {
+        await api.adminCreateBlogPost(data);
+        await loadPosts();
+      }
+      setIsModalOpen(false);
+      setEditingPost(null);
+    } catch (error) {
+      console.error('Error saving blog post:', error);
+      throw error;
+    }
+  };
+
   const filteredPosts = posts.filter((post) =>
     post.title.toLowerCase().includes(search.toLowerCase())
   );
@@ -57,23 +79,29 @@ export function AdminBlogPage() {
   return (
     <AdminLayout>
       <div style={{ animation: 'fadeIn 0.3s ease-in' }}>
-        <div style={{ marginBottom: theme.spacing.xl }}>
-          <h1
-            style={{
-              ...theme.heading.h2,
-              marginBottom: theme.spacing.md,
-            }}
-          >
-            Blog
-          </h1>
-          <p
-            style={{
-              ...theme.body.large,
-              color: theme.colors.text.secondary,
-            }}
-          >
-            Gérer les articles du blog
-          </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: theme.spacing.xl }}>
+          <div>
+            <h1
+              style={{
+                ...theme.heading.h2,
+                marginBottom: theme.spacing.md,
+              }}
+            >
+              Blog
+            </h1>
+            <p
+              style={{
+                ...theme.body.large,
+                color: theme.colors.text.secondary,
+              }}
+            >
+              Gérer les articles du blog
+            </p>
+          </div>
+          <Button onClick={handleCreate}>
+            <Plus size={20} style={{ marginRight: theme.spacing.xs }} />
+            Nouvel article
+          </Button>
         </div>
 
         <div
@@ -200,29 +228,55 @@ export function AdminBlogPage() {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => handleDelete(post.id, post.title)}
-                  style={{
-                    padding: theme.spacing.md,
-                    border: `1px solid ${theme.colors.error.main}`,
-                    backgroundColor: 'transparent',
-                    color: theme.colors.error.main,
-                    borderRadius: theme.borderRadius.md,
-                    cursor: 'pointer',
-                    transition: theme.transition.fast,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.colors.error[50];
-                  }}
-                  onMouseLeave={(e) => {
+                <div style={{ display: 'flex', gap: theme.spacing.sm }}>
+                  <button
+                    onClick={() => handleEdit(post)}
+                    style={{
+                      padding: theme.spacing.md,
+                      border: `1px solid ${theme.colors.primary.main}`,
+                      backgroundColor: 'transparent',
+                      color: theme.colors.primary.main,
+                      borderRadius: theme.borderRadius.md,
+                      cursor: 'pointer',
+                      transition: theme.transition.fast,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.primary[50];
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    <Edit size={18} />
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(post.id, post.title)}
+                    style={{
+                      padding: theme.spacing.md,
+                      border: `1px solid ${theme.colors.error.main}`,
+                      backgroundColor: 'transparent',
+                      color: theme.colors.error.main,
+                      borderRadius: theme.borderRadius.md,
+                      cursor: 'pointer',
+                      transition: theme.transition.fast,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.error[50];
+                    }}
+                    onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
                   <Trash2 size={18} />
                 </button>
+                </div>
               </div>
             ))}
 
@@ -243,6 +297,25 @@ export function AdminBlogPage() {
           </div>
         )}
       </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingPost(null);
+        }}
+        title={editingPost ? 'Modifier l\'article' : 'Nouvel article'}
+        maxWidth="800px"
+      >
+        <BlogForm
+          blog={editingPost || undefined}
+          onSubmit={handleSubmit}
+          onCancel={() => {
+            setIsModalOpen(false);
+            setEditingPost(null);
+          }}
+        />
+      </Modal>
 
       <style>{`
         @keyframes fadeIn {

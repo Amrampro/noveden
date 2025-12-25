@@ -4,23 +4,16 @@ import { theme } from '../../config/theme';
 import { Search, Plus, Edit, Trash2, Package } from 'lucide-react';
 import { api } from '../../services/api';
 import { Button } from '../../components/Button';
-
-interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  price: string;
-  compare_at_price?: string;
-  stock_status: string;
-  image_url?: string;
-  categories?: { name: string };
-  is_featured: boolean;
-}
+import { Modal } from '../../components/Modal';
+import { ProductForm } from '../../components/admin/ProductForm';
+import { Product } from '../../lib/supabase';
 
 export function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     loadProducts();
@@ -49,6 +42,33 @@ export function AdminProductsPage() {
     } catch (error) {
       console.error('Error deleting product:', error);
       alert('Erreur lors de la suppression du produit');
+    }
+  };
+
+  const handleCreate = () => {
+    setEditingProduct(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (product: Product) => {
+    setEditingProduct(product);
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (data: Partial<Product>) => {
+    try {
+      if (editingProduct) {
+        await api.adminUpdateProduct(editingProduct.id, data);
+        await loadProducts();
+      } else {
+        await api.adminCreateProduct(data);
+        await loadProducts();
+      }
+      setIsModalOpen(false);
+      setEditingProduct(null);
+    } catch (error) {
+      console.error('Error saving product:', error);
+      throw error;
     }
   };
 
@@ -82,6 +102,10 @@ export function AdminProductsPage() {
               Gérer le catalogue de produits
             </p>
           </div>
+          <Button onClick={handleCreate}>
+            <Plus size={20} style={{ marginRight: theme.spacing.xs }} />
+            Nouveau produit
+          </Button>
         </div>
 
         <div
@@ -232,6 +256,30 @@ export function AdminProductsPage() {
 
                 <div style={{ display: 'flex', gap: theme.spacing.sm }}>
                   <button
+                    onClick={() => handleEdit(product)}
+                    style={{
+                      padding: theme.spacing.md,
+                      border: `1px solid ${theme.colors.primary.main}`,
+                      backgroundColor: 'transparent',
+                      color: theme.colors.primary.main,
+                      borderRadius: theme.borderRadius.md,
+                      cursor: 'pointer',
+                      transition: theme.transition.fast,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.primary[50];
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    <Edit size={18} />
+                  </button>
+
+                  <button
                     onClick={() => handleDelete(product.id, product.name)}
                     style={{
                       padding: theme.spacing.md,
@@ -275,6 +323,25 @@ export function AdminProductsPage() {
           </div>
         )}
       </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingProduct(null);
+        }}
+        title={editingProduct ? 'Modifier le produit' : 'Nouveau produit'}
+        maxWidth="700px"
+      >
+        <ProductForm
+          product={editingProduct || undefined}
+          onSubmit={handleSubmit}
+          onCancel={() => {
+            setIsModalOpen(false);
+            setEditingProduct(null);
+          }}
+        />
+      </Modal>
 
       <style>{`
         @keyframes fadeIn {

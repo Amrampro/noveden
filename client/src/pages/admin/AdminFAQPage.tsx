@@ -1,21 +1,26 @@
 import { useEffect, useState } from 'react';
 import { AdminLayout } from '../../components/AdminLayout';
 import { theme } from '../../config/theme';
-import { Search, Trash2, HelpCircle } from 'lucide-react';
+import { Search, Trash2, HelpCircle, Plus, Edit } from 'lucide-react';
 import { api } from '../../services/api';
+import { Modal } from '../../components/Modal';
+import { FAQForm } from '../../components/admin/FAQForm';
+import { Button } from '../../components/Button';
 
 interface FAQ {
   id: string;
   question: string;
   answer: string;
   category?: string;
-  display_order?: number;
+  order?: number;
 }
 
 export function AdminFAQPage() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingFAQ, setEditingFAQ] = useState<FAQ | null>(null);
 
   useEffect(() => {
     loadFAQs();
@@ -47,6 +52,33 @@ export function AdminFAQPage() {
     }
   };
 
+  const handleCreate = () => {
+    setEditingFAQ(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (faq: FAQ) => {
+    setEditingFAQ(faq);
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (data: Partial<FAQ>) => {
+    try {
+      if (editingFAQ) {
+        await api.adminUpdateFAQ(editingFAQ.id, data);
+        await loadFAQs();
+      } else {
+        await api.adminCreateFAQ(data);
+        await loadFAQs();
+      }
+      setIsModalOpen(false);
+      setEditingFAQ(null);
+    } catch (error) {
+      console.error('Error saving FAQ:', error);
+      throw error;
+    }
+  };
+
   const filteredFaqs = faqs.filter(
     (faq) =>
       faq.question.toLowerCase().includes(search.toLowerCase()) ||
@@ -56,23 +88,29 @@ export function AdminFAQPage() {
   return (
     <AdminLayout>
       <div style={{ animation: 'fadeIn 0.3s ease-in' }}>
-        <div style={{ marginBottom: theme.spacing.xl }}>
-          <h1
-            style={{
-              ...theme.heading.h2,
-              marginBottom: theme.spacing.md,
-            }}
-          >
-            FAQ
-          </h1>
-          <p
-            style={{
-              ...theme.body.large,
-              color: theme.colors.text.secondary,
-            }}
-          >
-            Gérer les questions fréquentes
-          </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: theme.spacing.xl }}>
+          <div>
+            <h1
+              style={{
+                ...theme.heading.h2,
+                marginBottom: theme.spacing.md,
+              }}
+            >
+              FAQ
+            </h1>
+            <p
+              style={{
+                ...theme.body.large,
+                color: theme.colors.text.secondary,
+              }}
+            >
+              Gérer les questions fréquentes
+            </p>
+          </div>
+          <Button onClick={handleCreate}>
+            <Plus size={20} style={{ marginRight: theme.spacing.xs }} />
+            Nouvelle question
+          </Button>
         </div>
 
         <div
@@ -182,29 +220,55 @@ export function AdminFAQPage() {
                   )}
                 </div>
 
-                <button
-                  onClick={() => handleDelete(faq.id, faq.question)}
-                  style={{
-                    padding: theme.spacing.md,
-                    border: `1px solid ${theme.colors.error.main}`,
-                    backgroundColor: 'transparent',
-                    color: theme.colors.error.main,
-                    borderRadius: theme.borderRadius.md,
-                    cursor: 'pointer',
-                    transition: theme.transition.fast,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = theme.colors.error[50];
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }}
-                >
-                  <Trash2 size={18} />
-                </button>
+                <div style={{ display: 'flex', gap: theme.spacing.sm }}>
+                  <button
+                    onClick={() => handleEdit(faq)}
+                    style={{
+                      padding: theme.spacing.md,
+                      border: `1px solid ${theme.colors.primary.main}`,
+                      backgroundColor: 'transparent',
+                      color: theme.colors.primary.main,
+                      borderRadius: theme.borderRadius.md,
+                      cursor: 'pointer',
+                      transition: theme.transition.fast,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.primary[50];
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    <Edit size={18} />
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(faq.id, faq.question)}
+                    style={{
+                      padding: theme.spacing.md,
+                      border: `1px solid ${theme.colors.error.main}`,
+                      backgroundColor: 'transparent',
+                      color: theme.colors.error.main,
+                      borderRadius: theme.borderRadius.md,
+                      cursor: 'pointer',
+                      transition: theme.transition.fast,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.error[50];
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
               </div>
             ))}
 
@@ -225,6 +289,25 @@ export function AdminFAQPage() {
           </div>
         )}
       </div>
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingFAQ(null);
+        }}
+        title={editingFAQ ? 'Modifier la question' : 'Nouvelle question'}
+        maxWidth="700px"
+      >
+        <FAQForm
+          faq={editingFAQ || undefined}
+          onSubmit={handleSubmit}
+          onCancel={() => {
+            setIsModalOpen(false);
+            setEditingFAQ(null);
+          }}
+        />
+      </Modal>
 
       <style>{`
         @keyframes fadeIn {
