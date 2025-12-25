@@ -1,23 +1,16 @@
-import { supabase } from '../lib/supabase';
 import { theme } from '../config/theme';
+import { api } from '../services/api';
 
 export async function loadAndApplyTheme() {
   try {
-    const { data, error } = await supabase
-      .from('theme_settings')
-      .select('key, value');
-
-    if (error) {
-      console.error('Error loading theme settings:', error);
-      return;
-    }
+    const data = await api.theme.getAll();
 
     if (!data || data.length === 0) {
       return;
     }
 
     const settings: Record<string, string> = {};
-    data.forEach((setting) => {
+    data.forEach((setting: any) => {
       settings[setting.key] = setting.value;
     });
 

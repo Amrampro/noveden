@@ -20,7 +20,7 @@ import { AdminFAQPage } from './pages/admin/AdminFAQPage';
 import { AdminCouponsPage } from './pages/admin/AdminCouponsPage';
 import { AdminThemePage } from './pages/admin/AdminThemePage';
 import { theme } from './config/theme';
-import { Product, BlogPost } from './lib/supabase';
+import { Product, BlogPost } from './lib/types';
 import { loadAndApplyTheme } from './utils/loadTheme';
 
 function App() {

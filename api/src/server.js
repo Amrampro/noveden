@@ -7,6 +7,7 @@ import productsRoutes from './routes/products.js';
 import couponsRoutes from './routes/coupons.js';
 import blogRoutes from './routes/blog.js';
 import faqRoutes from './routes/faq.js';
+import themeRoutes from './routes/theme.js';
 import adminRoutes from './routes/admin/index.js';
 
 import pool from './config/database.js';
@@ -34,6 +35,7 @@ app.get('/', (req, res) => {
       coupons: '/api/coupons',
       blog: '/api/blog',
       faq: '/api/faq',
+      theme: '/api/theme',
       admin: '/api/admin'
     }
   });
@@ -44,6 +46,7 @@ app.use('/api/products', productsRoutes);
 app.use('/api/coupons', couponsRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/faq', faqRoutes);
+app.use('/api/theme', themeRoutes);
 app.use('/api/admin', adminRoutes);
 
 app.use((err, req, res, next) => {

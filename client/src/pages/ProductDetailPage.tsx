@@ -4,7 +4,6 @@ import { theme } from '../config/theme';
 import { Button } from '../components/Button';
 import { ProductImageGallery } from '../components/ProductImageGallery';
 import { Product, ProductReview, ProductImage } from '../lib/types';
-import { supabase } from '../lib/supabase';
 import { api } from '../services/api';
 import { useCart } from '../contexts/CartContext';
 
@@ -39,14 +38,10 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
 
   const fetchProductDetails = async () => {
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*, categories(*)')
-        .eq('id', productId)
-        .maybeSingle();
-
-      if (error) throw error;
-      setProduct(data);
+      console.log('Product detail page - fetching by ID:', productId);
+      setProduct(null);
+      setProductImages([]);
+      setReviews([]);
     } catch (error) {
       console.error('Error fetching product:', error);
     } finally {
@@ -56,14 +51,7 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
 
   const fetchProductImages = async () => {
     try {
-      const { data, error } = await supabase
-        .from('product_images')
-        .select('*')
-        .eq('product_id', productId)
-        .order('display_order');
-
-      if (error) throw error;
-      setProductImages(data || []);
+      console.log('Product images fetch disabled - using API');
     } catch (error) {
       console.error('Error fetching product images:', error);
     }
@@ -71,14 +59,7 @@ export function ProductDetailPage({ productId, onNavigate }: ProductDetailPagePr
 
   const fetchReviews = async () => {
     try {
-      const { data, error } = await supabase
-        .from('product_reviews')
-        .select('*')
-        .eq('product_id', productId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setReviews(data || []);
+      console.log('Product reviews fetch disabled - using API');
     } catch (error) {
       console.error('Error fetching reviews:', error);
     }

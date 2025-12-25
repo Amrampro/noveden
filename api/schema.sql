@@ -267,6 +267,23 @@ CREATE TABLE IF NOT EXISTS faqs (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
+-- THEME CONFIGURATION TABLE
+-- =====================================================
+
+-- Theme settings table
+CREATE TABLE IF NOT EXISTS theme_settings (
+    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    setting_key VARCHAR(100) NOT NULL UNIQUE,
+    setting_value VARCHAR(255) NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_category (category),
+    INDEX idx_key (setting_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================
 -- SAMPLE DATA INSERTS
 -- =====================================================
 
@@ -302,6 +319,30 @@ INSERT INTO faqs (question, answer, category, display_order) VALUES
 -- Insert sample blog post
 INSERT INTO blog_posts (id, title, slug, excerpt, content, image_url, category, reading_time, published_at) VALUES
 ('blog-1', 'Les Bienfaits des Soins Naturels', 'bienfaits-soins-naturels', 'Découvrez pourquoi les soins naturels sont essentiels pour votre peau...', '<p>Les soins naturels sont de plus en plus populaires...</p>', 'https://images.pexels.com/photos/3762879/pexels-photo-3762879.jpeg?auto=compress&cs=tinysrgb&w=800', 'Beauté', 5, NOW());
+
+-- Insert default theme settings
+INSERT INTO theme_settings (setting_key, setting_value, category, description) VALUES
+('primary_main', '#A8B89F', 'colors', 'Main primary color'),
+('primary_light', '#C8D5BF', 'colors', 'Light primary color'),
+('primary_dark', '#8A9B82', 'colors', 'Dark primary color'),
+('secondary_main', '#2C3E2D', 'colors', 'Main secondary color'),
+('secondary_light', '#455645', 'colors', 'Light secondary color'),
+('secondary_dark', '#1A2419', 'colors', 'Dark secondary color'),
+('accent_main', '#D4A574', 'colors', 'Main accent color'),
+('accent_light', '#E8C9A5', 'colors', 'Light accent color'),
+('accent_dark', '#B58951', 'colors', 'Dark accent color'),
+('background_primary', '#FFFFFF', 'colors', 'Primary background color'),
+('background_secondary', '#F9FAF8', 'colors', 'Secondary background color'),
+('text_primary', '#2C3E2D', 'colors', 'Primary text color'),
+('text_secondary', '#545F4F', 'colors', 'Secondary text color'),
+('success_main', '#6D9B6E', 'colors', 'Success color'),
+('error_main', '#C86B6B', 'colors', 'Error color'),
+('warning_main', '#D4A574', 'colors', 'Warning color'),
+('font_family_primary', 'Playfair Display', 'typography', 'Primary font family for headings'),
+('font_family_secondary', 'Inter', 'typography', 'Secondary font family for body text'),
+('button_border_radius', '0.375rem', 'buttons', 'Button border radius'),
+('border_radius_md', '0.375rem', 'general', 'Medium border radius'),
+('border_radius_lg', '0.5rem', 'general', 'Large border radius');
 
 -- =====================================================
 -- STORED PROCEDURES AND TRIGGERS

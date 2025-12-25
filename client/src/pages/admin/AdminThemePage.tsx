@@ -3,7 +3,7 @@ import { AdminLayout } from '../../components/AdminLayout';
 import { theme } from '../../config/theme';
 import { Button } from '../../components/Button';
 import { Palette, Save, RotateCcw } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { api } from '../../services/api';
 
 interface ThemeSetting {
   id: string;
@@ -26,13 +26,7 @@ export function AdminThemePage() {
   const loadSettings = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('theme_settings')
-        .select('*')
-        .order('category')
-        .order('key');
-
-      if (error) throw error;
+      const data = await api.theme.getAll();
       setSettings(data || []);
     } catch (error) {
       console.error('Error loading theme settings:', error);
@@ -50,14 +44,7 @@ export function AdminThemePage() {
       setSaving(true);
       setMessage('');
 
-      for (const setting of settings) {
-        const { error } = await supabase
-          .from('theme_settings')
-          .update({ value: setting.value })
-          .eq('key', setting.key);
-
-        if (error) throw error;
-      }
+      await api.theme.updateMultiple(settings.map(s => ({ key: s.key, value: s.value })));
 
       setMessage('Thème enregistré avec succès');
       setTimeout(() => {
@@ -76,7 +63,7 @@ export function AdminThemePage() {
       return;
     }
 
-    const defaultSettings = {
+    const defaultSettings: Record<string, string> = {
       primary_main: '#A8B89F',
       primary_light: '#C8D5BF',
       primary_dark: '#8A9B82',
@@ -102,7 +89,7 @@ export function AdminThemePage() {
 
     setSettings(settings.map(s => ({
       ...s,
-      value: defaultSettings[s.key as keyof typeof defaultSettings] || s.value
+      value: defaultSettings[s.key] || s.value
     })));
   };
 

@@ -243,6 +243,26 @@ class ApiService {
       method: 'DELETE',
     });
   }
+
+  theme = {
+    getAll: async () => {
+      return await this.request('/theme');
+    },
+
+    update: async (key: string, value: string) => {
+      return await this.request(`/theme/${key}`, {
+        method: 'PUT',
+        body: JSON.stringify({ value }),
+      });
+    },
+
+    updateMultiple: async (settings: Array<{ key: string; value: string }>) => {
+      return await this.request('/theme', {
+        method: 'PUT',
+        body: JSON.stringify({ settings }),
+      });
+    },
+  };
 }
 
 export const api = new ApiService();
