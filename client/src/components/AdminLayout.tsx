@@ -64,6 +64,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           position: 'fixed',
           height: '100vh',
           overflowY: 'auto',
+          boxShadow: '2px 0 8px rgba(0, 0, 0, 0.05)',
         }}
       >
         <div

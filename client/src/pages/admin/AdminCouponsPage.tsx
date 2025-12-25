@@ -63,7 +63,7 @@ export function AdminCouponsPage() {
 
   return (
     <AdminLayout>
-      <div>
+      <div style={{ animation: 'fadeIn 0.3s ease-in' }}>
         <div style={{ marginBottom: theme.spacing.xl }}>
           <h1
             style={{
@@ -290,6 +290,19 @@ export function AdminCouponsPage() {
           </div>
         )}
       </div>
+
+      <style>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </AdminLayout>
   );
 }

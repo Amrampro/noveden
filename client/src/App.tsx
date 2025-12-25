@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { HomePage } from './pages/HomePage';
@@ -26,6 +26,19 @@ function App() {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [selectedBlogSlug, setSelectedBlogSlug] = useState<string | null>(null);
 
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1);
+      if (hash) {
+        setCurrentPage(hash);
+      }
+    };
+
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
   const handleViewProduct = (product: Product) => {
     setSelectedProductId(product.id);
     setCurrentPage('product-detail');
@@ -39,6 +52,7 @@ function App() {
   };
 
   const handleNavigate = (page: string) => {
+    window.location.hash = page;
     setCurrentPage(page);
     setSelectedProductId(null);
     setSelectedBlogSlug(null);
@@ -99,11 +113,13 @@ function App() {
     }
   };
 
+  const isAdminPage = currentPage.startsWith('admin');
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: theme.colors.background.primary }}>
-      <Header currentPage={currentPage} onNavigate={handleNavigate} />
+      {!isAdminPage && <Header currentPage={currentPage} onNavigate={handleNavigate} />}
       <main>{renderPage()}</main>
-      <Footer onNavigate={handleNavigate} />
+      {!isAdminPage && <Footer onNavigate={handleNavigate} />}
     </div>
   );
 }

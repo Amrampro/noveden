@@ -62,7 +62,7 @@ export function AdminProductsPage() {
 
   return (
     <AdminLayout>
-      <div>
+      <div style={{ animation: 'fadeIn 0.3s ease-in' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: theme.spacing.xl }}>
           <div>
             <h1
@@ -275,6 +275,19 @@ export function AdminProductsPage() {
           </div>
         )}
       </div>
+
+      <style>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </AdminLayout>
   );
 }
