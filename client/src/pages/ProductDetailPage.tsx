@@ -8,7 +8,12 @@ import { Button } from "../components/Button";
 import { ProductImageGallery } from "../components/ProductImageGallery";
 
 import { useCart } from "../contexts/CartContext";
-import { productService, type Product, type ProductImage, type ProductReview } from "../services/productService";
+import {
+  productService,
+  type Product,
+  type ProductImage,
+  type ProductReview,
+} from "../services/productService";
 
 type RouteParams = { slug?: string };
 
@@ -54,7 +59,11 @@ export default function ProductDetailPage() {
 
         // images + reviews are already attached by backend in getProductBySlug
         setProductImages((product.images || []) as ProductImage[]);
-        setReviews((product.reviews || []) as ProductReview[]);
+        const { reviews } = await productService.listProductReviews(
+          String(product.id),
+          { limit: 100, offset: 0 }
+        );
+        setReviews(reviews);
       } catch (e: any) {
         if (!mounted) return;
         console.error("Error loading product detail:", e);
@@ -82,7 +91,9 @@ export default function ProductDetailPage() {
             key={star}
             size={size}
             fill={star <= r ? theme.colors.accent.main : "none"}
-            color={star <= r ? theme.colors.accent.main : theme.colors.text.light}
+            color={
+              star <= r ? theme.colors.accent.main : theme.colors.text.light
+            }
           />
         ))}
       </div>
@@ -90,7 +101,13 @@ export default function ProductDetailPage() {
   };
 
   const distribution = useMemo(() => {
-    const dist: Record<1 | 2 | 3 | 4 | 5, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    const dist: Record<1 | 2 | 3 | 4 | 5, number> = {
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+      5: 0,
+    };
     for (const r of reviews) {
       const key = (Number(r.rating) as 1 | 2 | 3 | 4 | 5) || 5;
       dist[key] = (dist[key] ?? 0) + 1;
@@ -98,15 +115,38 @@ export default function ProductDetailPage() {
     return dist;
   }, [reviews]);
 
+  const reviewCount = useMemo(() => reviews.length, [reviews]);
+
+  const averageRating = useMemo(() => {
+    if (!reviews.length) return 0;
+    const sum = reviews.reduce((acc, r) => acc + Number(r.rating || 0), 0);
+    return sum / reviews.length;
+  }, [reviews]);
+
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!product?.id) return;
+
     setSubmitting(true);
     setMessage("");
 
-    // TODO: hook to backend endpoint later (POST /api/products/:id/reviews)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setMessage("Les avis produits seront bientôt disponibles !");
+      await productService.createProductReview(String(product.id), {
+        customer_name: reviewForm.customer_name.trim(),
+        customer_email: reviewForm.customer_email.trim(),
+        rating: Number(reviewForm.rating),
+        title: reviewForm.title.trim() || null,
+        comment: reviewForm.comment.trim() || null,
+      });
+
+      // reload reviews from API
+      const { reviews } = await productService.listProductReviews(
+        String(product.id),
+        { limit: 100, offset: 0 }
+      );
+      setReviews(reviews);
+
+      setMessage("Merci ! Votre avis a été publié ✅");
       setReviewForm({
         customer_name: "",
         customer_email: "",
@@ -115,8 +155,10 @@ export default function ProductDetailPage() {
         comment: "",
       });
       setShowReviewForm(false);
-    } catch {
-      setMessage("Une erreur est survenue. Veuillez réessayer.");
+    } catch (err: any) {
+      setMessage(
+        err?.message || "Une erreur est survenue. Veuillez réessayer."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -150,7 +192,9 @@ export default function ProductDetailPage() {
             backgroundColor: theme.colors.background.primary,
           }}
         >
-          <h2 style={{ ...theme.heading.h2, marginBottom: theme.spacing.lg }}>Produit non trouvé</h2>
+          <h2 style={{ ...theme.heading.h2, marginBottom: theme.spacing.lg }}>
+            Produit non trouvé
+          </h2>
           <Button variant="primary" onClick={() => navigate("/shop")}>
             Retour à la boutique
           </Button>
@@ -183,7 +227,6 @@ export default function ProductDetailPage() {
 
   return (
     <div>
-
       <section
         style={{
           backgroundColor: theme.colors.background.primary,
@@ -219,7 +262,11 @@ export default function ProductDetailPage() {
             }}
           >
             <div>
-              <ProductImageGallery images={galleryImages} productName={product.name} isNew={!!product.is_new} />
+              <ProductImageGallery
+                images={galleryImages}
+                productName={product.name}
+                isNew={!!product.is_new}
+              />
             </div>
 
             <div>
@@ -259,7 +306,7 @@ export default function ProductDetailPage() {
                   marginBottom: theme.spacing.lg,
                 }}
               >
-                {renderStars(Math.round(Number(product.average_rating || 0)), 24)}
+                {renderStars(Math.round(averageRating), 24)}
                 <span
                   style={{
                     fontFamily: theme.typography.fontFamily.body,
@@ -267,7 +314,8 @@ export default function ProductDetailPage() {
                     color: theme.colors.text.secondary,
                   }}
                 >
-                  {Number(product.average_rating || 0).toFixed(1)} ({Number(product.review_count || 0)} avis)
+                  {averageRating ? averageRating.toFixed(1) : "0.0"} (
+                  {reviewCount} avis)
                 </span>
               </div>
 
@@ -292,7 +340,8 @@ export default function ProductDetailPage() {
                   </span>
 
                   {product.compare_at_price != null &&
-                    Number(product.compare_at_price) > Number(product.price) && (
+                    Number(product.compare_at_price) >
+                      Number(product.price) && (
                       <span
                         style={{
                           fontFamily: theme.typography.fontFamily.body,
@@ -306,7 +355,13 @@ export default function ProductDetailPage() {
                     )}
                 </div>
 
-                <div style={{ display: "flex", alignItems: "center", gap: theme.spacing.sm }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: theme.spacing.sm,
+                  }}
+                >
                   {product.stock_status === "in_stock" && (
                     <>
                       <Check size={16} color={theme.colors.status.success} />
@@ -357,75 +412,95 @@ export default function ProductDetailPage() {
                     color: theme.colors.text.secondary,
                     lineHeight: theme.typography.lineHeight.body,
                     marginBottom: theme.spacing.xl,
+                    whiteSpace: "pre-line", // ✅ garde les \n
                   }}
                 >
                   {product.description}
                 </p>
               )}
 
-              <Button
-                variant="primary"
-                size="large"
-                fullWidth
+              <button
                 disabled={product.stock_status === "out_of_stock"}
+                style={{ ...theme.button.primary, display: "flex" }}
                 onClick={() => {
                   addToCart(product as any);
                   setAddedToCart(true);
                   setTimeout(() => setAddedToCart(false), 2000);
                 }}
-                style={{ marginBottom: theme.spacing.md }}
               >
                 {addedToCart ? (
                   <>
-                    <Check size={20} style={{ marginRight: theme.spacing.sm }} />
+                    <Check
+                      size={20}
+                      style={{ marginRight: theme.spacing.sm }}
+                    />
                     Ajouté au panier !
                   </>
                 ) : (
                   <>
-                    <ShoppingCart size={20} style={{ marginRight: theme.spacing.sm }} />
+                    <ShoppingCart
+                      size={20}
+                      style={{ marginRight: theme.spacing.sm }}
+                    />
                     Ajouter au panier
                   </>
                 )}
-              </Button>
+              </button>
 
-              {Array.isArray(product.benefits) && product.benefits.length > 0 && (
-                <div style={{ marginTop: theme.spacing.xl }}>
-                  <h3 style={{ ...theme.heading.h4, marginBottom: theme.spacing.md }}>Avantages</h3>
-                  <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-                    {product.benefits.map((benefit, index) => (
-                      <li
-                        key={index}
-                        style={{
-                          display: "flex",
-                          alignItems: "flex-start",
-                          gap: theme.spacing.sm,
-                          marginBottom: theme.spacing.sm,
-                          fontFamily: theme.typography.fontFamily.body,
-                          fontSize: theme.typography.fontSize.base,
-                          color: theme.colors.text.secondary,
-                        }}
-                      >
-                        <Check size={20} color={theme.colors.status.success} style={{ flexShrink: 0, marginTop: 2 }} />
-                        {String(benefit)}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              {Array.isArray(product.benefits) &&
+                product.benefits.length > 0 && (
+                  <div style={{ marginTop: theme.spacing.xl }}>
+                    <h3
+                      style={{
+                        ...theme.heading.h4,
+                        marginBottom: theme.spacing.md,
+                      }}
+                    >
+                      Avantages
+                    </h3>
+                    <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+                      {product.benefits.map((benefit, index) => (
+                        <li
+                          key={index}
+                          style={{
+                            display: "flex",
+                            alignItems: "flex-start",
+                            gap: theme.spacing.sm,
+                            marginBottom: theme.spacing.sm,
+                            fontFamily: theme.typography.fontFamily.body,
+                            fontSize: theme.typography.fontSize.base,
+                            color: theme.colors.text.secondary,
+                          }}
+                        >
+                          <Check
+                            size={20}
+                            color={theme.colors.status.success}
+                            style={{ flexShrink: 0, marginTop: 2 }}
+                          />
+                          {String(benefit)}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
             </div>
           </div>
 
           {product.ingredients && (
             <div
               style={{
-                backgroundColor: theme.colors.background.secondary,
+                backgroundColor: theme.colors.background.sage,
                 padding: theme.spacing.xl,
                 borderRadius: theme.borderRadius.lg,
                 border: `1px solid ${theme.colors.border.light}`,
                 marginBottom: theme.spacing.xl,
               }}
             >
-              <h3 style={{ ...theme.heading.h4, marginBottom: theme.spacing.md }}>Ingrédients</h3>
+              <h3
+                style={{ ...theme.heading.h4, marginBottom: theme.spacing.md }}
+              >
+                Ingrédients
+              </h3>
               <p
                 style={{
                   fontFamily: theme.typography.fontFamily.body,
@@ -443,14 +518,18 @@ export default function ProductDetailPage() {
           {product.usage && (
             <div
               style={{
-                backgroundColor: theme.colors.background.secondary,
+                backgroundColor: theme.colors.background.sage,
                 padding: theme.spacing.xl,
                 borderRadius: theme.borderRadius.lg,
                 border: `1px solid ${theme.colors.border.light}`,
                 marginBottom: theme.spacing["3xl"],
               }}
             >
-              <h3 style={{ ...theme.heading.h4, marginBottom: theme.spacing.md }}>Mode d&apos;emploi</h3>
+              <h3
+                style={{ ...theme.heading.h4, marginBottom: theme.spacing.md }}
+              >
+                Mode d&apos;emploi
+              </h3>
               <p
                 style={{
                   fontFamily: theme.typography.fontFamily.body,
@@ -478,7 +557,10 @@ export default function ProductDetailPage() {
               }}
             >
               <h2 style={{ ...theme.heading.h2 }}>Avis clients</h2>
-              <Button variant="primary" onClick={() => setShowReviewForm((v) => !v)}>
+              <Button
+                variant="primary"
+                onClick={() => setShowReviewForm((v) => !v)}
+              >
                 {showReviewForm ? "Annuler" : "Écrire un avis"}
               </Button>
             </div>
@@ -493,7 +575,14 @@ export default function ProductDetailPage() {
                   marginBottom: theme.spacing.xl,
                 }}
               >
-                <h3 style={{ ...theme.heading.h4, marginBottom: theme.spacing.lg }}>Partagez votre avis</h3>
+                <h3
+                  style={{
+                    ...theme.heading.h4,
+                    marginBottom: theme.spacing.lg,
+                  }}
+                >
+                  Partagez votre avis
+                </h3>
 
                 <form onSubmit={handleSubmitReview}>
                   <div style={{ marginBottom: theme.spacing.lg }}>
@@ -514,13 +603,28 @@ export default function ProductDetailPage() {
                         <button
                           key={s}
                           type="button"
-                          onClick={() => setReviewForm((p) => ({ ...p, rating: s }))}
-                          style={{ border: "none", background: "none", cursor: "pointer", padding: 0 }}
+                          onClick={() =>
+                            setReviewForm((p) => ({ ...p, rating: s }))
+                          }
+                          style={{
+                            border: "none",
+                            background: "none",
+                            cursor: "pointer",
+                            padding: 0,
+                          }}
                         >
                           <Star
                             size={32}
-                            fill={s <= reviewForm.rating ? theme.colors.accent.main : "none"}
-                            color={s <= reviewForm.rating ? theme.colors.accent.main : theme.colors.text.light}
+                            fill={
+                              s <= reviewForm.rating
+                                ? theme.colors.accent.main
+                                : "none"
+                            }
+                            color={
+                              s <= reviewForm.rating
+                                ? theme.colors.accent.main
+                                : theme.colors.text.light
+                            }
                           />
                         </button>
                       ))}
@@ -528,9 +632,24 @@ export default function ProductDetailPage() {
                   </div>
 
                   {[
-                    { id: "review-name", label: "Nom", type: "text", key: "customer_name" as const },
-                    { id: "review-email", label: "Email", type: "email", key: "customer_email" as const },
-                    { id: "review-title", label: "Titre de l'avis", type: "text", key: "title" as const },
+                    {
+                      id: "review-name",
+                      label: "Nom",
+                      type: "text",
+                      key: "customer_name" as const,
+                    },
+                    {
+                      id: "review-email",
+                      label: "Email",
+                      type: "email",
+                      key: "customer_email" as const,
+                    },
+                    {
+                      id: "review-title",
+                      label: "Titre de l'avis",
+                      type: "text",
+                      key: "title" as const,
+                    },
                   ].map((f) => (
                     <div key={f.id} style={{ marginBottom: theme.spacing.lg }}>
                       <label
@@ -551,7 +670,12 @@ export default function ProductDetailPage() {
                         type={f.type}
                         required
                         value={reviewForm[f.key] as any}
-                        onChange={(e) => setReviewForm((p) => ({ ...p, [f.key]: e.target.value }))}
+                        onChange={(e) =>
+                          setReviewForm((p) => ({
+                            ...p,
+                            [f.key]: e.target.value,
+                          }))
+                        }
                         style={{
                           width: "100%",
                           padding: theme.spacing.md,
@@ -584,7 +708,12 @@ export default function ProductDetailPage() {
                       required
                       rows={5}
                       value={reviewForm.comment}
-                      onChange={(e) => setReviewForm((p) => ({ ...p, comment: e.target.value }))}
+                      onChange={(e) =>
+                        setReviewForm((p) => ({
+                          ...p,
+                          comment: e.target.value,
+                        }))
+                      }
                       style={{
                         width: "100%",
                         padding: theme.spacing.md,
@@ -649,9 +778,9 @@ export default function ProductDetailPage() {
                           marginBottom: theme.spacing.xs,
                         }}
                       >
-                        {Number(product.average_rating || 0).toFixed(1)}
+                        {averageRating ? averageRating.toFixed(1) : "0.0"}
                       </div>
-                      {renderStars(Math.round(Number(product.average_rating || 0)), 24)}
+                      {renderStars(Math.round(averageRating), 24)}
                       <div
                         style={{
                           fontFamily: theme.typography.fontFamily.body,
@@ -660,7 +789,7 @@ export default function ProductDetailPage() {
                           marginTop: theme.spacing.xs,
                         }}
                       >
-                        {Number(product.review_count || 0)} avis
+                        {reviewCount} avis
                       </div>
                     </div>
 
@@ -697,7 +826,15 @@ export default function ProductDetailPage() {
                             <div
                               style={{
                                 height: "100%",
-                                width: `${reviews.length ? (distribution[rating as 1 | 2 | 3 | 4 | 5] / reviews.length) * 100 : 0}%`,
+                                width: `${
+                                  reviews.length
+                                    ? (distribution[
+                                        rating as 1 | 2 | 3 | 4 | 5
+                                      ] /
+                                        reviews.length) *
+                                      100
+                                    : 0
+                                }%`,
                                 backgroundColor: theme.colors.accent.main,
                               }}
                             />
@@ -720,7 +857,13 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: theme.spacing.lg }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: theme.spacing.lg,
+                  }}
+                >
                   {reviews.map((review) => (
                     <div
                       key={review.id}
@@ -759,7 +902,8 @@ export default function ProductDetailPage() {
                                   padding: `${theme.spacing.xs} ${theme.spacing.sm}`,
                                   borderRadius: theme.borderRadius.md,
                                   fontSize: theme.typography.fontSize.xs,
-                                  fontWeight: theme.typography.fontWeight.medium,
+                                  fontWeight:
+                                    theme.typography.fontWeight.medium,
                                   fontFamily: theme.typography.fontFamily.body,
                                 }}
                               >
@@ -787,11 +931,14 @@ export default function ProductDetailPage() {
                             }}
                           >
                             Par {review.customer_name} le{" "}
-                            {new Date(review.created_at).toLocaleDateString("fr-FR", {
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric",
-                            })}
+                            {new Date(review.created_at).toLocaleDateString(
+                              "fr-FR",
+                              {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                              }
+                            )}
                           </p>
                         </div>
                       </div>
@@ -809,24 +956,6 @@ export default function ProductDetailPage() {
                           {review.comment}
                         </p>
                       )}
-
-                      <button
-                        type="button"
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: theme.spacing.xs,
-                          border: "none",
-                          background: "none",
-                          cursor: "pointer",
-                          fontFamily: theme.typography.fontFamily.body,
-                          fontSize: theme.typography.fontSize.sm,
-                          color: theme.colors.text.light,
-                        }}
-                      >
-                        <ThumbsUp size={16} />
-                        Utile ({Number(review.helpful_count || 0)})
-                      </button>
                     </div>
                   ))}
                 </div>
@@ -849,14 +978,14 @@ export default function ProductDetailPage() {
                     margin: 0,
                   }}
                 >
-                  Aucun avis pour le moment. Soyez le premier à laisser votre avis !
+                  Aucun avis pour le moment. Soyez le premier à laisser votre
+                  avis !
                 </p>
               </div>
             )}
           </div>
         </div>
       </section>
-
     </div>
   );
 }

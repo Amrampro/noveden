@@ -1,11 +1,19 @@
 // client/src/components/Header.tsx
 import { useState } from "react";
-import { Menu, X, ShoppingCart, Leaf, User, LogOut, Settings } from "lucide-react";
+import {
+  Menu,
+  X,
+  ShoppingCart,
+  Leaf,
+  User,
+  LogOut,
+  Settings,
+} from "lucide-react";
 import { theme } from "../config/theme";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-
+import { useSiteParams } from "../contexts/SiteParamsContext";
 
 interface HeaderProps {}
 
@@ -13,6 +21,10 @@ export function Header({}: HeaderProps) {
   const { getCartCount } = useCart();
   const { user, signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const siteState = useSiteParams() as any;
+  const parameters =
+    siteState?.parameters ?? siteState?.data ?? siteState?.siteParams ?? null;
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -45,6 +57,10 @@ export function Header({}: HeaderProps) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // ---- Params fallback helpers ----
+  const navbarLogo = String(parameters?.logo_navbar || "").trim();
+  const promotionalText = String(parameters?.promotional_text || "").trim();
+
   return (
     <>
       <div
@@ -65,8 +81,9 @@ export function Header({}: HeaderProps) {
             fontFamily: theme.typography.fontFamily.body,
           }}
         >
-          99% d&apos;ingrédients d&apos;origine naturelle · Made in France-Belgique · Livraison gratuite en Belgique à partir
-          de 65€ d&apos;achat · Paiement sécurisé
+          {/* 99% d&apos;ingrédients d&apos;origine naturelle · Made in France-Belgique · Livraison gratuite en Belgique à partir
+          de 65€ d&apos;achat · Paiement sécurisé */}
+          {promotionalText ? ` ${promotionalText}` : ""}
         </div>
       </div>
 
@@ -101,34 +118,22 @@ export function Header({}: HeaderProps) {
               }}
               style={{
                 textDecoration: "none",
-                display: "flex",
                 alignItems: "center",
                 gap: theme.spacing.sm,
                 color: theme.colors.text.primary,
               }}
             >
-              <Leaf size={32} color={theme.colors.primary.main} />
-              <div style={{ textAlign: "left" }}>
-                <div
-                  style={{
-                    ...theme.heading.h3,
-                    fontSize: theme.typography.fontSize["2xl"],
-                    marginBottom: 0,
-                  }}
-                >
-                  Novéden
-                </div>
-                <div
-                  style={{
-                    fontFamily: theme.typography.fontFamily.primary,
-                    fontSize: theme.typography.fontSize.xs,
-                    fontStyle: "italic",
-                    color: theme.colors.text.secondary,
-                  }}
-                >
-                  la beauté authentique
-                </div>
-              </div>
+              {navbarLogo ? (
+                <img
+                  src={navbarLogo}
+                  alt="Logo"
+                  style={{ width: "32%", height: "auto", objectFit: "contain" }}
+                />
+              ) : (
+                <>
+                  <Leaf size={32} color={theme.colors.primary.main} />
+                </>
+              )}
             </Link>
 
             <nav style={{ display: "none" }} className="desktop-nav">
@@ -148,7 +153,9 @@ export function Header({}: HeaderProps) {
                       style={{
                         fontFamily: theme.typography.fontFamily.body,
                         fontSize: theme.typography.fontSize.base,
-                        color: isActive(item.to) ? theme.colors.primary.main : theme.colors.text.primary,
+                        color: isActive(item.to)
+                          ? theme.colors.primary.main
+                          : theme.colors.text.primary,
                         fontWeight: isActive(item.to)
                           ? theme.typography.fontWeight.semibold
                           : theme.typography.fontWeight.normal,
@@ -161,7 +168,8 @@ export function Header({}: HeaderProps) {
                       }}
                       onMouseLeave={(e) => {
                         if (!isActive(item.to)) {
-                          e.currentTarget.style.color = theme.colors.text.primary;
+                          e.currentTarget.style.color =
+                            theme.colors.text.primary;
                         }
                       }}
                     >
@@ -172,7 +180,13 @@ export function Header({}: HeaderProps) {
               </ul>
             </nav>
 
-            <div style={{ display: "flex", alignItems: "center", gap: theme.spacing.md }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: theme.spacing.md,
+              }}
+            >
               {/* Cart */}
               <Link
                 to={"/cart"}
@@ -246,7 +260,9 @@ export function Header({}: HeaderProps) {
                     fontSize: theme.typography.fontSize.sm,
                   }}
                   aria-label="Déconnexion"
-                  title={`${user?.first_name || ""} ${user?.last_name || ""}`.trim()}
+                  title={`${user?.first_name || ""} ${
+                    user?.last_name || ""
+                  }`.trim()}
                 >
                   <LogOut size={20} /> Déconnexion
                 </button>
@@ -281,7 +297,11 @@ export function Header({}: HeaderProps) {
                 className="mobile-menu-toggle"
                 aria-label="Menu"
               >
-                {mobileMenuOpen ? <X size={24} color={theme.colors.text.primary} /> : <Menu size={24} color={theme.colors.text.primary} />}
+                {mobileMenuOpen ? (
+                  <X size={24} color={theme.colors.text.primary} />
+                ) : (
+                  <Menu size={24} color={theme.colors.text.primary} />
+                )}
               </button>
             </div>
           </div>
@@ -315,7 +335,9 @@ export function Header({}: HeaderProps) {
                         textAlign: "left",
                         fontFamily: theme.typography.fontFamily.body,
                         fontSize: theme.typography.fontSize.lg,
-                        color: isActive(item.to) ? theme.colors.primary.main : theme.colors.text.primary,
+                        color: isActive(item.to)
+                          ? theme.colors.primary.main
+                          : theme.colors.text.primary,
                         fontWeight: isActive(item.to)
                           ? theme.typography.fontWeight.semibold
                           : theme.typography.fontWeight.normal,
@@ -339,7 +361,9 @@ export function Header({}: HeaderProps) {
                         textAlign: "left",
                         fontFamily: theme.typography.fontFamily.body,
                         fontSize: theme.typography.fontSize.lg,
-                        color: isActive("/admin") ? theme.colors.primary.main : theme.colors.text.primary,
+                        color: isActive("/admin")
+                          ? theme.colors.primary.main
+                          : theme.colors.text.primary,
                         fontWeight: isActive("/admin")
                           ? theme.typography.fontWeight.semibold
                           : theme.typography.fontWeight.normal,

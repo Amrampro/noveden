@@ -27,9 +27,19 @@ import AdminBannerFormPage from "./pages/admin/AdminBannerFormPage";
 import AdminLegalLinksListPage from "./pages/admin/AdminLegalLinksListPage";
 import AdminLegalLinkFormPage from "./pages/admin/AdminLegalLinkFormPage";
 import AdminParametersPage from "./pages/admin/AdminParametersPage";
+import AdminProductReviewsPage from "./pages/admin/AdminProductReviewsPage";
 
 import PublicLayout from "./layouts/PublicLayout";
 import { SiteParamsProvider } from "./contexts/SiteParamsContext";
+
+// User
+import { CheckoutPage } from "./pages/CheckoutPage";
+// import { UserOrdersPage } from "./pages/orders/UserOrdersPage";
+// import { UserOrderDetailPage } from "./pages/orders/UserOrderDetailPage";
+
+// Admin
+// import AdminOrdersPage from "./pages/admin/AdminOrdersPage";
+// import AdminOrderDetailPage from "./pages/admin/AdminOrderDetailPage";
 
 function App() {
   return (
@@ -47,6 +57,7 @@ function App() {
             <Route path="/products/:slug" element={<ProductDetailPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/faqs" element={<FAQPage />} />
+            <Route path="/checkout" element={<CheckoutPage/>}/>
           </Route>
 
           {/* Auth pages (souvent sans header/footer, mais tu peux aussi les mettre dedans si tu veux) */}
@@ -86,6 +97,8 @@ function App() {
 
             {/* Parameters */}
             <Route path="parameters" element={<AdminParametersPage />} />
+
+            <Route path="product-reviews" element={<AdminProductReviewsPage />} />
           </Route>
 
           {/* Fallback */}

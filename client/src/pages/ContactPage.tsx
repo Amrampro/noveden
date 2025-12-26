@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Mail, Phone, MapPin, MessageSquareText } from "lucide-react";
 import { theme } from "../config/theme";
 import { Button } from "../components/Button";
+import { PageBanner } from "../components/PageBanner";
 
 export function ContactPage() {
   const [formData, setFormData] = useState({
@@ -45,56 +46,7 @@ export function ContactPage() {
   return (
     <div>
 
-      {/* HERO */}
-      <section
-        style={{
-          backgroundColor: theme.colors.background.sage,
-          padding: `${theme.spacing["3xl"]} ${theme.spacing.lg}`,
-        }}
-      >
-        <div style={{ maxWidth: theme.container.maxWidth, margin: "0 auto", textAlign: "center" }}>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: theme.spacing.sm,
-              padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
-              borderRadius: theme.borderRadius.full,
-              backgroundColor: theme.colors.background.primary,
-              border: `1px solid ${theme.colors.border.light}`,
-              marginBottom: theme.spacing.lg,
-            }}
-          >
-            <MessageSquareText size={18} color={theme.colors.primary.main} />
-            <span
-              style={{
-                fontFamily: theme.typography.fontFamily.body,
-                fontSize: theme.typography.fontSize.sm,
-                color: theme.colors.text.secondary,
-                textTransform: "uppercase",
-                letterSpacing: theme.typography.letterSpacing.wide,
-              }}
-            >
-              Assistance & questions
-            </span>
-          </div>
-
-          <h1 style={{ ...theme.heading.h1, marginBottom: theme.spacing.lg }}>Contact</h1>
-
-          <p
-            style={{
-              fontFamily: theme.typography.fontFamily.body,
-              fontSize: theme.typography.fontSize.lg,
-              color: theme.colors.text.secondary,
-              maxWidth: "700px",
-              margin: "0 auto",
-              lineHeight: theme.typography.lineHeight.body,
-            }}
-          >
-            Nous sommes là pour répondre à toutes vos questions.
-          </p>
-        </div>
-      </section>
+      <PageBanner />
 
       {/* CONTENT */}
       <section
@@ -115,7 +67,7 @@ export function ContactPage() {
             {/* FORM */}
             <div
               style={{
-                backgroundColor: theme.colors.background.secondary,
+                backgroundColor: theme.colors.background.sage,
                 borderRadius: theme.borderRadius.lg,
                 border: `1px solid ${theme.colors.border.light}`,
                 padding: theme.spacing.xl,

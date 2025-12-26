@@ -4,7 +4,6 @@ import type {
   Product,
   ProductCategory,
   ProductImage,
-  ProductReview,
 } from "../lib/types";
 
 type ListProductsParams = {
@@ -31,6 +30,28 @@ type CreateProductPayload = {
   benefits?: any[];
   category_ids?: string[];
 };
+
+export type ProductReview = {
+  id: string;
+  product_id: string;
+  customer_name: string;
+  customer_email: string;
+  rating: number;
+  title: string | null;
+  comment: string | null;
+  is_verified_purchase: any; // mysql boolean
+  helpful_count: number;
+  created_at: string;
+  updated_at: string;
+};
+
+const normalizeReview = (raw: any): ProductReview => ({
+  ...raw,
+  rating: Number(raw.rating ?? 0),
+  helpful_count: Number(raw.helpful_count ?? 0),
+  is_verified_purchase: raw.is_verified_purchase === true || raw.is_verified_purchase === 1 || raw.is_verified_purchase === "1",
+});
+
 
 type UpdateProductPayload = Partial<CreateProductPayload>;
 
@@ -218,4 +239,39 @@ export const productService = {
     fd.append("file", file); // must match multer: upload.single("file")
     return httpForm<{ url: string }>(apiEndpoints.uploads.productImage, fd);
   },
+  async listProductReviews(productId: string, params: { limit?: number; offset?: number } = {}) {
+  const data = await http<{ reviews: any[] }>(
+    `${apiEndpoints.productReviews.listByProductId(productId)}${qs(params)}`
+  );
+  return { reviews: (data.reviews || []).map(normalizeReview) as ProductReview[] };
+},
+
+async createProductReview(productId: string, payload: {
+  customer_name: string;
+  customer_email: string;
+  rating: number;
+  title?: string | null;
+  comment?: string | null;
+}) {
+  const data = await http<{ review: any }>(apiEndpoints.productReviews.createForProductId(productId), {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  return { review: normalizeReview(data.review) as ProductReview };
+},
+
+// Admin
+async adminListProductReviews(params: { product_id?: string; email?: string; rating?: number; limit?: number; offset?: number } = {}) {
+  const data = await http<{ reviews: any[] }>(
+    `${apiEndpoints.productReviews.admin.list}${qs(params)}`
+  );
+  return { reviews: (data.reviews || []).map(normalizeReview) as ProductReview[] };
+},
+
+adminDeleteProductReview(id: string) {
+  return http<{ success: true }>(apiEndpoints.productReviews.admin.delete(id), {
+    method: "DELETE",
+  });
+},
+
 };

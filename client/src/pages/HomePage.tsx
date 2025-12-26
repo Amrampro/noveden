@@ -40,6 +40,8 @@ export function HomePage({ onNavigate, onViewProduct, onViewPost }: HomePageProp
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [loadingCategories, setLoadingCategories] = useState(true);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     void fetchCategoriesAndProducts();
     void fetchLatestPosts();
@@ -140,8 +142,8 @@ export function HomePage({ onNavigate, onViewProduct, onViewPost }: HomePageProp
       {/* BRAND STORY */}
       <section
         style={{
-          backgroundColor: theme.colors.background.primary,
-          padding: `${theme.spacing["4xl"]} ${theme.spacing.lg}`,
+          backgroundColor: theme.colors.background.sage,
+          padding: `${theme.spacing["2xl"]} ${theme.spacing.lg}`,
         }}
       >
         <div
@@ -316,7 +318,6 @@ export function HomePage({ onNavigate, onViewProduct, onViewPost }: HomePageProp
 
                       <ProductCard
                         product={product}
-                        onViewDetails={onViewProduct}
                         onAddToCart={addToCart}
                       />
                     </div>
@@ -325,7 +326,7 @@ export function HomePage({ onNavigate, onViewProduct, onViewPost }: HomePageProp
               </div>
 
               <div style={{ textAlign: "center" }}>
-                <Button variant="primary" size="large" onClick={() => onNavigate?.("shop")}>
+                <Button variant="primary" size="large" onClick={() => navigate("/shop")}>
                   Voir tous les produits
                 </Button>
               </div>
@@ -566,7 +567,7 @@ export function HomePage({ onNavigate, onViewProduct, onViewPost }: HomePageProp
               </div>
 
               <div style={{ textAlign: "center" }}>
-                <Button variant="secondary" size="large" onClick={() => onNavigate?.("blog")}>
+                <Button variant="secondary" size="large" onClick={() => navigate("/blog")}>
                   Voir tous les articles
                 </Button>
               </div>
@@ -621,12 +622,12 @@ export function HomePage({ onNavigate, onViewProduct, onViewPost }: HomePageProp
           </div>
 
           <div style={{ display: "flex", gap: theme.spacing.md, flexWrap: "wrap" }}>
-            <Button variant="primary" size="large" onClick={() => onNavigate?.("shop")}>
+            <button style={{...theme.button.primary}} onClick={() => navigate("/shop")}>
               Aller à la boutique
-            </Button>
-            <Button variant="secondary" size="large" onClick={() => onNavigate?.("contact")}>
+            </button>
+            <button style={{...theme.button.outline}} onClick={() => navigate("/contact")}>
               Nous contacter
-            </Button>
+            </button>
           </div>
         </div>
       </section>

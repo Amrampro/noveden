@@ -76,8 +76,12 @@ export function CartPage() {
   // ✅ EMPTY CART
   if (items.length === 0) {
     return (
-      <div style={{ minHeight: "100vh", backgroundColor: theme.colors.background.primary }}>
-
+      <div
+        style={{
+          minHeight: "100vh",
+          backgroundColor: theme.colors.background.primary,
+        }}
+      >
         <section
           style={{
             backgroundColor: theme.colors.background.sage,
@@ -104,7 +108,9 @@ export function CartPage() {
             minHeight: "60vh",
           }}
         >
-          <div style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center" }}>
+          <div
+            style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center" }}
+          >
             <div
               style={{
                 width: 120,
@@ -144,15 +150,18 @@ export function CartPage() {
             </Button>
           </div>
         </section>
-
       </div>
     );
   }
 
   // ✅ CART WITH ITEMS
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: theme.colors.background.primary }}>
-
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: theme.colors.background.primary,
+      }}
+    >
       <section
         style={{
           backgroundColor: theme.colors.background.sage,
@@ -170,7 +179,8 @@ export function CartPage() {
           </Button>
 
           <h1 style={{ ...theme.heading.h1 }}>
-            Panier ({items.length} {items.length === 1 ? "article" : "articles"})
+            Panier ({items.length} {items.length === 1 ? "article" : "articles"}
+            )
           </h1>
         </div>
       </section>
@@ -246,7 +256,12 @@ export function CartPage() {
                     </div>
 
                     <div>
-                      <h3 style={{ ...theme.heading.h5, marginBottom: theme.spacing.xs }}>
+                      <h3
+                        style={{
+                          ...theme.heading.h5,
+                          marginBottom: theme.spacing.xs,
+                        }}
+                      >
                         {item.product.name}
                       </h3>
                       <p
@@ -259,7 +274,13 @@ export function CartPage() {
                         {item.product.short_description}
                       </p>
 
-                      <div style={{ display: "flex", alignItems: "center", gap: theme.spacing.md }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: theme.spacing.md,
+                        }}
+                      >
                         <span
                           style={{
                             ...theme.body.large,
@@ -280,7 +301,10 @@ export function CartPage() {
                                 textDecoration: "line-through",
                               }}
                             >
-                              {formatPrice(Number(item.product.compare_at_price))} €
+                              {formatPrice(
+                                Number(item.product.compare_at_price)
+                              )}{" "}
+                              €
                             </span>
                           )}
                       </div>
@@ -305,7 +329,9 @@ export function CartPage() {
                         }}
                       >
                         <button
-                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                          onClick={() =>
+                            updateQuantity(item.product.id, item.quantity - 1)
+                          }
                           style={{
                             width: 32,
                             height: 32,
@@ -334,7 +360,9 @@ export function CartPage() {
                         </span>
 
                         <button
-                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                          onClick={() =>
+                            updateQuantity(item.product.id, item.quantity + 1)
+                          }
                           style={{
                             width: 32,
                             height: 32,
@@ -376,14 +404,18 @@ export function CartPage() {
                 ))}
               </div>
 
-              <Button
-                variant="outline"
+              <button
                 onClick={clearCart}
-                style={{ color: theme.colors.error.main, borderColor: theme.colors.error.main }}
+                style={{
+                  ...theme.button.primary,
+                  background: theme.colors.error.main,
+                  borderColor: theme.colors.error.main,
+                  display: "flex",
+                }}
               >
                 <Trash2 size={20} style={{ marginRight: theme.spacing.sm }} />
                 Vider le panier
-              </Button>
+              </button>
             </div>
 
             {/* RIGHT: SUMMARY */}
@@ -395,7 +427,12 @@ export function CartPage() {
                   padding: theme.spacing.xl,
                 }}
               >
-                <h3 style={{ ...theme.heading.h4, marginBottom: theme.spacing.lg }}>
+                <h3
+                  style={{
+                    ...theme.heading.h4,
+                    marginBottom: theme.spacing.lg,
+                  }}
+                >
                   Résumé de la commande
                 </h3>
 
@@ -430,7 +467,13 @@ export function CartPage() {
                         padding: theme.spacing.md,
                       }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: theme.spacing.sm }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: theme.spacing.sm,
+                        }}
+                      >
                         <Check size={20} color={theme.colors.success.main} />
                         <span
                           style={{
@@ -471,7 +514,9 @@ export function CartPage() {
                           <input
                             type="text"
                             value={couponCode}
-                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                            onChange={(e) =>
+                              setCouponCode(e.target.value.toUpperCase())
+                            }
                             placeholder="Entrez votre code"
                             style={{
                               width: "100%",
@@ -514,65 +559,134 @@ export function CartPage() {
                     marginBottom: theme.spacing.lg,
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: theme.spacing.sm }}>
-                    <span style={{ ...theme.body.base, color: theme.colors.text.secondary }}>Sous-total</span>
-                    <span style={{ ...theme.body.base, fontWeight: theme.typography.fontWeight.medium }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      marginBottom: theme.spacing.sm,
+                    }}
+                  >
+                    <span
+                      style={{
+                        ...theme.body.base,
+                        color: theme.colors.text.secondary,
+                      }}
+                    >
+                      Sous-total
+                    </span>
+                    <span
+                      style={{
+                        ...theme.body.base,
+                        fontWeight: theme.typography.fontWeight.medium,
+                      }}
+                    >
                       {formatPrice(getCartTotal())} €
                     </span>
                   </div>
 
                   {appliedCoupon && calculateDiscount() > 0 && (
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: theme.spacing.sm }}>
-                      <span style={{ ...theme.body.base, color: theme.colors.success.main }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        marginBottom: theme.spacing.sm,
+                      }}
+                    >
+                      <span
+                        style={{
+                          ...theme.body.base,
+                          color: theme.colors.success.main,
+                        }}
+                      >
                         Réduction ({appliedCoupon.code})
                       </span>
-                      <span style={{ ...theme.body.base, color: theme.colors.success.main, fontWeight: theme.typography.fontWeight.medium }}>
+                      <span
+                        style={{
+                          ...theme.body.base,
+                          color: theme.colors.success.main,
+                          fontWeight: theme.typography.fontWeight.medium,
+                        }}
+                      >
                         -{formatPrice(calculateDiscount())} €
                       </span>
                     </div>
                   )}
 
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: theme.spacing.sm }}>
-                    <span style={{ ...theme.body.base, color: theme.colors.text.secondary }}>Livraison</span>
-                    <span style={{ ...theme.body.base, color: theme.colors.success.main }}>Gratuite</span>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      marginBottom: theme.spacing.sm,
+                    }}
+                  >
+                    <span
+                      style={{
+                        ...theme.body.base,
+                        color: theme.colors.text.secondary,
+                      }}
+                    >
+                      Livraison
+                    </span>
+                    <span
+                      style={{
+                        ...theme.body.base,
+                        color: theme.colors.success.main,
+                      }}
+                    >
+                      Gratuite
+                    </span>
                   </div>
                 </div>
 
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: theme.spacing.xl }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: theme.spacing.xl,
+                  }}
+                >
                   <span style={{ ...theme.heading.h5 }}>Total</span>
-                  <span style={{ ...theme.heading.h4, color: theme.colors.primary.main }}>
+                  <span
+                    style={{
+                      ...theme.heading.h4,
+                      color: theme.colors.primary.main,
+                    }}
+                  >
                     {formatPrice(getTotal())} €
                   </span>
                 </div>
 
                 {!user ? (
                   <div>
-                    <Button
-                      variant="primary"
-                      size="large"
-                      fullWidth
-                      onClick={() => navigate("/auth")}
-                      style={{ marginBottom: theme.spacing.sm }}
+                    <p
+                      style={{
+                        ...theme.body.small,
+                        textAlign: "center",
+                        color: theme.colors.error.main,
+                      }}
                     >
-                      Se connecter pour commander
-                    </Button>
-                    <p style={{ ...theme.body.small, textAlign: "center", color: theme.colors.text.light }}>
                       Vous devez être connecté pour passer une commande
                     </p>
+                    <u>
+                      <i>
+                        <Link to={"/auth"}>Cliquezr ici pour Se connecter et commander</Link>
+                      </i>
+                    </u><br/><br/>
                   </div>
                 ) : (
-                  <Button
-                    variant="primary"
-                    size="large"
-                    fullWidth
-                    style={{ marginBottom: theme.spacing.md }}
+                  <button
+                    style={{ ...theme.button.primary,marginBottom: theme.spacing.md }}
                     onClick={() => navigate("/checkout")}
                   >
                     Procéder au paiement
-                  </Button>
+                  </button>
                 )}
 
-                <Button variant="outline" fullWidth onClick={() => navigate("/shop")}>
+                <Button
+                  variant="outline"
+                  fullWidth
+                  onClick={() => navigate("/shop")}
+                >
                   Continuer les achats
                 </Button>
               </div>
@@ -592,7 +706,6 @@ export function CartPage() {
           }
         }
       `}</style>
-
     </div>
   );
 }

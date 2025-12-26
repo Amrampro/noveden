@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { theme } from "../config/theme";
 import { Button } from "../components/Button";
 import { blogService, BlogPost } from "../services/blogService";
+import DOMPurify from "dompurify";
 
 interface BlogDetailPageProps {
   slug: string;
@@ -47,133 +48,144 @@ export function BlogDetailPage({ slug }: BlogDetailPageProps) {
     return post.categories[0];
   }, [post]);
 
-  const renderContent = (content: string) => {
-    const lines = content.split("\n");
-    return lines.map((line, index) => {
-      if (line.startsWith("# ")) {
-        return (
-          <h2
-            key={index}
-            style={{
-              ...theme.heading.h2,
-              marginTop: theme.spacing["2xl"],
-              marginBottom: theme.spacing.xl,
-            }}
-          >
-            {line.substring(2)}
-          </h2>
-        );
-      }
-      if (line.startsWith("## ")) {
-        return (
-          <h3
-            key={index}
-            style={{
-              ...theme.heading.h3,
-              marginTop: theme.spacing.xl,
-              marginBottom: theme.spacing.md,
-            }}
-          >
-            {line.substring(3)}
-          </h3>
-        );
-      }
-      if (line.startsWith("### ")) {
-        return (
-          <h4
-            key={index}
-            style={{
-              ...theme.heading.h4,
-              marginTop: theme.spacing.lg,
-              marginBottom: theme.spacing.sm,
-            }}
-          >
-            {line.substring(4)}
-          </h4>
-        );
-      }
-      if (line.startsWith("#### ")) {
-        return (
-          <h5
-            key={index}
-            style={{
-              fontSize: theme.typography.fontSize.lg,
-              fontWeight: theme.typography.fontWeight.semibold,
-              color: theme.colors.text.primary,
-              marginTop: theme.spacing.md,
-              marginBottom: theme.spacing.sm,
-              fontFamily: theme.typography.fontFamily.heading,
-            }}
-          >
-            {line.substring(5)}
-          </h5>
-        );
-      }
-      if (line.startsWith("**") && line.endsWith("**")) {
-        return (
-          <p
-            key={index}
-            style={{
-              ...theme.body.large,
-              fontWeight: theme.typography.fontWeight.semibold,
-              marginTop: theme.spacing.md,
-              marginBottom: theme.spacing.sm,
-            }}
-          >
-            {line.substring(2, line.length - 2)}
-          </p>
-        );
-      }
-      if (line.startsWith("- ") || line.startsWith("* ")) {
-        return (
-          <li
-            key={index}
-            style={{
-              ...theme.body.base,
-              marginLeft: theme.spacing.xl,
-              marginBottom: theme.spacing.xs,
-            }}
-          >
-            {line.substring(2)}
-          </li>
-        );
-      }
-      if (line.match(/^\d+\.\s/)) {
-        return (
-          <li
-            key={index}
-            style={{
-              ...theme.body.base,
-              marginLeft: theme.spacing.xl,
-              marginBottom: theme.spacing.xs,
-              listStyleType: "decimal",
-            }}
-          >
-            {line.replace(/^\d+\.\s/, "")}
-          </li>
-        );
-      }
-      if (line.trim() === "") {
-        return <div key={index} style={{ height: theme.spacing.md }} />;
-      }
-      return (
-        <p
-          key={index}
-          style={{
-            ...theme.body.base,
-            marginBottom: theme.spacing.md,
-          }}
-        >
-          {line}
-        </p>
-      );
+  // const renderContent = (content: string) => {
+  //   const lines = content.split("\n");
+  //   return lines.map((line, index) => {
+  //     if (line.startsWith("# ")) {
+  //       return (
+  //         <h2
+  //           key={index}
+  //           style={{
+  //             ...theme.heading.h2,
+  //             marginTop: theme.spacing["2xl"],
+  //             marginBottom: theme.spacing.xl,
+  //           }}
+  //         >
+  //           {line.substring(2)}
+  //         </h2>
+  //       );
+  //     }
+  //     if (line.startsWith("## ")) {
+  //       return (
+  //         <h3
+  //           key={index}
+  //           style={{
+  //             ...theme.heading.h3,
+  //             marginTop: theme.spacing.xl,
+  //             marginBottom: theme.spacing.md,
+  //           }}
+  //         >
+  //           {line.substring(3)}
+  //         </h3>
+  //       );
+  //     }
+  //     if (line.startsWith("### ")) {
+  //       return (
+  //         <h4
+  //           key={index}
+  //           style={{
+  //             ...theme.heading.h4,
+  //             marginTop: theme.spacing.lg,
+  //             marginBottom: theme.spacing.sm,
+  //           }}
+  //         >
+  //           {line.substring(4)}
+  //         </h4>
+  //       );
+  //     }
+  //     if (line.startsWith("#### ")) {
+  //       return (
+  //         <h5
+  //           key={index}
+  //           style={{
+  //             fontSize: theme.typography.fontSize.lg,
+  //             fontWeight: theme.typography.fontWeight.semibold,
+  //             color: theme.colors.text.primary,
+  //             marginTop: theme.spacing.md,
+  //             marginBottom: theme.spacing.sm,
+  //             fontFamily: theme.typography.fontFamily.heading,
+  //           }}
+  //         >
+  //           {line.substring(5)}
+  //         </h5>
+  //       );
+  //     }
+  //     if (line.startsWith("**") && line.endsWith("**")) {
+  //       return (
+  //         <p
+  //           key={index}
+  //           style={{
+  //             ...theme.body.large,
+  //             fontWeight: theme.typography.fontWeight.semibold,
+  //             marginTop: theme.spacing.md,
+  //             marginBottom: theme.spacing.sm,
+  //           }}
+  //         >
+  //           {line.substring(2, line.length - 2)}
+  //         </p>
+  //       );
+  //     }
+  //     if (line.startsWith("- ") || line.startsWith("* ")) {
+  //       return (
+  //         <li
+  //           key={index}
+  //           style={{
+  //             ...theme.body.base,
+  //             marginLeft: theme.spacing.xl,
+  //             marginBottom: theme.spacing.xs,
+  //           }}
+  //         >
+  //           {line.substring(2)}
+  //         </li>
+  //       );
+  //     }
+  //     if (line.match(/^\d+\.\s/)) {
+  //       return (
+  //         <li
+  //           key={index}
+  //           style={{
+  //             ...theme.body.base,
+  //             marginLeft: theme.spacing.xl,
+  //             marginBottom: theme.spacing.xs,
+  //             listStyleType: "decimal",
+  //           }}
+  //         >
+  //           {line.replace(/^\d+\.\s/, "")}
+  //         </li>
+  //       );
+  //     }
+  //     if (line.trim() === "") {
+  //       return <div key={index} style={{ height: theme.spacing.md }} />;
+  //     }
+  //     return (
+  //       <p
+  //         key={index}
+  //         style={{
+  //           ...theme.body.base,
+  //           marginBottom: theme.spacing.md,
+  //         }}
+  //       >
+  //         {line}
+  //       </p>
+  //     );
+  //   });
+  // };
+
+  const safeHtml = useMemo(() => {
+    return DOMPurify.sanitize(post?.content || "", {
+      USE_PROFILES: { html: true }, // profil safe
     });
-  };
+  }, [post?.content]);
 
   // ✅ LOADING
   if (loading) {
     return (
-      <div style={{ minHeight: "100vh", backgroundColor: theme.colors.background.primary }}>
+      <div
+        style={{
+          minHeight: "100vh",
+          backgroundColor: theme.colors.background.primary,
+        }}
+      >
         <div
           style={{
             minHeight: "70vh",
@@ -193,7 +205,12 @@ export function BlogDetailPage({ slug }: BlogDetailPageProps) {
   // ✅ NOT FOUND
   if (!post) {
     return (
-      <div style={{ minHeight: "100vh", backgroundColor: theme.colors.background.primary }}>
+      <div
+        style={{
+          minHeight: "100vh",
+          backgroundColor: theme.colors.background.primary,
+        }}
+      >
         <section
           style={{
             backgroundColor: theme.colors.background.sage,
@@ -201,8 +218,15 @@ export function BlogDetailPage({ slug }: BlogDetailPageProps) {
           }}
         >
           <div style={{ maxWidth: theme.container.maxWidth, margin: "0 auto" }}>
-            <h1 style={{ ...theme.heading.h1, marginBottom: theme.spacing.sm }}>Blog</h1>
-            <p style={{ ...theme.body.large, color: theme.colors.text.secondary }}>
+            <h1 style={{ ...theme.heading.h1, marginBottom: theme.spacing.sm }}>
+              Blog
+            </h1>
+            <p
+              style={{
+                ...theme.body.large,
+                color: theme.colors.text.secondary,
+              }}
+            >
               L’article demandé n’existe pas ou a été supprimé.
             </p>
           </div>
@@ -234,12 +258,21 @@ export function BlogDetailPage({ slug }: BlogDetailPageProps) {
                 textAlign: "center",
               }}
             >
-              <p style={{ ...theme.body.large, color: theme.colors.text.secondary, marginBottom: theme.spacing.xl }}>
+              <p
+                style={{
+                  ...theme.body.large,
+                  color: theme.colors.text.secondary,
+                  marginBottom: theme.spacing.xl,
+                }}
+              >
                 Article non trouvé
               </p>
 
               <Button variant="outline" onClick={() => navigate("/blog")}>
-                <ArrowLeft size={20} style={{ marginRight: theme.spacing.sm }} />
+                <ArrowLeft
+                  size={20}
+                  style={{ marginRight: theme.spacing.sm }}
+                />
                 Retour au blog
               </Button>
             </div>
@@ -249,12 +282,17 @@ export function BlogDetailPage({ slug }: BlogDetailPageProps) {
     );
   }
 
-  const publishedLabel =
-    post.published_at ? formatDate(post.published_at) : "Non publié";
+  const publishedLabel = post.published_at
+    ? formatDate(post.published_at)
+    : "Non publié";
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: theme.colors.background.primary }}>
-
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: theme.colors.background.primary,
+      }}
+    >
       {/* HERO */}
       <section
         style={{
@@ -290,7 +328,9 @@ export function BlogDetailPage({ slug }: BlogDetailPageProps) {
             </span>
           )}
 
-          <h1 style={{ ...theme.heading.h1, marginBottom: theme.spacing.md }}>{post.title}</h1>
+          <h1 style={{ ...theme.heading.h1, marginBottom: theme.spacing.md }}>
+            {post.title}
+          </h1>
 
           {post.excerpt && (
             <p
@@ -379,7 +419,9 @@ export function BlogDetailPage({ slug }: BlogDetailPageProps) {
                   color: theme.colors.text.secondary,
                 }}
               >
-                {post.categories?.length ? `${post.categories.length} catégorie(s)` : "Sans catégorie"}
+                {post.categories?.length
+                  ? `${post.categories.length} catégorie(s)`
+                  : "Sans catégorie"}
               </span>
             </div>
           </div>
@@ -463,7 +505,7 @@ export function BlogDetailPage({ slug }: BlogDetailPageProps) {
               boxShadow: theme.shadow.card,
             }}
           >
-            <div
+            {/* <div
               style={{
                 fontFamily: theme.typography.fontFamily.body,
                 color: theme.colors.text.secondary,
@@ -472,7 +514,16 @@ export function BlogDetailPage({ slug }: BlogDetailPageProps) {
               }}
             >
               {renderContent(post.content)}
-            </div>
+            </div> */}
+            <div
+              style={{
+                fontFamily: theme.typography.fontFamily.body,
+                color: theme.colors.text.secondary,
+                lineHeight: 1.9,
+                fontSize: theme.typography.fontSize.base,
+              }}
+              dangerouslySetInnerHTML={{ __html: safeHtml }}
+            />
 
             {/* CTA */}
             <div
@@ -487,7 +538,12 @@ export function BlogDetailPage({ slug }: BlogDetailPageProps) {
                 textAlign: "center",
               }}
             >
-              <p style={{ ...theme.body.base, color: theme.colors.text.secondary }}>
+              <p
+                style={{
+                  ...theme.body.base,
+                  color: theme.colors.text.secondary,
+                }}
+              >
                 Envie de découvrir plus de conseils ?
               </p>
 
@@ -498,7 +554,6 @@ export function BlogDetailPage({ slug }: BlogDetailPageProps) {
           </div>
         </div>
       </section>
-
     </div>
   );
 }

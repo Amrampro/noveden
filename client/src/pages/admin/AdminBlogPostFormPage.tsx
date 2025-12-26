@@ -2,6 +2,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { blogService, BlogCategory } from "../../services/blogService";
+import { RichTextEditor } from "../../components/RichTextEditor";
+
 
 type FormState = {
   title: string;
@@ -36,6 +38,7 @@ function normalizeSlug(s: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+
 export default function AdminBlogPostFormPage() {
   const { id } = useParams();
   const isEdit = Boolean(id);
@@ -51,7 +54,10 @@ export default function AdminBlogPostFormPage() {
 
   // upload state
   const [imageBusy, setImageBusy] = useState(false);
-  const [imageMeta, setImageMeta] = useState<{ name?: string; sizeKb?: number } | null>(null);
+  const [imageMeta, setImageMeta] = useState<{
+    name?: string;
+    sizeKb?: number;
+  } | null>(null);
 
   const categoryOptions = useMemo(() => {
     const sorted = [...categories];
@@ -118,7 +124,9 @@ export default function AdminBlogPostFormPage() {
       const exists = f.category_ids.includes(catId);
       return {
         ...f,
-        category_ids: exists ? f.category_ids.filter((x) => x !== catId) : [...f.category_ids, catId],
+        category_ids: exists
+          ? f.category_ids.filter((x) => x !== catId)
+          : [...f.category_ids, catId],
       };
     });
   }
@@ -131,7 +139,8 @@ export default function AdminBlogPostFormPage() {
     if (!form.content.trim()) return "Content is required";
 
     const rt = Number(form.reading_time);
-    if (!Number.isFinite(rt) || rt <= 0) return "Reading time must be a number > 0";
+    if (!Number.isFinite(rt) || rt <= 0)
+      return "Reading time must be a number > 0";
 
     // image_url should be https://... OR empty
     if (form.image_url && !/^https?:\/\//i.test(form.image_url)) {
@@ -157,7 +166,9 @@ export default function AdminBlogPostFormPage() {
         content: form.content.trim(),
         image_url: form.image_url.trim() || null, // https://... from upload
         reading_time: Number(form.reading_time) || 5,
-        published_at: form.is_published ? new Date().toISOString().slice(0, 19).replace("T", " ") : null,
+        published_at: form.is_published
+          ? new Date().toISOString().slice(0, 19).replace("T", " ")
+          : null,
         category_ids: form.category_ids,
       };
 
@@ -206,19 +217,32 @@ export default function AdminBlogPostFormPage() {
   }
 
   if (loading) {
-    return <div className="bg-white border rounded-xl p-6 text-gray-600">Loading...</div>;
+    return (
+      <div className="bg-white border rounded-xl p-6 text-gray-600">
+        Loading...
+      </div>
+    );
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{isEdit ? "Edit post" : "Create post"}</h1>
-          <p className="text-gray-600">{isEdit ? "Update post details." : "Fill the form to create a new post."}</p>
+          <h1 className="text-2xl font-semibold text-gray-900">
+            {isEdit ? "Edit post" : "Create post"}
+          </h1>
+          <p className="text-gray-600">
+            {isEdit
+              ? "Update post details."
+              : "Fill the form to create a new post."}
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <Link to="/admin/blog" className="px-4 py-2 rounded-lg border bg-white hover:bg-gray-50">
+          <Link
+            to="/admin/blog"
+            className="px-4 py-2 rounded-lg border bg-white hover:bg-gray-50"
+          >
             Back to list
           </Link>
         </div>
@@ -230,13 +254,18 @@ export default function AdminBlogPostFormPage() {
         </div>
       )}
 
-      <form onSubmit={onSubmit} className="bg-white border rounded-xl p-5 space-y-5">
+      <form
+        onSubmit={onSubmit}
+        className="bg-white border rounded-xl p-5 space-y-5"
+      >
         <Section title="Basic information">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field label="Title *">
               <input
                 value={form.title}
-                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, title: e.target.value }))
+                }
                 className="w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-black/20"
                 disabled={busy}
               />
@@ -252,14 +281,18 @@ export default function AdminBlogPostFormPage() {
                 className="w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-black/20"
                 disabled={busy}
               />
-              <div className="text-xs text-gray-500 mt-1">Auto-generated from title unless edited.</div>
+              <div className="text-xs text-gray-500 mt-1">
+                Auto-generated from title unless edited.
+              </div>
             </Field>
 
             <div className="md:col-span-2">
               <Field label="Excerpt">
                 <textarea
                   value={form.excerpt}
-                  onChange={(e) => setForm((f) => ({ ...f, excerpt: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, excerpt: e.target.value }))
+                  }
                   className="w-full px-3 py-2 rounded-lg border min-h-[80px] focus:outline-none focus:ring-2 focus:ring-black/20"
                   disabled={busy}
                 />
@@ -267,11 +300,20 @@ export default function AdminBlogPostFormPage() {
             </div>
 
             <div className="md:col-span-2">
-              <Field label="Content *">
+              {/* <Field label="Content *">
                 <textarea
                   value={form.content}
-                  onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, content: e.target.value }))
+                  }
                   className="w-full px-3 py-2 rounded-lg border min-h-[220px] focus:outline-none focus:ring-2 focus:ring-black/20"
+                  disabled={busy}
+                />
+              </Field> */}
+              <Field label="Content *">
+                <RichTextEditor
+                  value={form.content}
+                  onChange={(html) => setForm((f) => ({ ...f, content: html }))}
                   disabled={busy}
                 />
               </Field>
@@ -290,7 +332,8 @@ export default function AdminBlogPostFormPage() {
                     className="w-full h-full object-cover"
                     loading="lazy"
                     onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                      (e.currentTarget as HTMLImageElement).style.display =
+                        "none";
                     }}
                   />
                 ) : (
@@ -311,7 +354,11 @@ export default function AdminBlogPostFormPage() {
                       handlePickImage(file);
                     }}
                   />
-                  {imageBusy ? "Uploading..." : form.image_url ? "Change image" : "Choose image"}
+                  {imageBusy
+                    ? "Uploading..."
+                    : form.image_url
+                    ? "Change image"
+                    : "Choose image"}
                 </label>
 
                 {form.image_url && (
@@ -338,7 +385,8 @@ export default function AdminBlogPostFormPage() {
 
             {form.image_url && (
               <div className="text-[11px] text-gray-400 mt-1">
-                Stored in DB as URL: <span className="break-all">{form.image_url}</span>
+                Stored in DB as URL:{" "}
+                <span className="break-all">{form.image_url}</span>
               </div>
             )}
           </Field>
@@ -352,7 +400,9 @@ export default function AdminBlogPostFormPage() {
                 min={1}
                 step={1}
                 value={form.reading_time}
-                onChange={(e) => setForm((f) => ({ ...f, reading_time: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, reading_time: e.target.value }))
+                }
                 className="w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-black/20"
                 disabled={busy}
               />
@@ -363,13 +413,16 @@ export default function AdminBlogPostFormPage() {
                 <input
                   type="checkbox"
                   checked={form.is_published}
-                  onChange={(e) => setForm((f) => ({ ...f, is_published: e.target.checked }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, is_published: e.target.checked }))
+                  }
                   disabled={busy}
                 />
                 Published
               </label>
               <div className="text-xs text-gray-500 mt-1">
-                If checked, we send a published_at value (you can still publish/unpublish from list page too).
+                If checked, we send a published_at value (you can still
+                publish/unpublish from list page too).
               </div>
             </Field>
           </div>
@@ -377,7 +430,9 @@ export default function AdminBlogPostFormPage() {
 
         <Section title="Categories">
           {categoryOptions.length === 0 ? (
-            <div className="text-sm text-gray-600">No categories found. Create categories first.</div>
+            <div className="text-sm text-gray-600">
+              No categories found. Create categories first.
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {categoryOptions.map((c) => {
@@ -387,7 +442,9 @@ export default function AdminBlogPostFormPage() {
                     key={c.id}
                     className={[
                       "flex items-center gap-2 p-3 rounded-lg border cursor-pointer",
-                      checked ? "bg-gray-50 border-gray-300" : "bg-white hover:bg-gray-50",
+                      checked
+                        ? "bg-gray-50 border-gray-300"
+                        : "bg-white hover:bg-gray-50",
                     ].join(" ")}
                   >
                     <input
@@ -397,7 +454,9 @@ export default function AdminBlogPostFormPage() {
                       disabled={busy}
                     />
                     <div className="flex-1">
-                      <div className="text-sm font-medium text-gray-900">{c.name}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {c.name}
+                      </div>
                       <div className="text-xs text-gray-500">{c.slug}</div>
                     </div>
                   </label>
@@ -408,7 +467,10 @@ export default function AdminBlogPostFormPage() {
         </Section>
 
         <div className="flex justify-end gap-2 pt-2">
-          <Link to="/admin/blog" className="px-4 py-2 rounded-lg border bg-white hover:bg-gray-50">
+          <Link
+            to="/admin/blog"
+            className="px-4 py-2 rounded-lg border bg-white hover:bg-gray-50"
+          >
             Cancel
           </Link>
           <button
@@ -426,7 +488,13 @@ export default function AdminBlogPostFormPage() {
 
 /* ----------- UI helpers ----------- */
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-3">
       <div className="font-semibold text-gray-900">{title}</div>
@@ -435,7 +503,13 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <label className="block">
       <div className="text-sm font-medium text-gray-800 mb-1">{label}</div>

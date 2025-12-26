@@ -13,6 +13,11 @@ import faqsRoutes from "./routes/faqs.routes.js";
 import bannersRoutes from "./routes/banners.routes.js";
 import legalLinksRoutes from "./routes/legalLinks.routes.js";
 import parametersRoutes from "./routes/parameters.routes.js";
+import productReviewsRoutes from "./routes/productReviews.routes.js";
+
+import ordersRoutes from "./routes/orders.routes.js";
+import adminOrdersRoutes from "./routes/adminOrders.routes.js";
+import stripeWebhookRoutes from "./routes/stripeWebhook.routes.js";
 
 import pool from './config/database.js';
 
@@ -25,6 +30,9 @@ app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true
 }));
+
+// Stripe webhook needs raw body
+app.use("/api/webhooks", express.raw({ type: "application/json" }), stripeWebhookRoutes);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -61,6 +69,9 @@ app.use("/api/faqs", faqsRoutes);
 app.use("/api/banners", bannersRoutes);
 app.use("/api/legal-links", legalLinksRoutes);
 app.use("/api/parameters", parametersRoutes);
+app.use("/api/pr", productReviewsRoutes);
+app.use("/api/orders", ordersRoutes);
+app.use("/api/admin/orders", adminOrdersRoutes);
 
 app.use((err, req, res, next) => {
   console.error('Error:', err);

@@ -176,7 +176,7 @@ export function PageBanner({ defaultKicker = "" }: Props) {
           ) : null}
 
           {/* Kicker only if provided (and only if banner exists) */}
-          {subtitle ? (
+          {/* {subtitle ? (
             <p
               style={{
                 fontFamily: theme.typography.fontFamily.body,
@@ -189,7 +189,7 @@ export function PageBanner({ defaultKicker = "" }: Props) {
             >
               {subtitle}
             </p>
-          ) : null}
+          ) : null} */}
 
           {/* CTA only if DB provides it */}
           {showCta ? (

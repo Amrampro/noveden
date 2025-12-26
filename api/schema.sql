@@ -128,42 +128,112 @@ CREATE TABLE product_reviews (
 -- ORDERS
 -- =====================================================
 
-CREATE TABLE orders (
-    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    user_id VARCHAR(36),
-    order_number VARCHAR(50) UNIQUE,
-    status ENUM('pending','processing','shipped','delivered','cancelled') DEFAULT 'pending',
-    subtotal DECIMAL(10,2) NOT NULL,
-    discount_amount DECIMAL(10,2) DEFAULT 0,
-    total DECIMAL(10,2) NOT NULL,
-    coupon_id VARCHAR(36),
-    shipping_first_name VARCHAR(100),
-    shipping_last_name VARCHAR(100),
-    shipping_email VARCHAR(255),
-    shipping_phone VARCHAR(20),
-    shipping_address_line1 VARCHAR(255),
-    shipping_address_line2 VARCHAR(255),
-    shipping_town VARCHAR(100),
-    shipping_postal_code VARCHAR(20),
-    shipping_country VARCHAR(100),
-    notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
+CREATE TABLE IF NOT EXISTS orders (
+  id              VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  user_id         BIGINT UNSIGNED NOT NULL,
+  status          ENUM('pending_payment','paid','processing','shipped','delivered','cancelled','refunded')
+                  NOT NULL DEFAULT 'pending_payment',
 
-CREATE TABLE order_items (
-    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    order_id VARCHAR(36) NOT NULL,
-    product_id VARCHAR(36),
-    product_name VARCHAR(255),
-    product_price DECIMAL(10,2),
-    quantity INT CHECK (quantity > 0),
-    subtotal DECIMAL(10,2),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
+  currency        VARCHAR(10) NOT NULL DEFAULT 'EUR',
+  subtotal_amount INT NOT NULL DEFAULT 0,
+  discount_amount INT NOT NULL DEFAULT 0,
+  shipping_amount INT NOT NULL DEFAULT 0,
+  total_amount    INT NOT NULL DEFAULT 0,
+
+  coupon_code     VARCHAR(50) NULL,
+
+  shipping_method ENUM('mondial_relay','home_delivery') NULL,
+  shipping_status ENUM('not_set','label_created','in_transit','delivered','returned') NOT NULL DEFAULT 'not_set',
+
+  shipping_tracking_number VARCHAR(80) NULL,
+  shipping_tracking_url    VARCHAR(255) NULL,
+
+  created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  INDEX idx_orders_user (user_id),
+  INDEX idx_orders_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS order_items (
+  id          VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  order_id    VARCHAR(36) NOT NULL,
+  product_id  VARCHAR(36) NOT NULL,
+
+  product_name VARCHAR(255) NOT NULL,
+  unit_price   INT NOT NULL,
+  quantity     INT NOT NULL DEFAULT 1,
+  line_total   INT NOT NULL,
+
+  created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  INDEX idx_order_items_order (order_id),
+  INDEX idx_order_items_product (product_id),
+
+  CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS order_addresses (
+  id          VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  order_id    VARCHAR(36) NOT NULL UNIQUE,
+
+  full_name   VARCHAR(191) NOT NULL,
+  email       VARCHAR(191) NOT NULL,
+  phone       VARCHAR(50)  NOT NULL,
+
+  country     VARCHAR(2)   NOT NULL,
+  city        VARCHAR(120) NOT NULL,
+  postal_code VARCHAR(30)  NOT NULL,
+  address1    VARCHAR(255) NOT NULL,
+  address2    VARCHAR(255) NULL,
+
+  created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  CONSTRAINT fk_order_addresses_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS order_payments (
+  id                  VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  order_id            VARCHAR(36) NOT NULL,
+
+  provider            ENUM('stripe') NOT NULL DEFAULT 'stripe',
+  status              ENUM('requires_payment','processing','succeeded','failed','refunded') NOT NULL DEFAULT 'requires_payment',
+
+  stripe_payment_intent_id VARCHAR(100) NULL,
+  stripe_charge_id         VARCHAR(100) NULL,
+
+  amount              INT NOT NULL,
+  currency            VARCHAR(10) NOT NULL DEFAULT 'EUR',
+
+  created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  UNIQUE KEY uniq_order_payment (order_id),
+  INDEX idx_payment_intent (stripe_payment_intent_id),
+
+  CONSTRAINT fk_order_payments_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS order_shipping (
+  id              VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  order_id        VARCHAR(36) NOT NULL UNIQUE,
+
+  provider        ENUM('mondial_relay') NOT NULL DEFAULT 'mondial_relay',
+  relay_point_id  VARCHAR(80) NULL,
+  relay_point_name VARCHAR(191) NULL,
+  relay_point_address TEXT NULL,
+
+  label_url       VARCHAR(255) NULL,
+  tracking_number VARCHAR(80) NULL,
+  tracking_url    VARCHAR(255) NULL,
+
+  created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  CONSTRAINT fk_order_shipping_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- =====================================================
 -- COUPONS
@@ -235,6 +305,10 @@ CREATE TABLE blog_posts (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
+
+ALTER TABLE blog_posts
+  MODIFY COLUMN content MEDIUMTEXT NOT NULL;
+
 
 CREATE TABLE blog_post_category_pivot (
     blog_post_id VARCHAR(36) NOT NULL,

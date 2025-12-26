@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { theme } from "../config/theme";
 import { Button } from "../components/Button";
 import { blogService, type BlogPost, type BlogCategory } from "../services/blogService";
+import { PageBanner } from "../components/PageBanner";
 
 export function BlogPage() {
   const navigate = useNavigate();
@@ -81,64 +82,7 @@ export function BlogPage() {
   return (
     <div>
 
-      {/* HERO */}
-      <section
-        style={{
-          backgroundColor: theme.colors.background.sage,
-          padding: `${theme.spacing["3xl"]} ${theme.spacing.lg}`,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: theme.container.maxWidth,
-            margin: "0 auto",
-            textAlign: "center",
-          }}
-        >
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: theme.spacing.sm,
-              padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
-              borderRadius: theme.borderRadius.full,
-              backgroundColor: theme.colors.background.primary,
-              border: `1px solid ${theme.colors.border.light}`,
-              marginBottom: theme.spacing.lg,
-            }}
-          >
-            <Newspaper size={18} color={theme.colors.primary.main} />
-            <span
-              style={{
-                fontFamily: theme.typography.fontFamily.body,
-                fontSize: theme.typography.fontSize.sm,
-                color: theme.colors.text.secondary,
-                textTransform: "uppercase",
-                letterSpacing: theme.typography.letterSpacing.wide,
-              }}
-            >
-              Conseils & routines
-            </span>
-          </div>
-
-          <h1 style={{ ...theme.heading.h1, marginBottom: theme.spacing.lg }}>
-            Blog
-          </h1>
-
-          <p
-            style={{
-              fontFamily: theme.typography.fontFamily.body,
-              fontSize: theme.typography.fontSize.lg,
-              color: theme.colors.text.secondary,
-              maxWidth: "760px",
-              margin: "0 auto",
-              lineHeight: theme.typography.lineHeight.body,
-            }}
-          >
-            Découvrez nos conseils beauté et nos articles sur les soins naturels pour la peau et les cheveux.
-          </p>
-        </div>
-      </section>
+      <PageBanner />
 
       {/* CONTENT */}
       <section

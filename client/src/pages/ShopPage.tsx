@@ -7,6 +7,7 @@ import { ProductCard } from "../components/ProductCard";
 import type { Product, ProductCategory } from "../lib/types";
 import { useCart } from "../contexts/CartContext";
 import { productService } from "../services/productService";
+import { PageBanner } from "../components/PageBanner";
 
 interface ShopPageProps {
   onViewProduct?: (product: Product) => void;
@@ -100,36 +101,7 @@ export function ShopPage({ onViewProduct }: ShopPageProps) {
   return (
     <div>
 
-      {/* HERO */}
-      <section
-        style={{
-          backgroundColor: theme.colors.background.sage,
-          padding: `${theme.spacing["3xl"]} ${theme.spacing.lg}`,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: theme.container.maxWidth,
-            margin: "0 auto",
-            textAlign: "center",
-          }}
-        >
-          <h1 style={{ ...theme.heading.h1, marginBottom: theme.spacing.lg }}>
-            Boutique
-          </h1>
-          <p
-            style={{
-              fontFamily: theme.typography.fontFamily.body,
-              fontSize: theme.typography.fontSize.lg,
-              color: theme.colors.text.secondary,
-              maxWidth: "760px",
-              margin: "0 auto",
-            }}
-          >
-            Découvrez notre collection complète de produits naturels pour sublimer vos cheveux et votre peau.
-          </p>
-        </div>
-      </section>
+      <PageBanner />
 
       {/* CONTENT */}
       <section

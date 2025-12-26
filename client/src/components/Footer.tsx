@@ -8,11 +8,15 @@ import {
   InstagramIcon,
   FacebookIcon,
   TwitterIcon,
+  PhoneIcon,
 } from "lucide-react";
 import { theme } from "../config/theme";
 import { Button } from "./Button";
 import { useSiteParams } from "../contexts/SiteParamsContext";
-import { legalLinksService, type LegalLink } from "../services/legalLinksService";
+import {
+  legalLinksService,
+  type LegalLink,
+} from "../services/legalLinksService";
 
 interface FooterProps {
   onNavigate?: (page: string) => void;
@@ -25,7 +29,8 @@ export function Footer({ onNavigate }: FooterProps) {
   // const { data: parameters } = useSiteParams();
   // const { siteParams: parameters } = useSiteParams();
   const siteState = useSiteParams() as any;
-  const parameters = siteState?.parameters ?? siteState?.data ?? siteState?.siteParams ?? null;
+  const parameters =
+    siteState?.parameters ?? siteState?.data ?? siteState?.siteParams ?? null;
 
   const [email, setEmail] = useState("");
   const [isSubscribing, setIsSubscribing] = useState(false);
@@ -45,8 +50,14 @@ export function Footer({ onNavigate }: FooterProps) {
         if (!mounted) return;
 
         const links = (data.links || [])
-          .filter((l: LegalLink) => l.is_active === true || l.is_active === 1 || l.is_active === "1")
-          .sort((a: LegalLink, b: LegalLink) => Number(a.display_order || 0) - Number(b.display_order || 0));
+          .filter(
+            (l: LegalLink) =>
+              l.is_active === true || l.is_active === 1 || l.is_active === "1"
+          )
+          .sort(
+            (a: LegalLink, b: LegalLink) =>
+              Number(a.display_order || 0) - Number(b.display_order || 0)
+          );
 
         setLegalLinks(links);
       } catch {
@@ -94,10 +105,40 @@ export function Footer({ onNavigate }: FooterProps) {
   const whatsapp = String(parameters?.whatsapp_link || "").trim(); // (si tu veux afficher plus tard)
 
   const socialLinks = useMemo(() => {
-    const arr: Array<{ key: string; href: string; Icon: React.ComponentType<any>; label: string }> = [];
-    if (facebook) arr.push({ key: "fb", href: facebook, Icon: FacebookIcon, label: "Facebook" });
-    if (instagram) arr.push({ key: "ig", href: instagram, Icon: InstagramIcon, label: "Instagram" });
-    if (twitter) arr.push({ key: "x", href: twitter, Icon: TwitterIcon, label: "X / Twitter" });
+    const arr: Array<{
+      key: string;
+      href: string;
+      Icon: React.ComponentType<any>;
+      label: string;
+    }> = [];
+    if (facebook)
+      arr.push({
+        key: "fb",
+        href: facebook,
+        Icon: FacebookIcon,
+        label: "Facebook",
+      });
+    if (instagram)
+      arr.push({
+        key: "ig",
+        href: instagram,
+        Icon: InstagramIcon,
+        label: "Instagram",
+      });
+    if (twitter)
+      arr.push({
+        key: "x",
+        href: twitter,
+        Icon: TwitterIcon,
+        label: "X / Twitter",
+      });
+    if (whatsapp)
+      arr.push({
+        key: "wa",
+        href: whatsapp,
+        Icon: PhoneIcon,
+        label: "WhatsApp",
+      });
 
     // WhatsApp: si tu veux, on peut l’ajouter avec une icône custom ou lucide (si dispo)
     // if (whatsapp) arr.push({ key: "wa", href: whatsapp, Icon: WhatsAppIcon, label: "WhatsApp" });
@@ -121,8 +162,14 @@ export function Footer({ onNavigate }: FooterProps) {
           }}
         >
           {/* Newsletter */}
-          <div style={{ textAlign: "center", marginBottom: theme.spacing["3xl"] }}>
-            <Mail size={48} color={theme.colors.primary.main} style={{ margin: "0 auto 1rem" }} />
+          <div
+            style={{ textAlign: "center", marginBottom: theme.spacing["3xl"] }}
+          >
+            <Mail
+              size={48}
+              color={theme.colors.primary.main}
+              style={{ margin: "0 auto 1rem" }}
+            />
             <h3 style={{ ...theme.heading.h3, marginBottom: theme.spacing.md }}>
               Inscrivez-vous à la newsletter
             </h3>
@@ -136,7 +183,8 @@ export function Footer({ onNavigate }: FooterProps) {
                 margin: `0 auto ${theme.spacing.xl}`,
               }}
             >
-              Bénéficiez de 10% de réduction immédiate et recevez nos conseils, offres et nouveautés bien-être.
+              Bénéficiez de 10% de réduction immédiate et recevez nos conseils,
+              offres et nouveautés bien-être.
             </p>
 
             <form
@@ -205,18 +253,24 @@ export function Footer({ onNavigate }: FooterProps) {
           >
             {/* Brand */}
             <div>
-              <div style={{ display: "flex", alignItems: "center", gap: theme.spacing.sm, marginBottom: theme.spacing.lg }}>
+              <div
+                style={{
+                  alignItems: "center",
+                  gap: theme.spacing.sm,
+                  marginBottom: theme.spacing.lg,
+                }}
+              >
                 {footerLogo ? (
                   <img
                     src={footerLogo}
                     alt="Logo"
-                    style={{ width: 42, height: 42, objectFit: "contain" }}
+                    style={{ width: "60%", height: "auto", objectFit: "contain" }}
                   />
                 ) : (
                   <Leaf size={32} color={theme.colors.primary.main} />
                 )}
 
-                <div>
+                {/* <div>
                   <div
                     style={{
                       ...theme.heading.h4,
@@ -236,10 +290,10 @@ export function Footer({ onNavigate }: FooterProps) {
                   >
                     la beauté authentique
                   </div>
-                </div>
+                </div> */}
               </div>
 
-              <p
+              {/* <p
                 style={{
                   fontFamily: theme.typography.fontFamily.body,
                   fontSize: theme.typography.fontSize.sm,
@@ -248,8 +302,7 @@ export function Footer({ onNavigate }: FooterProps) {
                 }}
               >
                 Inspirés de l'Éden, nos soins 100 % naturels allient plantes ayurvédiques, fruits, extraits végétaux et actifs issus de la science dermo-cosmétique, pour nourrir, fortifier et révéler la beauté naturelle de la peau et des cheveux.
-              </p>
-
+              </p> */}
               {enterpriseNumber && (
                 <p
                   style={{
@@ -279,11 +332,23 @@ export function Footer({ onNavigate }: FooterProps) {
               </h4>
 
               {legalLoading ? (
-                <div style={{ fontFamily: theme.typography.fontFamily.body, fontSize: theme.typography.fontSize.sm, color: theme.colors.text.secondary }}>
+                <div
+                  style={{
+                    fontFamily: theme.typography.fontFamily.body,
+                    fontSize: theme.typography.fontSize.sm,
+                    color: theme.colors.text.secondary,
+                  }}
+                >
                   Chargement...
                 </div>
               ) : legalLinks.length === 0 ? (
-                <div style={{ fontFamily: theme.typography.fontFamily.body, fontSize: theme.typography.fontSize.sm, color: theme.colors.text.secondary }}>
+                <div
+                  style={{
+                    fontFamily: theme.typography.fontFamily.body,
+                    fontSize: theme.typography.fontSize.sm,
+                    color: theme.colors.text.secondary,
+                  }}
+                >
                   Aucun lien légal disponible.
                 </div>
               ) : (
@@ -306,10 +371,12 @@ export function Footer({ onNavigate }: FooterProps) {
                           transition: theme.transition.fast,
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.color = theme.colors.primary.main;
+                          e.currentTarget.style.color =
+                            theme.colors.primary.main;
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.color = theme.colors.text.secondary;
+                          e.currentTarget.style.color =
+                            theme.colors.text.secondary;
                         }}
                       >
                         <FileText size={16} color={theme.colors.primary.main} />
@@ -359,7 +426,8 @@ export function Footer({ onNavigate }: FooterProps) {
                         e.currentTarget.style.color = theme.colors.primary.main;
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.color = theme.colors.text.secondary;
+                        e.currentTarget.style.color =
+                          theme.colors.text.secondary;
                       }}
                     >
                       {item.label}
@@ -383,9 +451,21 @@ export function Footer({ onNavigate }: FooterProps) {
                 Suivez-Nous
               </h4>
 
-              <div style={{ display: "flex", gap: theme.spacing.md, marginBottom: theme.spacing.lg }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: theme.spacing.md,
+                  marginBottom: theme.spacing.lg,
+                }}
+              >
                 {socialLinks.length === 0 ? (
-                  <span style={{ fontFamily: theme.typography.fontFamily.body, fontSize: theme.typography.fontSize.sm, color: theme.colors.text.secondary }}>
+                  <span
+                    style={{
+                      fontFamily: theme.typography.fontFamily.body,
+                      fontSize: theme.typography.fontSize.sm,
+                      color: theme.colors.text.secondary,
+                    }}
+                  >
                     —
                   </span>
                 ) : (
@@ -407,10 +487,12 @@ export function Footer({ onNavigate }: FooterProps) {
                         transition: theme.transition.fast,
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = theme.colors.primary.main;
+                        e.currentTarget.style.backgroundColor =
+                          theme.colors.primary.main;
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = theme.colors.primary[100];
+                        e.currentTarget.style.backgroundColor =
+                          theme.colors.primary[100];
                       }}
                     >
                       <s.Icon size={20} color={theme.colors.primary.main} />
@@ -421,34 +503,90 @@ export function Footer({ onNavigate }: FooterProps) {
 
               <div style={{ marginTop: theme.spacing.lg }}>
                 {companyEmail && (
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: theme.spacing.sm, marginBottom: theme.spacing.sm }}>
-                    <Mail size={16} color={theme.colors.primary.main} style={{ marginTop: "2px" }} />
-                    <span style={{ fontFamily: theme.typography.fontFamily.body, fontSize: theme.typography.fontSize.sm, color: theme.colors.text.secondary }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: theme.spacing.sm,
+                      marginBottom: theme.spacing.sm,
+                    }}
+                  >
+                    <Mail
+                      size={16}
+                      color={theme.colors.primary.main}
+                      style={{ marginTop: "2px" }}
+                    />
+                    <span
+                      style={{
+                        fontFamily: theme.typography.fontFamily.body,
+                        fontSize: theme.typography.fontSize.sm,
+                        color: theme.colors.text.secondary,
+                      }}
+                    >
                       Email : {companyEmail}
                     </span>
                   </div>
                 )}
 
                 {companyPhone && (
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: theme.spacing.sm, marginBottom: theme.spacing.sm }}>
-                    <Phone size={16} color={theme.colors.primary.main} style={{ marginTop: "2px" }} />
-                    <span style={{ fontFamily: theme.typography.fontFamily.body, fontSize: theme.typography.fontSize.sm, color: theme.colors.text.secondary }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: theme.spacing.sm,
+                      marginBottom: theme.spacing.sm,
+                    }}
+                  >
+                    <Phone
+                      size={16}
+                      color={theme.colors.primary.main}
+                      style={{ marginTop: "2px" }}
+                    />
+                    <span
+                      style={{
+                        fontFamily: theme.typography.fontFamily.body,
+                        fontSize: theme.typography.fontSize.sm,
+                        color: theme.colors.text.secondary,
+                      }}
+                    >
                       Tel : {companyPhone}
                     </span>
                   </div>
                 )}
 
                 {companyAddress && (
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: theme.spacing.sm }}>
-                    <MapPin size={16} color={theme.colors.primary.main} style={{ marginTop: "2px" }} />
-                    <span style={{ fontFamily: theme.typography.fontFamily.body, fontSize: theme.typography.fontSize.sm, color: theme.colors.text.secondary }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: theme.spacing.sm,
+                    }}
+                  >
+                    <MapPin
+                      size={16}
+                      color={theme.colors.primary.main}
+                      style={{ marginTop: "2px" }}
+                    />
+                    <span
+                      style={{
+                        fontFamily: theme.typography.fontFamily.body,
+                        fontSize: theme.typography.fontSize.sm,
+                        color: theme.colors.text.secondary,
+                      }}
+                    >
                       Adresse : {companyAddress}
                     </span>
                   </div>
                 )}
 
                 {!companyEmail && !companyPhone && !companyAddress && (
-                  <span style={{ fontFamily: theme.typography.fontFamily.body, fontSize: theme.typography.fontSize.sm, color: theme.colors.text.secondary }}>
+                  <span
+                    style={{
+                      fontFamily: theme.typography.fontFamily.body,
+                      fontSize: theme.typography.fontSize.sm,
+                      color: theme.colors.text.secondary,
+                    }}
+                  >
                     —
                   </span>
                 )}

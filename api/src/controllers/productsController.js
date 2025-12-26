@@ -62,12 +62,26 @@ export const getAllProducts = async (req, res) => {
     const { category, featured, search, limit = 50, offset = 0 } = req.query;
 
     let sql = `
-      SELECT DISTINCT p.*
+      SELECT
+        p.*,
+        COALESCE(pr.avg_rating, 0)  AS average_rating,
+        COALESCE(pr.review_count, 0) AS review_count
       FROM products p
       LEFT JOIN product_category_pivot pcp ON p.id = pcp.product_id
       LEFT JOIN product_categories pc ON pc.id = pcp.category_id
+
+      LEFT JOIN (
+        SELECT
+          product_id,
+          AVG(rating)  AS avg_rating,
+          COUNT(*)     AS review_count
+        FROM product_reviews
+        GROUP BY product_id
+      ) pr ON pr.product_id = p.id
+
       WHERE 1=1
     `;
+
     const params = [];
 
     if (category) {
@@ -84,12 +98,20 @@ export const getAllProducts = async (req, res) => {
       params.push(`%${search}%`, `%${search}%`);
     }
 
+    // ⚠️ Important: GROUP BY p.id pour éviter les doublons à cause des catégories
+    sql += " GROUP BY p.id";
+
     sql += " ORDER BY p.created_at DESC LIMIT ? OFFSET ?";
     params.push(toInt(limit, 50), toInt(offset, 0));
 
     const products = await query(sql, params);
 
-    for (const p of products) parseBenefits(p);
+    for (const p of products) {
+      parseBenefits(p);
+      // optionnel: si tu veux des types numériques propres côté frontend
+      p.average_rating = Number(p.average_rating || 0);
+      p.review_count = Number(p.review_count || 0);
+    }
 
     res.json({ products });
   } catch (error) {
@@ -97,6 +119,7 @@ export const getAllProducts = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
 
 export const getProductBySlug = async (req, res) => {
   try {

@@ -118,6 +118,25 @@ export const apiEndpoints = {
     get: `${API_BASE_URL}/parameters`,
     upsert: `${API_BASE_URL}/parameters`, // PUT
   },
+  // inside apiEndpoints export
+  productReviews: {
+    listByProductId: (productId: string) => `${API_BASE_URL}/pr/products/${productId}/reviews`,
+    createForProductId: (productId: string) => `${API_BASE_URL}/pr/products/${productId}/reviews`,
+    admin: {
+      list: `${API_BASE_URL}/pr/admin/product-reviews`,
+      delete: (id: string) => `${API_BASE_URL}/pr/admin/product-reviews/${id}`,
+    },
+  },
+  orders: {
+    checkout: `${API_BASE_URL}/orders/checkout`,
+    byId: (id: string) => `${API_BASE_URL}/orders/${id}`,
+  },
+  adminOrders: {
+    list: `${API_BASE_URL}/admin/orders`,
+    byId: (id: string) => `${API_BASE_URL}/admin/orders/${id}`,
+    setShipping: (id: string) => `${API_BASE_URL}/admin/orders/${id}/shipping`,
+  },
+
 } as const;
 
 export type ApiEndpoints = typeof apiEndpoints;

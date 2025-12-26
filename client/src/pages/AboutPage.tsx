@@ -1,5 +1,5 @@
 // client/src/pages/AboutPage.tsx
-import { Sparkles, Truck, Award, Heart, Leaf, ShieldCheck } from "lucide-react";
+import { Sparkles, Truck, Award, Heart, Leaf, ShieldCheck, Globe } from "lucide-react";
 import { theme } from "../config/theme";
 import { PageBanner } from "../components/PageBanner";
 
@@ -7,99 +7,29 @@ export function AboutPage() {
   const features = [
     {
       icon: Leaf,
-      title: "Nature & pureté",
-      description: "Des formules inspirées du meilleur de la nature, pensées pour une routine simple et efficace.",
+      title: "Originelle",
+      description: "Reconnecter la peau et les cheveux à leur beauté naturelle.",
     },
     {
-      icon: ShieldCheck,
-      title: "Tolérance",
-      description: "Des actifs sélectionnés pour leur douceur et leur efficacité au quotidien.",
+      icon: Heart,
+      title: "Pure",
+      description: "Sans artifices. Sans danger.",
     },
     {
-      icon: Truck,
-      title: "Livraison offerte",
-      description: "Livraison gratuite en Belgique dès 65€ d’achat.",
+      icon: Globe,
+      title: "Consciente",
+      description: "Retour à l’essentiel.",
     },
     {
-      icon: Award,
-      title: "Qualité premium",
-      description: "Laboratoires Français & Belges, exigences élevées, résultats visibles.",
+      icon: Sparkles,
+      title: "Engagée",
+      description: "Une beauté saine, transparente et responsable.",
     },
   ];
 
   return (
     <div>
       <PageBanner />
-      {/* HERO */}
-      {/* <section
-        style={{
-          backgroundColor: theme.colors.background.sage,
-          padding: `${theme.spacing["4xl"]} ${theme.spacing.lg}`,
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: theme.container.maxWidth,
-            margin: "0 auto",
-            textAlign: "center",
-          }}
-        >
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: theme.spacing.sm,
-              padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
-              borderRadius: theme.borderRadius.full,
-              backgroundColor: theme.colors.background.primary,
-              border: `1px solid ${theme.colors.border.light}`,
-              marginBottom: theme.spacing.xl,
-            }}
-          >
-            <Sparkles size={18} color={theme.colors.primary.main} />
-            <span
-              style={{
-                fontFamily: theme.typography.fontFamily.body,
-                fontSize: theme.typography.fontSize.sm,
-                color: theme.colors.text.secondary,
-                letterSpacing: theme.typography.letterSpacing.wide,
-                textTransform: "uppercase",
-              }}
-            >
-              Nature × science
-            </span>
-          </div>
-
-          <h1
-            style={{
-              ...theme.heading.h1,
-              marginBottom: theme.spacing.lg,
-              fontStyle: "italic",
-              maxWidth: 980,
-              marginLeft: "auto",
-              marginRight: "auto",
-            }}
-          >
-            Des soins inspirés de la nature et perfectionnés par la science
-          </h1>
-
-          <p
-            style={{
-              fontFamily: theme.typography.fontFamily.body,
-              fontSize: theme.typography.fontSize.lg,
-              color: theme.colors.text.secondary,
-              lineHeight: theme.typography.lineHeight.body,
-              maxWidth: 900,
-              margin: "0 auto",
-            }}
-          >
-            Novéden célèbre la beauté originelle : des formules naturelles, transparentes et exigeantes, conçues
-            pour sublimer la peau et les cheveux au quotidien.
-          </p>
-        </div>
-      </section> */}
 
       {/* STORY */}
       <section
@@ -119,7 +49,7 @@ export function AboutPage() {
           >
             <div
               style={{
-                backgroundColor: theme.colors.background.secondary,
+                backgroundColor: theme.colors.background.sage,
                 borderRadius: theme.borderRadius["2xl"],
                 border: `1px solid ${theme.colors.border.light}`,
                 padding: theme.spacing["2xl"],
@@ -199,7 +129,7 @@ export function AboutPage() {
                 key={index}
                 style={{
                   padding: theme.spacing.xl,
-                  backgroundColor: theme.colors.background.primary,
+                  backgroundColor: theme.colors.background.sage,
                   borderRadius: theme.borderRadius.lg,
                   textAlign: "center",
                   border: `1px solid ${theme.colors.border.light}`,
@@ -255,7 +185,7 @@ export function AboutPage() {
               fontSize: theme.typography.fontSize.base,
               color: theme.colors.text.secondary,
               lineHeight: theme.typography.lineHeight.body,
-              backgroundColor: theme.colors.background.secondary,
+              backgroundColor: theme.colors.background.sage,
               borderRadius: theme.borderRadius["2xl"],
               border: `1px solid ${theme.colors.border.light}`,
               padding: theme.spacing["2xl"],
