@@ -21,6 +21,11 @@ export const upsertParameters = async (req, res) => {
 
     const payload = {
       promotional_text: req.body?.promotional_text ?? null,
+      home_text: req.body?.home_text ?? null,
+      story: req.body?.story ?? null,
+      mission: req.body?.mission ?? null,
+      vision: req.body?.vision ?? null,
+      expertise: req.body?.expertise ?? null,
       name: req.body?.name ?? null,
       email: req.body?.email ?? null,
       address: req.body?.address ?? null,
@@ -43,6 +48,11 @@ export const upsertParameters = async (req, res) => {
         `
         UPDATE parameters SET
           promotional_text = ?,
+          home_text = ?,
+          story = ?,
+          mission = ?,
+          vision = ?,
+          expertise = ?,
           name = ?,
           email = ?,
           address = ?,
@@ -58,6 +68,11 @@ export const upsertParameters = async (req, res) => {
         `,
         [
           payload.promotional_text,
+          payload.home_text,
+          payload.story,
+          payload.mission,
+          payload.vision,
+          payload.expertise,
           payload.name,
           payload.email,
           payload.address,
@@ -73,7 +88,9 @@ export const upsertParameters = async (req, res) => {
         ]
       );
 
-      const [updated] = await query("SELECT * FROM parameters WHERE id = ?", [id]);
+      const [updated] = await query("SELECT * FROM parameters WHERE id = ?", [
+        id,
+      ]);
       return res.json({ parameters: updated });
     }
 
@@ -84,14 +101,19 @@ export const upsertParameters = async (req, res) => {
     await query(
       `
       INSERT INTO parameters
-        (id, promotional_text, name, email, address, phone, enterprise_number,
+        (id, promotional_text, home_text, story, mission, vision, expertise, name, email, address, phone, enterprise_number,
          facebook_link, instagram_link, twitter_link, whatsapp_link,
          logo_navbar, logo_footer)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         id,
         payload.promotional_text,
+        payload.home_text,
+        payload.story,
+        payload.mission,
+        payload.vision,
+        payload.expertise,
         payload.name,
         payload.email,
         payload.address,
@@ -106,7 +128,9 @@ export const upsertParameters = async (req, res) => {
       ]
     );
 
-    const [created] = await query("SELECT * FROM parameters WHERE id = ?", [id]);
+    const [created] = await query("SELECT * FROM parameters WHERE id = ?", [
+      id,
+    ]);
     return res.status(201).json({ parameters: created });
   } catch (e) {
     console.error("Upsert parameters error:", e);

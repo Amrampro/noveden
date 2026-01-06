@@ -16,8 +16,10 @@ import parametersRoutes from "./routes/parameters.routes.js";
 import productReviewsRoutes from "./routes/productReviews.routes.js";
 
 import ordersRoutes from "./routes/orders.routes.js";
-import adminOrdersRoutes from "./routes/adminOrders.routes.js";
+import adminOrdersRoutes from "./routes/admin/orders.routes.js";
+import adminFinanceRoutes from "./routes/admin/financeRoutes.js";
 import stripeWebhookRoutes from "./routes/stripeWebhook.routes.js";
+import newsletterRoutes from "./routes/newsletter.routes.js";
 
 import pool from './config/database.js';
 
@@ -72,6 +74,8 @@ app.use("/api/parameters", parametersRoutes);
 app.use("/api/pr", productReviewsRoutes);
 app.use("/api/orders", ordersRoutes);
 app.use("/api/admin/orders", adminOrdersRoutes);
+app.use("/api/admin/finance", adminFinanceRoutes);
+app.use("/api/admin/newsletter-subscribers", newsletterRoutes);
 
 app.use((err, req, res, next) => {
   console.error('Error:', err);

@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { api } from '../services/api';
+// client/src/contexts/AuthContext.tsx
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { api } from "../services/api";
 
 export interface User {
   id: string;
@@ -14,25 +15,41 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signUp: (email: string, password: string, firstName: string, lastName: string, phone: string) => Promise<{ error: Error | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+    phone: string
+  ) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
-  updateProfile: (updates: { firstName?: string; lastName?: string; phone?: string }) => Promise<{ error: Error | null }>;
+  updateProfile: (updates: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+  }) => Promise<{ error: Error | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// ✅ IMPORTANT: même clé que api.ts
+const TOKEN_KEY = "token";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem(TOKEN_KEY);
     if (token) {
+      // api.ts lit déjà localStorage au constructor, mais ici on force cohérence si besoin
+      api.setToken(token);
       fetchProfile();
     } else {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchProfile = async () => {
@@ -40,8 +57,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { user: userData } = await api.getProfile();
       setUser(userData);
     } catch (error) {
-      console.error('Error fetching profile:', error);
-      localStorage.removeItem('auth_token');
+      console.error("Error fetching profile:", error);
+      localStorage.removeItem(TOKEN_KEY);
+      api.clearToken();
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -55,7 +74,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     phone: string
   ) => {
     try {
-      const { user: userData } = await api.signup(email, password, firstName, lastName, phone);
+      const { user: userData } = await api.signup(
+        email,
+        password,
+        firstName,
+        lastName,
+        phone
+      );
       setUser(userData);
       return { error: null };
     } catch (error) {
@@ -74,12 +99,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await api.logout();
+    await api.logout(); // clear token inside api.ts
+    localStorage.removeItem(TOKEN_KEY);
     setUser(null);
   };
 
-  const updateProfile = async (updates: { firstName?: string; lastName?: string; phone?: string }) => {
-    if (!user) return { error: new Error('No user logged in') };
+  const updateProfile = async (updates: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+  }) => {
+    if (!user) return { error: new Error("No user logged in") };
 
     try {
       const { user: updatedUser } = await api.updateProfile(updates);
@@ -109,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

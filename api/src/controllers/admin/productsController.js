@@ -1,3 +1,4 @@
+// api/src/controllers/admin/productsController.js
 import { query } from '../../config/database.js';
 
 export const getAllProducts = async (req, res) => {

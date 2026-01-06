@@ -5,7 +5,7 @@ import * as OrdersController from "../controllers/orders.controller.js";
 
 const router = Router();
 
-router.use(authMiddleware);
+// router.use(authMiddleware);
 
 router.post("/checkout", OrdersController.checkout);
 router.get("/:id", OrdersController.getMyOrder);

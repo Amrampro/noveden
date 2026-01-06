@@ -3,7 +3,8 @@ import { createCheckout, getOrderForUser } from "../services/orders.service.js";
 
 export async function checkout(req, res) {
   try {
-    const userId = req.user.id;
+    // const userId = req.user.id;
+    const userId = 0;
     const { cart_items, coupon_code, shipping } = req.body || {};
 
     const data = await createCheckout({
@@ -21,10 +22,10 @@ export async function checkout(req, res) {
 
 export async function getMyOrder(req, res) {
   try {
-    const userId = req.user.id;
+    // const userId = req.user.id;
     const orderId = req.params.id;
 
-    const data = await getOrderForUser({ userId, orderId });
+    const data = await getOrderForUser({ orderId });
     res.json(data);
   } catch (e) {
     res.status(404).json({ error: e.message || "Not found" });

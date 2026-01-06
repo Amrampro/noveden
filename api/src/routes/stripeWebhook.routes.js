@@ -1,9 +1,9 @@
 import { Router } from "express";
-import * as StripeWebhookController from "../controllers/stripeWebhook.controller.js";
+import { stripeWebhook } from "../controllers/stripeWebhook.controller.js";
 
 const router = Router();
 
-// POST /api/v1/webhooks/stripe
-router.post("/stripe", StripeWebhookController.stripeWebhook);
+// POST /api/webhooks/stripe
+router.post("/stripe", stripeWebhook);
 
 export default router;

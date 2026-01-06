@@ -4,6 +4,7 @@ import { Mail, Phone, MapPin, MessageSquareText } from "lucide-react";
 import { theme } from "../config/theme";
 import { Button } from "../components/Button";
 import { PageBanner } from "../components/PageBanner";
+import { useSiteParams } from "../contexts/SiteParamsContext";
 
 export function ContactPage() {
   const [formData, setFormData] = useState({
@@ -22,13 +23,17 @@ export function ContactPage() {
 
     // TODO: call backend endpoint later (e.g. POST /api/contact)
     setTimeout(() => {
-      setFeedback("Merci pour votre message ! Nous vous répondrons dans les plus brefs délais.");
+      setFeedback(
+        "Merci pour votre message ! Nous vous répondrons dans les plus brefs délais."
+      );
       setFormData({ name: "", email: "", subject: "", message: "" });
       setIsSubmitting(false);
     }, 800);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
@@ -43,9 +48,16 @@ export function ContactPage() {
     backgroundColor: theme.colors.background.primary,
   };
 
+  const siteState = useSiteParams() as any;
+  const parameters =
+    siteState?.parameters ?? siteState?.data ?? siteState?.siteParams ?? null;
+
+  const phone = String(parameters?.phone || "").trim();
+  const email = String(parameters?.email || "").trim();
+  const address = String(parameters?.address || "").trim();
+
   return (
     <div>
-
       <PageBanner />
 
       {/* CONTENT */}
@@ -74,7 +86,11 @@ export function ContactPage() {
                 boxShadow: theme.shadow.card,
               }}
             >
-              <h2 style={{ ...theme.heading.h3, marginBottom: theme.spacing.xl }}>Envoyez-nous un message</h2>
+              <h2
+                style={{ ...theme.heading.h3, marginBottom: theme.spacing.xl }}
+              >
+                Envoyez-nous un message
+              </h2>
 
               <form onSubmit={handleSubmit}>
                 <div style={{ marginBottom: theme.spacing.lg }}>
@@ -99,8 +115,14 @@ export function ContactPage() {
                     onChange={handleChange}
                     required
                     style={inputBase}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = theme.colors.primary.main)}
-                    onBlur={(e) => (e.currentTarget.style.borderColor = theme.colors.border.main)}
+                    onFocus={(e) =>
+                      (e.currentTarget.style.borderColor =
+                        theme.colors.primary.main)
+                    }
+                    onBlur={(e) =>
+                      (e.currentTarget.style.borderColor =
+                        theme.colors.border.main)
+                    }
                   />
                 </div>
 
@@ -126,8 +148,14 @@ export function ContactPage() {
                     onChange={handleChange}
                     required
                     style={inputBase}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = theme.colors.primary.main)}
-                    onBlur={(e) => (e.currentTarget.style.borderColor = theme.colors.border.main)}
+                    onFocus={(e) =>
+                      (e.currentTarget.style.borderColor =
+                        theme.colors.primary.main)
+                    }
+                    onBlur={(e) =>
+                      (e.currentTarget.style.borderColor =
+                        theme.colors.border.main)
+                    }
                   />
                 </div>
 
@@ -153,8 +181,14 @@ export function ContactPage() {
                     onChange={handleChange}
                     required
                     style={inputBase}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = theme.colors.primary.main)}
-                    onBlur={(e) => (e.currentTarget.style.borderColor = theme.colors.border.main)}
+                    onFocus={(e) =>
+                      (e.currentTarget.style.borderColor =
+                        theme.colors.primary.main)
+                    }
+                    onBlur={(e) =>
+                      (e.currentTarget.style.borderColor =
+                        theme.colors.border.main)
+                    }
                   />
                 </div>
 
@@ -180,12 +214,23 @@ export function ContactPage() {
                     required
                     rows={6}
                     style={{ ...inputBase, resize: "vertical" }}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = theme.colors.primary.main)}
-                    onBlur={(e) => (e.currentTarget.style.borderColor = theme.colors.border.main)}
+                    onFocus={(e) =>
+                      (e.currentTarget.style.borderColor =
+                        theme.colors.primary.main)
+                    }
+                    onBlur={(e) =>
+                      (e.currentTarget.style.borderColor =
+                        theme.colors.border.main)
+                    }
                   />
                 </div>
 
-                <Button type="submit" variant="primary" fullWidth disabled={isSubmitting}>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  fullWidth
+                  disabled={isSubmitting}
+                >
                   {isSubmitting ? "Envoi en cours..." : "Envoyer le message"}
                 </Button>
 
@@ -207,24 +252,34 @@ export function ContactPage() {
 
             {/* CONTACT INFOS */}
             <div>
-              <h2 style={{ ...theme.heading.h3, marginBottom: theme.spacing.xl }}>Nos coordonnées</h2>
+              <h2
+                style={{ ...theme.heading.h3, marginBottom: theme.spacing.xl }}
+              >
+                Nos coordonnées
+              </h2>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: theme.spacing.xl }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: theme.spacing.xl,
+                }}
+              >
                 {[
                   {
                     icon: Mail,
                     title: "Email",
-                    value: "contact@noveden.com",
+                    value: email,
                   },
                   {
                     icon: Phone,
                     title: "Téléphone",
-                    value: "+32 465 73 74 12",
+                    value: phone,
                   },
                   {
                     icon: MapPin,
                     title: "Adresse",
-                    value: "Belgique",
+                    value: address,
                   },
                 ].map((item) => (
                   <div
@@ -239,7 +294,11 @@ export function ContactPage() {
                       boxShadow: theme.shadow.sm,
                     }}
                   >
-                    <item.icon size={24} color={theme.colors.primary.main} style={{ flexShrink: 0, marginTop: 4 }} />
+                    <item.icon
+                      size={24}
+                      color={theme.colors.primary.main}
+                      style={{ flexShrink: 0, marginTop: 4 }}
+                    />
                     <div>
                       <h3
                         style={{
@@ -274,7 +333,14 @@ export function ContactPage() {
                   border: `1px solid ${theme.colors.border.light}`,
                 }}
               >
-                <h3 style={{ ...theme.heading.h5, marginBottom: theme.spacing.md }}>Heures d&apos;ouverture</h3>
+                <h3
+                  style={{
+                    ...theme.heading.h5,
+                    marginBottom: theme.spacing.md,
+                  }}
+                >
+                  Heures d&apos;ouverture
+                </h3>
                 <p
                   style={{
                     fontFamily: theme.typography.fontFamily.body,
@@ -295,7 +361,6 @@ export function ContactPage() {
           </div>
         </div>
       </section>
-
     </div>
   );
 }

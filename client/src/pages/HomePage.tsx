@@ -20,6 +20,7 @@ import { useCart } from "../contexts/CartContext";
 import { productService, type ProductCategory } from "../services/productService";
 import { blogService, type BlogPost } from "../services/blogService";
 import { PageBanner } from "../components/PageBanner";
+import { useSiteParams } from "../contexts/SiteParamsContext";
 
 interface HomePageProps {
   onNavigate?: (page: string) => void;
@@ -39,6 +40,12 @@ export function HomePage({ onNavigate, onViewProduct, onViewPost }: HomePageProp
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [loadingCategories, setLoadingCategories] = useState(true);
+
+  const siteState = useSiteParams() as any;
+    const parameters =
+      siteState?.parameters ?? siteState?.data ?? siteState?.siteParams ?? null;
+
+      const home_text = String(parameters?.home_text || "").trim();
 
   const navigate = useNavigate();
 
@@ -163,11 +170,10 @@ export function HomePage({ onNavigate, onViewProduct, onViewPost }: HomePageProp
               lineHeight: theme.typography.lineHeight.body,
               maxWidth: "860px",
               margin: `0 auto ${theme.spacing["3xl"]}`,
+              whiteSpace: "pre-line", // ✅ garde les \n
             }}
           >
-            Chez Novéden, nous remettons la nature au cœur de la beauté. Nos soins 100% naturels et nos compléments
-            alimentaires agissent en synergie pour hydrater, nourrir, revitaliser et sublimer la peau et les cheveux.
-            Une démarche globale, écologique et respectueuse. Et c’est naturel.
+            {home_text}
           </p>
         </div>
       </section>

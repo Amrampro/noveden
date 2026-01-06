@@ -437,7 +437,7 @@ export function CartPage() {
                 </h3>
 
                 {/* COUPON */}
-                <div
+                {/* <div
                   style={{
                     marginBottom: theme.spacing.lg,
                     paddingBottom: theme.spacing.lg,
@@ -549,7 +549,7 @@ export function CartPage() {
                       )}
                     </div>
                   )}
-                </div>
+                </div> */}
 
                 {/* TOTALS */}
                 <div
@@ -633,7 +633,7 @@ export function CartPage() {
                         color: theme.colors.success.main,
                       }}
                     >
-                      Gratuite
+                      Calculé au paiement
                     </span>
                   </div>
                 </div>
@@ -655,32 +655,12 @@ export function CartPage() {
                     {formatPrice(getTotal())} €
                   </span>
                 </div>
-
-                {!user ? (
-                  <div>
-                    <p
-                      style={{
-                        ...theme.body.small,
-                        textAlign: "center",
-                        color: theme.colors.error.main,
-                      }}
-                    >
-                      Vous devez être connecté pour passer une commande
-                    </p>
-                    <u>
-                      <i>
-                        <Link to={"/auth"}>Cliquezr ici pour Se connecter et commander</Link>
-                      </i>
-                    </u><br/><br/>
-                  </div>
-                ) : (
                   <button
                     style={{ ...theme.button.primary,marginBottom: theme.spacing.md }}
                     onClick={() => navigate("/checkout")}
                   >
                     Procéder au paiement
                   </button>
-                )}
 
                 <Button
                   variant="outline"

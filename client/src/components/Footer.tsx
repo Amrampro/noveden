@@ -17,6 +17,7 @@ import {
   legalLinksService,
   type LegalLink,
 } from "../services/legalLinksService";
+import { newsletterService } from "../services/newsletterService";
 
 interface FooterProps {
   onNavigate?: (page: string) => void;
@@ -75,16 +76,21 @@ export function Footer({ onNavigate }: FooterProps) {
     };
   }, []);
 
+  // client/src/components/Footer.tsx (replace handleSubscribe)
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubscribing(true);
     setMessage("");
 
     try {
-      // TODO: brancher une API newsletter plus tard
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setMessage("Merci de votre inscription !");
-      setEmail("");
+      const res = await newsletterService.subscribe(email);
+
+      if (res.status === "already_subscribed") {
+        setMessage("Vous êtes déjà inscrit(e) à la newsletter.");
+      } else {
+        setMessage("Merci de votre inscription !");
+        setEmail("");
+      }
     } catch {
       setMessage("Une erreur est survenue. Veuillez réessayer.");
     } finally {
@@ -264,7 +270,11 @@ export function Footer({ onNavigate }: FooterProps) {
                   <img
                     src={footerLogo}
                     alt="Logo"
-                    style={{ width: "60%", height: "auto", objectFit: "contain" }}
+                    style={{
+                      width: "60%",
+                      height: "auto",
+                      objectFit: "contain",
+                    }}
                   />
                 ) : (
                   <Leaf size={32} color={theme.colors.primary.main} />

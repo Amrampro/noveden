@@ -6,6 +6,12 @@ export type Parameters = {
 
   promotional_text: string | null;
 
+  home_text: string | null;
+  story: string | null;
+  mission: string | null;
+  vision: string | null;
+  expertise: string | null;
+
   name: string | null;
   email: string | null;
   address: string | null;
@@ -29,6 +35,11 @@ export type UpsertParametersPayload = Partial<
   Pick<
     Parameters,
     | "promotional_text"
+    | "home_text"
+    | "story"
+    | "mission"
+    | "vision"
+    | "expertise"
     | "name"
     | "email"
     | "address"

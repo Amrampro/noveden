@@ -1,14 +1,24 @@
 // client/src/pages/AboutPage.tsx
-import { Sparkles, Truck, Award, Heart, Leaf, ShieldCheck, Globe } from "lucide-react";
+import {
+  Sparkles,
+  Truck,
+  Award,
+  Heart,
+  Leaf,
+  ShieldCheck,
+  Globe,
+} from "lucide-react";
 import { theme } from "../config/theme";
 import { PageBanner } from "../components/PageBanner";
+import { useSiteParams } from "../contexts/SiteParamsContext";
 
 export function AboutPage() {
   const features = [
     {
       icon: Leaf,
       title: "Originelle",
-      description: "Reconnecter la peau et les cheveux à leur beauté naturelle.",
+      description:
+        "Reconnecter la peau et les cheveux à leur beauté naturelle.",
     },
     {
       icon: Heart,
@@ -26,6 +36,15 @@ export function AboutPage() {
       description: "Une beauté saine, transparente et responsable.",
     },
   ];
+
+  const siteState = useSiteParams() as any;
+  const parameters =
+    siteState?.parameters ?? siteState?.data ?? siteState?.siteParams ?? null;
+
+  const story = String(parameters?.story || "").trim();
+  const vision = String(parameters?.vision || "").trim();
+  const mission = String(parameters?.mission || "").trim();
+  const expertise = String(parameters?.expertise || "").trim();
 
   return (
     <div>
@@ -56,7 +75,9 @@ export function AboutPage() {
                 boxShadow: theme.shadow.card,
               }}
             >
-              <h2 style={{ ...theme.heading.h2, marginBottom: theme.spacing.xl }}>
+              <h2
+                style={{ ...theme.heading.h2, marginBottom: theme.spacing.xl }}
+              >
                 Notre Histoire
               </h2>
 
@@ -68,22 +89,13 @@ export function AboutPage() {
                   lineHeight: theme.typography.lineHeight.body,
                 }}
               >
-                <p style={{ marginBottom: theme.spacing.lg }}>
-                  L’aventure Novéden commence avec moi, <strong>Déborah</strong>, passionnée de nature — sa simplicité,
-                  sa pureté, son authenticité et sa puissance. J’ai toujours su que pour révéler la beauté qui rayonne
-                  de l’intérieur, il fallait puiser dans les merveilles de l’Éden.
-                </p>
-
-                <p style={{ marginBottom: theme.spacing.lg }}>
-                  Tout est parti d’un besoin personnel : trouver des soins sains, efficaces, et sans danger pour ma peau
-                  et mes cheveux. Lassée de déchiffrer des listes INCI interminables, trop souvent incompatibles avec
-                  une routine simple et sereine, ma quête d’une beauté naturelle s’est révélée être un vrai défi.
-                </p>
-
-                <p style={{ marginBottom: 0 }}>
-                  C’est ainsi qu’est née <strong>NOVÉDEN</strong> : reconnaître la beauté originelle de chaque femme,
-                  respecter sa singularité, et proposer un retour vers une beauté naturelle, pure, saine — mais aussi
-                  guidée par la science. Une démarche engagée et transparente, fidèle à la vision originelle.
+                <p
+                  style={{
+                    marginBottom: theme.spacing.lg,
+                    whiteSpace: "pre-line",
+                  }}
+                >
+                  {story}
                 </p>
               </div>
             </div>
@@ -99,7 +111,9 @@ export function AboutPage() {
         }}
       >
         <div style={{ maxWidth: theme.container.maxWidth, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: theme.spacing["3xl"] }}>
+          <div
+            style={{ textAlign: "center", marginBottom: theme.spacing["3xl"] }}
+          >
             <h2 style={{ ...theme.heading.h2, marginBottom: theme.spacing.lg }}>
               Nos engagements
             </h2>
@@ -113,7 +127,8 @@ export function AboutPage() {
                 margin: "0 auto",
               }}
             >
-              Une routine simple, des actifs choisis avec exigence, et des standards de qualité élevés.
+              Une routine simple, des actifs choisis avec exigence, et des
+              standards de qualité élevés.
             </p>
           </div>
 
@@ -141,7 +156,12 @@ export function AboutPage() {
                   color={theme.colors.primary.main}
                   style={{ margin: `0 auto ${theme.spacing.md}` }}
                 />
-                <h3 style={{ ...theme.heading.h5, marginBottom: theme.spacing.sm }}>
+                <h3
+                  style={{
+                    ...theme.heading.h5,
+                    marginBottom: theme.spacing.sm,
+                  }}
+                >
                   {feature.title}
                 </h3>
                 <p
@@ -192,42 +212,59 @@ export function AboutPage() {
               boxShadow: theme.shadow.card,
             }}
           >
-            <p style={{ marginBottom: theme.spacing.lg }}>
-              <strong>NOVÉDEN</strong> est une marque de cosmétiques naturels dédiée à la beauté de tous les types de
-              peau — y compris les peaux sensibles — et des cheveux texturés. Nos soins s’inspirent de la nature,
-              de traditions comme l’Ayurveda et de la science dermo-cosmétique pour offrir des formules saines et
-              efficaces.
-            </p>
+            {/* <p style={{ marginBottom: theme.spacing.lg }}>
+              <strong>NOVÉDEN</strong> est une marque de cosmétiques naturels
+              dédiée à la beauté de tous les types de peau — y compris les peaux
+              sensibles — et des cheveux texturés. Nos soins s’inspirent de la
+              nature, de traditions comme l’Ayurveda et de la science
+              dermo-cosmétique pour offrir des formules saines et efficaces.
+            </p> */}
 
-            <h3 style={{ ...theme.heading.h4, marginTop: theme.spacing["2xl"], marginBottom: theme.spacing.lg }}>
+            <h3
+              style={{
+                ...theme.heading.h4,
+                marginTop: theme.spacing["2xl"],
+                marginBottom: theme.spacing.lg,
+              }}
+            >
               Notre mission
             </h3>
-            <p style={{ marginBottom: theme.spacing.lg }}>
-              Créer des soins naturels, respectueux de chaque type de peau et de cheveux, pour révéler votre beauté
-              réelle — sans masquer ni fragiliser. Des formules pensées pour sublimer, hydrater, nourrir et protéger au
-              quotidien, en harmonie avec vous.
+            <p
+              style={{ marginBottom: theme.spacing.lg, whiteSpace: "pre-line" }}
+            >
+              {mission}
             </p>
 
-            <h3 style={{ ...theme.heading.h4, marginTop: theme.spacing["2xl"], marginBottom: theme.spacing.lg }}>
+            <h3
+              style={{
+                ...theme.heading.h4,
+                marginTop: theme.spacing["2xl"],
+                marginBottom: theme.spacing.lg,
+              }}
+            >
               Notre vision
             </h3>
-            <p style={{ marginBottom: theme.spacing.lg }}>
-              Un retour à une beauté naturelle, pure, authentique et globale — comme un retour en Éden. Une marque
-              inclusive qui célèbre chaque personne, et propose une alternative durable aux routines agressives.
+            <p
+              style={{ marginBottom: theme.spacing.lg, whiteSpace: "pre-line" }}
+            >
+              {vision}
             </p>
 
-            <h3 style={{ ...theme.heading.h4, marginTop: theme.spacing["2xl"], marginBottom: theme.spacing.lg }}>
+            <h3
+              style={{
+                ...theme.heading.h4,
+                marginTop: theme.spacing["2xl"],
+                marginBottom: theme.spacing.lg,
+              }}
+            >
               Notre expertise
             </h3>
-            <p style={{ marginBottom: 0 }}>
-              Chaque formule s’appuie sur des actifs végétaux rigoureusement sélectionnés, des huiles et extraits
-              naturels combinés avec exigence. Nous collaborons avec des laboratoires français et belges afin de
-              garantir des standards élevés de qualité, de sécurité et d’efficacité.
+            <p style={{ marginBottom: 0, whiteSpace: "pre-line" }}>
+              {expertise}
             </p>
           </div>
         </div>
       </section>
-
     </div>
   );
 }

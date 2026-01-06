@@ -134,7 +134,17 @@ export const apiEndpoints = {
   adminOrders: {
     list: `${API_BASE_URL}/admin/orders`,
     byId: (id: string) => `${API_BASE_URL}/admin/orders/${id}`,
+    status: (id: string) => `${API_BASE_URL}/admin/orders/${id}/status`,
     setShipping: (id: string) => `${API_BASE_URL}/admin/orders/${id}/shipping`,
+    delete: (id: string) => `${API_BASE_URL}/admin/orders/${id}`,
+  },
+  adminFinance: {
+    list: `${API_BASE_URL}/admin/finance`,
+  },
+  newsletter: {
+    subscribe: `${API_BASE_URL}/admin/newsletter-subscribers`,
+    adminList: `${API_BASE_URL}/admin/newsletter-subscribers`,
+    adminDelete: (id: number) => `${API_BASE_URL}/admin/newsletter-subscribers/${id}`,
   },
 
 } as const;

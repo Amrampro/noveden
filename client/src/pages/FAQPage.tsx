@@ -86,7 +86,7 @@ export function FAQPage() {
       {/* CONTENT */}
       <section
         style={{
-          backgroundColor: theme.colors.secondary.light,
+          backgroundColor: theme.colors.primary.main,
           padding: `${theme.spacing["4xl"]} ${theme.spacing.lg}`,
         }}
       >

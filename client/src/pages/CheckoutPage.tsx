@@ -12,6 +12,7 @@ import { Button } from "../components/Button";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
 import { ordersService } from "../services/ordersService";
+import { MondialRelayPicker } from "../components/MondialRelayPicker";
 
 const stripePromise = loadStripe(
   import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string
@@ -239,29 +240,6 @@ export function CheckoutPage() {
     }));
   }, [items]);
 
-  // ✅ Guard
-  if (!user) {
-    return (
-      <div
-        style={{
-          minHeight: "70vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <div style={{ textAlign: "center" }}>
-          <p style={{ ...theme.body.large, marginBottom: theme.spacing.md }}>
-            Vous devez être connecté pour commander.
-          </p>
-          <Button variant="primary" onClick={() => navigate("/auth")}>
-            Se connecter
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   if (!items.length) {
     return (
       <div
@@ -321,10 +299,10 @@ export function CheckoutPage() {
       };
 
       //   const { stripe } = await ordersService.checkout(payload);
-    //   const { order, client_secret } = await ordersService.checkout(payload);
-    //   setClientSecret(client_secret);
-    //   setOrderId(order.id);
-    //   setStep("payment");
+      //   const { order, client_secret } = await ordersService.checkout(payload);
+      //   setClientSecret(client_secret);
+      //   setOrderId(order.id);
+      //   setStep("payment");
 
       // ✅ Redirect user to Stripe hosted payment page
       const { stripe } = await ordersService.checkout(payload);
@@ -535,10 +513,52 @@ export function CheckoutPage() {
                     </div>
 
                     {shippingMethod === "mondial_relay" && (
-                      <RelayPointPicker
-                        value={relayPoint}
-                        onChange={setRelayPoint}
-                      />
+                      <div style={{ display: "grid", gap: theme.spacing.md }}>
+                        <MondialRelayPicker
+                          brandCode={
+                            import.meta.env.VITE_MR_BRAND_CODE as string
+                          }
+                          country={addr.country || "BE"}
+                          postCode={addr.postal_code}
+                          onSelect={(relay) =>
+                            setRelayPoint({
+                              id: relay.id,
+                              name: relay.name ?? undefined,
+                              address: relay.address ?? undefined,
+                            })
+                          }
+                        />
+
+                        {/* Petit récap du point choisi */}
+                        {relayPoint?.id && (
+                          <div
+                            style={{
+                              backgroundColor:
+                                theme.colors.background.secondary,
+                              border: `1px solid ${theme.colors.border.light}`,
+                              borderRadius: theme.borderRadius.md,
+                              padding: theme.spacing.md,
+                            }}
+                          >
+                            <div
+                              style={{
+                                ...theme.body.base,
+                                fontWeight: theme.typography.fontWeight.medium,
+                              }}
+                            >
+                              {relayPoint.name || relayPoint.id}
+                            </div>
+                            <div
+                              style={{
+                                ...theme.body.small,
+                                color: theme.colors.text.secondary,
+                              }}
+                            >
+                              {relayPoint.address}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
 

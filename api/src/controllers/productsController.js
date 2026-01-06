@@ -120,7 +120,6 @@ export const getAllProducts = async (req, res) => {
   }
 };
 
-
 export const getProductBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
@@ -175,14 +174,15 @@ export const createProduct = async (req, res) => {
       short_description = null,
       price,
       compare_at_price = null,
-      image_url = null,
+      image_url = null, // Main cover image
       stock_status = "in_stock",
       is_featured = false,
       is_new = false,
       ingredients = null,
       usage = null,
       benefits = [],
-      category_ids = [], // product_categories.id[]
+      category_ids = [],
+      images = [], // Gallery images array: [{ image_url: "..." }, ...]
     } = req.body ?? {};
 
     if (!name) return res.status(400).json({ error: "name is required" });
@@ -201,6 +201,7 @@ export const createProduct = async (req, res) => {
     const idRows = await query("SELECT UUID() AS id");
     const id = idRows[0].id;
 
+    // 1. Insert Main Product
     await query(
       `
       INSERT INTO products
@@ -227,24 +228,49 @@ export const createProduct = async (req, res) => {
       ]
     );
 
-    const ids = asArray(category_ids).filter(Boolean);
-    if (ids.length) {
+    // 2. Insert Categories
+    const catIds = asArray(category_ids).filter(Boolean);
+    if (catIds.length) {
       const found = await query(
-        `SELECT id FROM product_categories WHERE id IN (${ids
+        `SELECT id FROM product_categories WHERE id IN (${catIds
           .map(() => "?")
           .join(",")})`,
-        ids
+        catIds
       );
-      if (found.length !== ids.length) {
+      if (found.length !== catIds.length) {
         return res.status(400).json({ error: "One or more category_ids are invalid" });
       }
 
       await query(
         `
         INSERT INTO product_category_pivot (product_id, category_id)
-        VALUES ${ids.map(() => "(?, ?)").join(",")}
+        VALUES ${catIds.map(() => "(?, ?)").join(",")}
         `,
-        ids.flatMap((cid) => [id, cid])
+        catIds.flatMap((cid) => [id, cid])
+      );
+    }
+
+    // 3. Insert Gallery Images (product_images)
+    const galleryImages = asArray(images).filter((img) => img && img.image_url);
+    if (galleryImages.length > 0) {
+      const imageValues = [];
+      const imageParams = [];
+      
+      galleryImages.forEach((img, index) => {
+        imageValues.push("(UUID(), ?, ?, ?, ?, ?)");
+        imageParams.push(
+          id, 
+          img.image_url, 
+          img.alt_text || null, 
+          index, // display_order based on array index
+          0 // is_primary (0 because main cover is in products table)
+        );
+      });
+
+      await query(
+        `INSERT INTO product_images (id, product_id, image_url, alt_text, display_order, is_primary) 
+         VALUES ${imageValues.join(",")}`,
+        imageParams
       );
     }
 
@@ -284,7 +310,8 @@ export const updateProduct = async (req, res) => {
       ingredients,
       usage,
       benefits,
-      category_ids, // optional: replace all categories
+      category_ids,
+      images, // Optional: replace gallery
     } = req.body ?? {};
 
     const patch = [];
@@ -368,6 +395,7 @@ export const updateProduct = async (req, res) => {
       params.push(JSON.stringify(Array.isArray(benefits) ? benefits : []));
     }
 
+    // 1. Update Product Table
     if (patch.length) {
       await query(`UPDATE products SET ${patch.join(", ")} WHERE id = ?`, [
         ...params,
@@ -375,6 +403,7 @@ export const updateProduct = async (req, res) => {
       ]);
     }
 
+    // 2. Update Categories
     if (category_ids !== undefined) {
       const ids = asArray(category_ids).filter(Boolean);
 
@@ -399,6 +428,37 @@ export const updateProduct = async (req, res) => {
           VALUES ${ids.map(() => "(?, ?)").join(",")}
           `,
           ids.flatMap((cid) => [id, cid])
+        );
+      }
+    }
+
+    // 3. Update Gallery Images
+    if (images !== undefined) {
+      // Strategy: Delete all existing gallery images and re-insert new list
+      // This handles reordering and deletions easily.
+      await query("DELETE FROM product_images WHERE product_id = ?", [id]);
+
+      const galleryImages = asArray(images).filter((img) => img && img.image_url);
+      
+      if (galleryImages.length > 0) {
+        const imageValues = [];
+        const imageParams = [];
+        
+        galleryImages.forEach((img, index) => {
+          imageValues.push("(UUID(), ?, ?, ?, ?, ?)");
+          imageParams.push(
+            id, 
+            img.image_url, 
+            img.alt_text || null, 
+            index, // display_order based on array index
+            0 // is_primary
+          );
+        });
+  
+        await query(
+          `INSERT INTO product_images (id, product_id, image_url, alt_text, display_order, is_primary) 
+           VALUES ${imageValues.join(",")}`,
+          imageParams
         );
       }
     }

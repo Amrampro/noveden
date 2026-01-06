@@ -14,6 +14,7 @@ type ListProductsParams = {
   offset?: number;
 };
 
+// Updated payload type to include images array
 type CreateProductPayload = {
   name: string;
   slug?: string;
@@ -29,6 +30,7 @@ type CreateProductPayload = {
   usage?: string | null;
   benefits?: any[];
   category_ids?: string[];
+  images?: { image_url: string; alt_text?: string }[]; // <--- New field
 };
 
 export type ProductReview = {
@@ -51,7 +53,6 @@ const normalizeReview = (raw: any): ProductReview => ({
   helpful_count: Number(raw.helpful_count ?? 0),
   is_verified_purchase: raw.is_verified_purchase === true || raw.is_verified_purchase === 1 || raw.is_verified_purchase === "1",
 });
-
 
 type UpdateProductPayload = Partial<CreateProductPayload>;
 
@@ -239,39 +240,39 @@ export const productService = {
     fd.append("file", file); // must match multer: upload.single("file")
     return httpForm<{ url: string }>(apiEndpoints.uploads.productImage, fd);
   },
+  
   async listProductReviews(productId: string, params: { limit?: number; offset?: number } = {}) {
-  const data = await http<{ reviews: any[] }>(
-    `${apiEndpoints.productReviews.listByProductId(productId)}${qs(params)}`
-  );
-  return { reviews: (data.reviews || []).map(normalizeReview) as ProductReview[] };
-},
+    const data = await http<{ reviews: any[] }>(
+      `${apiEndpoints.productReviews.listByProductId(productId)}${qs(params)}`
+    );
+    return { reviews: (data.reviews || []).map(normalizeReview) as ProductReview[] };
+  },
 
-async createProductReview(productId: string, payload: {
-  customer_name: string;
-  customer_email: string;
-  rating: number;
-  title?: string | null;
-  comment?: string | null;
-}) {
-  const data = await http<{ review: any }>(apiEndpoints.productReviews.createForProductId(productId), {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-  return { review: normalizeReview(data.review) as ProductReview };
-},
+  async createProductReview(productId: string, payload: {
+    customer_name: string;
+    customer_email: string;
+    rating: number;
+    title?: string | null;
+    comment?: string | null;
+  }) {
+    const data = await http<{ review: any }>(apiEndpoints.productReviews.createForProductId(productId), {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return { review: normalizeReview(data.review) as ProductReview };
+  },
 
-// Admin
-async adminListProductReviews(params: { product_id?: string; email?: string; rating?: number; limit?: number; offset?: number } = {}) {
-  const data = await http<{ reviews: any[] }>(
-    `${apiEndpoints.productReviews.admin.list}${qs(params)}`
-  );
-  return { reviews: (data.reviews || []).map(normalizeReview) as ProductReview[] };
-},
+  // Admin
+  async adminListProductReviews(params: { product_id?: string; email?: string; rating?: number; limit?: number; offset?: number } = {}) {
+    const data = await http<{ reviews: any[] }>(
+      `${apiEndpoints.productReviews.admin.list}${qs(params)}`
+    );
+    return { reviews: (data.reviews || []).map(normalizeReview) as ProductReview[] };
+  },
 
-adminDeleteProductReview(id: string) {
-  return http<{ success: true }>(apiEndpoints.productReviews.admin.delete(id), {
-    method: "DELETE",
-  });
-},
-
+  adminDeleteProductReview(id: string) {
+    return http<{ success: true }>(apiEndpoints.productReviews.admin.delete(id), {
+      method: "DELETE",
+    });
+  },
 };

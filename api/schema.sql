@@ -215,6 +215,10 @@ CREATE TABLE IF NOT EXISTS order_payments (
   CONSTRAINT fk_order_payments_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+ALTER TABLE order_payments ADD COLUMN stripe_checkout_session_id VARCHAR(100) NULL;
+CREATE INDEX idx_checkout_session ON order_payments(stripe_checkout_session_id);
+
+
 CREATE TABLE IF NOT EXISTS order_shipping (
   id              VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
   order_id        VARCHAR(36) NOT NULL UNIQUE,
@@ -356,6 +360,12 @@ CREATE TABLE parameters (
 
     promotional_text    TEXT NULL,
 
+    home_text           TEXT NULL,
+    story               TEXT NULL,
+    mission             TEXT NULL,
+    vision              TEXT NULL,
+    expertise           TEXT NULL,
+
     name                VARCHAR(255) NULL,           -- nom entreprise
     email               VARCHAR(191) NULL,
     address             VARCHAR(255) NULL,
@@ -384,6 +394,15 @@ CREATE TABLE legal_links (
 
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- api/database/schema.sql
+CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  email VARCHAR(191) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_newsletter_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
