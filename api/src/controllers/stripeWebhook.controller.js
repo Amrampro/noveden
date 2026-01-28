@@ -1,127 +1,158 @@
 // api/src/controllers/stripeWebhook.controller.js
 import Stripe from "stripe";
-import { getConnection } from "../config/database.js";
+import { query } from "../config/database.js";
+import { sendOrderInvoiceEmail } from "../services/email/invoiceEmail.service.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2024-06-20",
 });
 
-async function findOrderPaymentBySessionId(connection, sessionId) {
-  const [rows] = await connection.execute(
-    `SELECT * FROM order_payments WHERE stripe_checkout_session_id = ? LIMIT 1`,
-    [sessionId]
-  );
-  return rows?.[0] ?? null;
+function toOrderPaymentStatus(stripeStatus) {
+  // Stripe checkout.session.payment_status: 'paid' | 'unpaid' | 'no_payment_required'
+  // Stripe payment_intent.status: requires_payment_method, processing, succeeded, canceled...
+  // Nous mappons vers ton ENUM:
+  if (!stripeStatus) return "processing";
+  if (stripeStatus === "paid") return "succeeded";
+  if (stripeStatus === "unpaid") return "failed";
+  return "processing";
 }
 
-async function findOrderPaymentByPaymentIntentId(connection, paymentIntentId) {
-  const [rows] = await connection.execute(
-    `SELECT * FROM order_payments WHERE stripe_payment_intent_id = ? LIMIT 1`,
-    [paymentIntentId]
-  );
-  return rows?.[0] ?? null;
-}
-
-async function markOrderPaid(connection, orderId) {
-  await connection.execute(
-    `
-    UPDATE orders
-    SET status = 'paid',
-        updated_at = NOW()
-    WHERE id = ?
-    `,
-    [orderId]
-  );
-}
-
-async function markPaymentSucceeded(connection, paymentId, paymentIntentId = null) {
-  await connection.execute(
-    `
-    UPDATE order_payments
-    SET status = 'succeeded',
-        stripe_payment_intent_id = COALESCE(stripe_payment_intent_id, ?),
-        updated_at = NOW()
-    WHERE id = ?
-    `,
-    [paymentIntentId, paymentId]
-  );
-}
-
-/**
- * webhook controller
- * IMPORTANT: route must use express.raw({ type: "application/json" })
- */
 export async function stripeWebhook(req, res) {
-  const sig = req.headers["stripe-signature"];
-  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  // console.log("[stripeWebhook] received", new Date().toISOString());
 
-  if (!endpointSecret) return res.status(500).send("Missing STRIPE_WEBHOOK_SECRET");
+  const sig = req.headers["stripe-signature"];
+  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  if (!secret) return res.status(500).send("Missing STRIPE_WEBHOOK_SECRET");
 
   let event;
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    event = stripe.webhooks.constructEvent(req.body, sig, secret);
   } catch (err) {
-    console.error("❌ Webhook signature verification failed:", err?.message || err);
-    return res.status(400).send("Webhook Error");
+    console.error("Stripe webhook signature verify failed:", err?.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  const connection = await getConnection();
   try {
-    await connection.beginTransaction();
+    switch (event.type) {
+      /**
+       * ✅ Le plus important : session payée
+       */
+      case "checkout.session.completed": {
+        const session = event.data.object;
 
-    // ✅ checkout completed: best event for Checkout flow
-    if (event.type === "checkout.session.completed") {
-      const session = event.data.object;
+        const sessionId = session.id;
+        const orderId = session?.metadata?.order_id || null;
 
-      const sessionId = session.id;
-      const paymentIntentId = session.payment_intent ?? null;
+        // payment_intent peut être string id
+        const paymentIntentId =
+          typeof session.payment_intent === "string"
+            ? session.payment_intent
+            : null;
 
-      // 1) find by checkout session id (recommended)
-      let payment = await findOrderPaymentBySessionId(connection, sessionId);
+        // Mets à jour order_payments
+        await query(
+          `
+          UPDATE order_payments
+          SET status = 'succeeded',
+              stripe_payment_intent_id = COALESCE(stripe_payment_intent_id, ?),
+              updated_at = NOW()
+          WHERE stripe_checkout_session_id = ?
+          `,
+          [paymentIntentId, sessionId]
+        );
 
-      // 2) fallback: find by payment intent (if you stored it)
-      if (!payment && paymentIntentId) {
-        payment = await findOrderPaymentByPaymentIntentId(connection, paymentIntentId);
+        // Mets à jour orders -> paid
+        if (orderId) {
+          await query(
+            `UPDATE orders SET status = 'paid', updated_at = NOW() WHERE id = ?`,
+            [orderId]
+          );
+          // ✅ envoyer facture (anti-doublon via invoice_sent_at)
+          try {
+            const r = await sendOrderInvoiceEmail(orderId);
+            console.log("[invoice] result:", r);
+          } catch (e) {
+            // ne pas casser le webhook si email échoue
+            console.error("[invoice] failed:", e?.message);
+          }
+        }
+
+        break;
       }
 
-      if (!payment) {
-        console.warn("⚠️ No order_payments row found for session/paymentIntent", {
-          sessionId,
-          paymentIntentId,
-        });
-        await connection.commit();
-        return res.json({ received: true, ignored: true });
+      /**
+       * ✅ Si paiement échoue après tentative
+       */
+      case "checkout.session.async_payment_failed": {
+        const session = event.data.object;
+        const sessionId = session.id;
+        const orderId = session?.metadata?.order_id || null;
+
+        await query(
+          `UPDATE order_payments SET status='failed', updated_at=NOW() WHERE stripe_checkout_session_id = ?`,
+          [sessionId]
+        );
+
+        if (orderId) {
+          await query(
+            `UPDATE orders SET status='pending_payment', updated_at=NOW() WHERE id = ?`,
+            [orderId]
+          );
+        }
+
+        break;
       }
 
-      // Update payment + order
-      await markPaymentSucceeded(connection, payment.id, paymentIntentId);
-      await markOrderPaid(connection, payment.order_id);
+      /**
+       * ✅ Remboursement (le plus fiable : charge.refunded ou refund.updated)
+       * Ici on écoute "charge.refunded" (simple et courant)
+       */
+      case "charge.refunded": {
+        const charge = event.data.object;
 
-      await connection.commit();
-      return res.json({ received: true });
+        const paymentIntentId =
+          typeof charge.payment_intent === "string"
+            ? charge.payment_intent
+            : null;
+
+        if (paymentIntentId) {
+          // Update payment row
+          await query(
+            `
+            UPDATE order_payments
+            SET status='refunded',
+                stripe_charge_id = COALESCE(stripe_charge_id, ?),
+                updated_at = NOW()
+            WHERE stripe_payment_intent_id = ?
+            `,
+            [charge.id, paymentIntentId]
+          );
+
+          // Update order row via join
+          await query(
+            `
+            UPDATE orders o
+            JOIN order_payments op ON op.order_id = o.id
+            SET o.status = 'refunded',
+                o.updated_at = NOW()
+            WHERE op.stripe_payment_intent_id = ?
+            `,
+            [paymentIntentId]
+          );
+        }
+
+        break;
+      }
+
+      default:
+        // On ignore les autres events pour l’instant
+        break;
     }
 
-    // Optional safety: payment_intent.succeeded
-    if (event.type === "payment_intent.succeeded") {
-      const pi = event.data.object;
-      const payment = await findOrderPaymentByPaymentIntentId(connection, pi.id);
-
-      if (payment) {
-        await markPaymentSucceeded(connection, payment.id, pi.id);
-        await markOrderPaid(connection, payment.order_id);
-      }
-
-      await connection.commit();
-      return res.json({ received: true });
-    }
-
-    await connection.commit();
     return res.json({ received: true });
   } catch (e) {
-    await connection.rollback();
-    console.error("stripeWebhook error:", e);
+    console.error("Stripe webhook handler error:", e);
     return res.status(500).json({ error: "Webhook handler failed" });
-  } finally {
-    connection.release();
   }
 }

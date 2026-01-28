@@ -155,6 +155,10 @@ CREATE TABLE IF NOT EXISTS orders (
   INDEX idx_orders_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+ALTER TABLE orders
+  ADD COLUMN invoice_sent_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at;
+
+
 CREATE TABLE IF NOT EXISTS order_items (
   id          VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
   order_id    VARCHAR(36) NOT NULL,

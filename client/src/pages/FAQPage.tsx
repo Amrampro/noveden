@@ -86,7 +86,7 @@ export function FAQPage() {
       {/* CONTENT */}
       <section
         style={{
-          backgroundColor: theme.colors.primary.main,
+          backgroundColor: theme.colors.background.sage,
           padding: `${theme.spacing["4xl"]} ${theme.spacing.lg}`,
         }}
       >
@@ -122,33 +122,6 @@ export function FAQPage() {
                   flexWrap: "wrap",
                 }}
               >
-                <button
-                  type="button"
-                  onClick={() => setSelectedCategory("all")}
-                  style={{
-                    border: `1px solid ${
-                      selectedCategory === "all"
-                        ? theme.colors.primary.main
-                        : theme.colors.border.light
-                    }`,
-                    backgroundColor:
-                      selectedCategory === "all"
-                        ? theme.colors.primary.main
-                        : theme.colors.background.secondary,
-                    color:
-                      selectedCategory === "all"
-                        ? theme.colors.text.inverse
-                        : theme.colors.text.primary,
-                    padding: `${theme.spacing.sm} ${theme.spacing.lg}`,
-                    borderRadius: theme.borderRadius.full,
-                    cursor: "pointer",
-                    fontFamily: theme.typography.fontFamily.body,
-                    fontSize: theme.typography.fontSize.sm,
-                    transition: theme.transition.fast,
-                  }}
-                >
-                  Toutes
-                </button>
 
                 {categories.map((c) => (
                   <button

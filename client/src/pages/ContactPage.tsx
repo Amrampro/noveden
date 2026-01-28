@@ -5,6 +5,7 @@ import { theme } from "../config/theme";
 import { Button } from "../components/Button";
 import { PageBanner } from "../components/PageBanner";
 import { useSiteParams } from "../contexts/SiteParamsContext";
+import { contactService } from "../services/contactService";
 
 export function ContactPage() {
   const [formData, setFormData] = useState({
@@ -21,14 +22,18 @@ export function ContactPage() {
     setIsSubmitting(true);
     setFeedback("");
 
-    // TODO: call backend endpoint later (e.g. POST /api/contact)
-    setTimeout(() => {
+    try {
+      const res = await contactService.send(formData);
       setFeedback(
-        "Merci pour votre message ! Nous vous répondrons dans les plus brefs délais."
+        res.message ||
+          "Merci pour votre message ! Nous vous répondrons rapidement."
       );
       setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (err: any) {
+      setFeedback(err?.message || "Erreur lors de l'envoi du message.");
+    } finally {
       setIsSubmitting(false);
-    }, 800);
+    }
   };
 
   const handleChange = (

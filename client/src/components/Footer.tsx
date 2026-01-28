@@ -169,7 +169,7 @@ export function Footer({ onNavigate }: FooterProps) {
         >
           {/* Newsletter */}
           <div
-            style={{ textAlign: "center", marginBottom: theme.spacing["3xl"] }}
+            style={{ textAlign: "center", marginBottom: theme.spacing["3xl"], backgroundColor: theme.colors.background.sage, padding: theme.spacing["2xl"] }}
           >
             <Mail
               size={48}
@@ -226,7 +226,7 @@ export function Footer({ onNavigate }: FooterProps) {
                   e.currentTarget.style.borderColor = theme.colors.border.main;
                 }}
               />
-              <Button type="submit" disabled={isSubscribing} variant="primary">
+              <Button type="submit" disabled={isSubscribing} variant="primary" style={{...theme.button.secondary}}>
                 {isSubscribing ? "Inscription..." : "S'inscrire"}
               </Button>
             </form>

@@ -9,6 +9,7 @@ export type CheckoutPayload = {
   coupon_code?: string | null;
   shipping: {
     method: "mondial_relay" | "home_delivery";
+    amount: number; // ✅ cents
     address: {
       full_name: string;
       email: string;
@@ -28,7 +29,16 @@ export type CheckoutPayload = {
 };
 
 export type CheckoutResponse = {
-  order: { id: string; total_amount: number; currency: string; status: string };
+  order: {
+    id: string;
+    subtotal_amount: number;
+    discount_amount: number;
+    shipping_amount: number;
+    total_amount: number;
+    currency: string;
+    status: string;
+    coupon_code?: string | null;
+  };
   stripe: { session_id: string; checkout_url: string };
 };
 
@@ -37,11 +47,11 @@ export const ordersService = {
     return http<CheckoutResponse>(apiEndpoints.orders.checkout, {
       method: "POST",
       body: JSON.stringify(payload),
-      auth: true,
+      auth: false, // ✅ guest
     });
   },
 
   getMyOrder(id: string) {
-    return http<any>(apiEndpoints.orders.byId(id), { method: "GET", auth: true });
+    return http<any>(apiEndpoints.orders.byId(id), { method: "GET", auth: false }); // ✅ guest
   },
 };

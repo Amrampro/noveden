@@ -387,7 +387,7 @@ export function HomePage({ onNavigate, onViewProduct, onViewPost }: HomePageProp
               >
                 <feature.icon
                   size={48}
-                  color={theme.colors.primary.main}
+                  color={theme.colors.secondary.main}
                   style={{ margin: `0 auto ${theme.spacing.md}` }}
                 />
                 <h3 style={{ ...theme.heading.h5, marginBottom: theme.spacing.sm }}>{feature.title}</h3>
@@ -551,7 +551,7 @@ export function HomePage({ onNavigate, onViewProduct, onViewPost }: HomePageProp
                         </span>
 
                         <button
-                          onClick={() => onViewPost?.(post)}
+                          onClick={() => navigate(`/blog/${post.slug}`)}
                           style={{
                             display: "inline-flex",
                             alignItems: "center",
@@ -628,7 +628,7 @@ export function HomePage({ onNavigate, onViewProduct, onViewPost }: HomePageProp
           </div>
 
           <div style={{ display: "flex", gap: theme.spacing.md, flexWrap: "wrap" }}>
-            <button style={{...theme.button.primary}} onClick={() => navigate("/shop")}>
+            <button style={{...theme.button.secondary}} onClick={() => navigate("/shop")}>
               Aller à la boutique
             </button>
             <button style={{...theme.button.outline}} onClick={() => navigate("/contact")}>

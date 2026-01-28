@@ -41,7 +41,6 @@ export const adminOrdersService = {
     limit = Math.min(Math.max(toInt(limit, 50), 1), 200);
     offset = Math.max(toInt(offset, 0), 0);
 
-    // ✅ On prend les infos client depuis order_addresses
     let sql = `
       SELECT 
         o.*,
@@ -75,7 +74,6 @@ export const adminOrdersService = {
       params.push(shipping_method);
     }
 
-    // Recherche simple : order id, coupon_code, customer email/name
     if (q) {
       sql += " AND (o.id LIKE ? OR o.coupon_code LIKE ? OR oa.email LIKE ? OR oa.full_name LIKE ?)";
       params.push(`%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`);
@@ -86,14 +84,14 @@ export const adminOrdersService = {
 
     const rawOrders = await query(sql, params);
 
-    // ✅ Dédoublonnage (sécurité)
+    // Dedup in case joins cause duplicates
     const uniqueMap = new Map();
     for (const o of rawOrders) {
       if (!uniqueMap.has(o.id)) uniqueMap.set(o.id, o);
     }
     const orders = Array.from(uniqueMap.values());
 
-    // items
+    // Items
     const ids = orders.map((o) => o.id);
     const itemsByOrderId = new Map();
 
@@ -114,7 +112,7 @@ export const adminOrdersService = {
       o.items = itemsByOrderId.get(o.id) ?? [];
     }
 
-    // ✅ Count DISTINCT (mêmes filtres)
+    // Count
     let countSql = `
       SELECT COUNT(DISTINCT o.id) as total
       FROM orders o
@@ -147,7 +145,8 @@ export const adminOrdersService = {
         op.status as payment_status,
         op.provider as payment_provider,
         op.stripe_payment_intent_id,
-        op.stripe_charge_id
+        op.stripe_charge_id,
+        op.stripe_checkout_session_id
       FROM orders o
       LEFT JOIN order_addresses oa ON oa.order_id = o.id
       LEFT JOIN order_payments op ON op.order_id = o.id

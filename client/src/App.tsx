@@ -38,10 +38,12 @@ import PublicLayout from "./layouts/PublicLayout";
 import { SiteParamsProvider } from "./contexts/SiteParamsContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import RequireAdmin from "./routes/RequireAdmin";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         <SiteParamsProvider>
           <Routes>
@@ -73,18 +75,33 @@ function App() {
               }
             >
               <Route index element={<AdminDashboardPage />} />
-              <Route path="product-categories" element={<ProductCategoriesPage />} />
+              <Route
+                path="product-categories"
+                element={<ProductCategoriesPage />}
+              />
 
               {/* Products */}
               <Route path="products" element={<AdminProductsListPage />} />
               <Route path="products/new" element={<AdminProductFormPage />} />
-              <Route path="products/:id/edit" element={<AdminProductFormPage />} />
+              <Route
+                path="products/:id/edit"
+                element={<AdminProductFormPage />}
+              />
 
               {/* Blog */}
               <Route path="blog-posts" element={<AdminBlogPostsListPage />} />
-              <Route path="blog-posts/new" element={<AdminBlogPostFormPage />} />
-              <Route path="blog-posts/:id/edit" element={<AdminBlogPostFormPage />} />
-              <Route path="blog-categories" element={<AdminBlogCategoriesPage />} />
+              <Route
+                path="blog-posts/new"
+                element={<AdminBlogPostFormPage />}
+              />
+              <Route
+                path="blog-posts/:id/edit"
+                element={<AdminBlogPostFormPage />}
+              />
+              <Route
+                path="blog-categories"
+                element={<AdminBlogCategoriesPage />}
+              />
 
               {/* FAQs */}
               <Route path="faqs" element={<AdminFaqsPage />} />
@@ -92,17 +109,29 @@ function App() {
               {/* Banners */}
               <Route path="banners" element={<AdminBannersListPage />} />
               <Route path="banners/new" element={<AdminBannerFormPage />} />
-              <Route path="banners/:id/edit" element={<AdminBannerFormPage />} />
+              <Route
+                path="banners/:id/edit"
+                element={<AdminBannerFormPage />}
+              />
 
               {/* Legal */}
               <Route path="legal-links" element={<AdminLegalLinksListPage />} />
-              <Route path="legal-links/new" element={<AdminLegalLinkFormPage />} />
-              <Route path="legal-links/:id/edit" element={<AdminLegalLinkFormPage />} />
+              <Route
+                path="legal-links/new"
+                element={<AdminLegalLinkFormPage />}
+              />
+              <Route
+                path="legal-links/:id/edit"
+                element={<AdminLegalLinkFormPage />}
+              />
 
               {/* Parameters */}
               <Route path="parameters" element={<AdminParametersPage />} />
 
-              <Route path="product-reviews" element={<AdminProductReviewsPage />} />
+              <Route
+                path="product-reviews"
+                element={<AdminProductReviewsPage />}
+              />
 
               {/* Orders */}
               <Route path="orders" element={<AdminOrdersLayout />} />

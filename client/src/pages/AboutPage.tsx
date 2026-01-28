@@ -68,9 +68,6 @@ export function AboutPage() {
           >
             <div
               style={{
-                backgroundColor: theme.colors.background.sage,
-                borderRadius: theme.borderRadius["2xl"],
-                border: `1px solid ${theme.colors.border.light}`,
                 padding: theme.spacing["2xl"],
                 boxShadow: theme.shadow.card,
               }}
@@ -93,6 +90,7 @@ export function AboutPage() {
                   style={{
                     marginBottom: theme.spacing.lg,
                     whiteSpace: "pre-line",
+                    textAlign: "justify", // Added justify here
                   }}
                 >
                   {story}
@@ -153,7 +151,7 @@ export function AboutPage() {
               >
                 <feature.icon
                   size={48}
-                  color={theme.colors.primary.main}
+                  color={theme.colors.secondary.main}
                   style={{ margin: `0 auto ${theme.spacing.md}` }}
                 />
                 <h3
@@ -205,21 +203,10 @@ export function AboutPage() {
               fontSize: theme.typography.fontSize.base,
               color: theme.colors.text.secondary,
               lineHeight: theme.typography.lineHeight.body,
-              backgroundColor: theme.colors.background.sage,
-              borderRadius: theme.borderRadius["2xl"],
-              border: `1px solid ${theme.colors.border.light}`,
               padding: theme.spacing["2xl"],
               boxShadow: theme.shadow.card,
             }}
           >
-            {/* <p style={{ marginBottom: theme.spacing.lg }}>
-              <strong>NOVÉDEN</strong> est une marque de cosmétiques naturels
-              dédiée à la beauté de tous les types de peau — y compris les peaux
-              sensibles — et des cheveux texturés. Nos soins s’inspirent de la
-              nature, de traditions comme l’Ayurveda et de la science
-              dermo-cosmétique pour offrir des formules saines et efficaces.
-            </p> */}
-
             <h3
               style={{
                 ...theme.heading.h4,
@@ -230,7 +217,11 @@ export function AboutPage() {
               Notre mission
             </h3>
             <p
-              style={{ marginBottom: theme.spacing.lg, whiteSpace: "pre-line" }}
+              style={{
+                marginBottom: theme.spacing.lg,
+                whiteSpace: "pre-line",
+                textAlign: "justify", // Added justify here
+              }}
             >
               {mission}
             </p>
@@ -245,7 +236,11 @@ export function AboutPage() {
               Notre vision
             </h3>
             <p
-              style={{ marginBottom: theme.spacing.lg, whiteSpace: "pre-line" }}
+              style={{
+                marginBottom: theme.spacing.lg,
+                whiteSpace: "pre-line",
+                textAlign: "justify", // Added justify here
+              }}
             >
               {vision}
             </p>
@@ -259,7 +254,13 @@ export function AboutPage() {
             >
               Notre expertise
             </h3>
-            <p style={{ marginBottom: 0, whiteSpace: "pre-line" }}>
+            <p
+              style={{
+                marginBottom: 0,
+                whiteSpace: "pre-line",
+                textAlign: "justify", // Added justify here
+              }}
+            >
               {expertise}
             </p>
           </div>

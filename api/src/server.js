@@ -14,12 +14,17 @@ import bannersRoutes from "./routes/banners.routes.js";
 import legalLinksRoutes from "./routes/legalLinks.routes.js";
 import parametersRoutes from "./routes/parameters.routes.js";
 import productReviewsRoutes from "./routes/productReviews.routes.js";
+import contactRoutes from "./routes/contact.routes.js";
 
 import ordersRoutes from "./routes/orders.routes.js";
 import adminOrdersRoutes from "./routes/admin/orders.routes.js";
 import adminFinanceRoutes from "./routes/admin/financeRoutes.js";
 import stripeWebhookRoutes from "./routes/stripeWebhook.routes.js";
 import newsletterRoutes from "./routes/newsletter.routes.js";
+
+import mondialRelayRoutes from "./routes/mondialRelay.routes.js";
+
+
 
 import pool from './config/database.js';
 
@@ -34,7 +39,8 @@ app.use(cors({
 }));
 
 // Stripe webhook needs raw body
-app.use("/api/webhooks", express.raw({ type: "application/json" }), stripeWebhookRoutes);
+// app.use("/api/webhooks", express.raw({ type: "application/json" }), stripeWebhookRoutes);
+app.use("/api/stripe", stripeWebhookRoutes);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -73,9 +79,12 @@ app.use("/api/legal-links", legalLinksRoutes);
 app.use("/api/parameters", parametersRoutes);
 app.use("/api/pr", productReviewsRoutes);
 app.use("/api/orders", ordersRoutes);
+app.use("/api/contact", contactRoutes);
 app.use("/api/admin/orders", adminOrdersRoutes);
 app.use("/api/admin/finance", adminFinanceRoutes);
 app.use("/api/admin/newsletter-subscribers", newsletterRoutes);
+app.use("/api/mondial-relay", mondialRelayRoutes);
+
 
 app.use((err, req, res, next) => {
   console.error('Error:', err);

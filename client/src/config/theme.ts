@@ -2,15 +2,15 @@
 export const theme = {
   colors: {
     primary: {
-      main: '#A8B89F',
+      main: '#C3D3A4',
       light: '#C8D5BF',
       dark: '#8A9B82',
       50: '#F5F7F4',
       100: '#E8EDE4',
-      200: '#D4DCC9',
+      200: '#c3D3A4',
       300: '#C8D5BF',
       400: '#B8C7AA',
-      500: '#A8B89F',
+      500: '#C3D3A4',
       600: '#8A9B82',
       700: '#6D7D67',
       800: '#545F4F',
@@ -30,7 +30,7 @@ export const theme = {
       primary: '#FFFFFF',
       secondary: '#F9FAF8',
       tertiary: '#b8a79fff',
-      sage: '#D4DCC9',
+      sage: '#c3D3A4',
     },
     text: {
       primary: '#113D23',
@@ -40,8 +40,8 @@ export const theme = {
     },
     border: {
       light: '#E8EDE4',
-      main: '#D4DCC9',
-      dark: '#A8B89F',
+      main: '#c3D3A4',
+      dark: '#113D23',
     },
     success: {
       main: '#9b7d6dff',
@@ -180,8 +180,8 @@ export const theme = {
 
   button: {
     primary: {
-      backgroundColor: '#A8B89F',
-      color: '#FFFFFF',
+      backgroundColor: '#C3D3A4',
+      color: '#113D23',
       hoverBackgroundColor: '#8A9B82',
       activeBackgroundColor: '#6D7D67',
       borderRadius: '0.375rem',
@@ -195,20 +195,20 @@ export const theme = {
     secondary: {
       backgroundColor: 'transparent',
       color: '#113D23',
-      hoverBackgroundColor: '#F5F7F4',
+      hoverBackgroundColor: '#C3D3A4',
       activeBackgroundColor: '#E8EDE4',
       borderRadius: '0.375rem',
       padding: '0.75rem 2rem',
       fontSize: '1rem',
       fontWeight: 500,
       fontFamily: "'Inter', sans-serif",
-      border: '2px solid #A8B89F',
+      border: '2px solid #113D23',
       transition: 'all 0.3s ease',
     },
     outline: {
       backgroundColor: 'transparent',
-      color: '#A8B89F',
-      hoverBackgroundColor: '#A8B89F',
+      color: '#C3D3A4',
+      hoverBackgroundColor: '#C3D3A4',
       hoverColor: '#FFFFFF',
       activeBackgroundColor: '#8A9B82',
       borderRadius: '0.375rem',
@@ -216,7 +216,7 @@ export const theme = {
       fontSize: '1rem',
       fontWeight: 500,
       fontFamily: "'Inter', sans-serif",
-      border: '2px solid #A8B89F',
+      border: '2px solid #C3D3A4',
       transition: 'all 0.3s ease',
     },
     small: {

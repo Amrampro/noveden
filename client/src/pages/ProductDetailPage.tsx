@@ -456,7 +456,7 @@ export default function ProductDetailPage() {
                         marginBottom: theme.spacing.md,
                       }}
                     >
-                      Avantages
+                      Bénéfices
                     </h3>
                     <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
                       {product.benefits.map((benefit, index) => (

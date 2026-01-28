@@ -146,6 +146,13 @@ export const apiEndpoints = {
     adminList: `${API_BASE_URL}/admin/newsletter-subscribers`,
     adminDelete: (id: number) => `${API_BASE_URL}/admin/newsletter-subscribers/${id}`,
   },
+  contact: {
+    send: `${API_BASE_URL}/contact`,
+  },
+  mondialRelay: {
+  parcelshops: `${API_BASE_URL}/mondial-relay/parcelshops`,
+},
+
 
 } as const;
 

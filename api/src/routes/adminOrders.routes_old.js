@@ -5,7 +5,7 @@ import {
   adminGetOrderById,
   adminUpdateOrderShipping,
   adminUpdateOrderStatus,
-} from "../controllers/adminOrders.controller.js";
+} from "../controllers/adminOrders.controller_old.js";
 
 const router = Router();
 
