@@ -30,6 +30,35 @@ async function loadPostCategories(postId) {
   );
 }
 
+// export const getAllPosts = async (req, res) => {
+//   try {
+//     const { category, limit = 20, offset = 0 } = req.query;
+
+//     let sql = `
+//       SELECT DISTINCT bp.*
+//       FROM blog_posts bp
+//       LEFT JOIN blog_post_category_pivot bpcp ON bp.id = bpcp.blog_post_id
+//       LEFT JOIN blog_categories bc ON bc.id = bpcp.category_id
+//       WHERE bp.published_at IS NOT NULL
+//     `;
+//     const params = [];
+
+//     if (category) {
+//       sql += " AND bc.slug = ?";
+//       params.push(category);
+//     }
+
+//     sql += " ORDER BY bp.published_at DESC LIMIT ? OFFSET ?";
+//     params.push(toInt(limit, 20), toInt(offset, 0));
+
+//     const posts = await query(sql, params);
+//     res.json({ posts });
+//   } catch (error) {
+//     console.error("Get blog posts error:", error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
+
 export const getAllPosts = async (req, res) => {
   try {
     const { category, limit = 20, offset = 0 } = req.query;
@@ -52,6 +81,14 @@ export const getAllPosts = async (req, res) => {
     params.push(toInt(limit, 20), toInt(offset, 0));
 
     const posts = await query(sql, params);
+
+    // --- AJOUT : Charger les catégories pour chaque post trouvé ---
+    // Pour une liste paginée (20 items), faire une boucle async est acceptable.
+    for (const post of posts) {
+      post.categories = await loadPostCategories(post.id);
+    }
+    // -------------------------------------------------------------
+
     res.json({ posts });
   } catch (error) {
     console.error("Get blog posts error:", error);

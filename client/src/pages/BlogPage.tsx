@@ -47,6 +47,7 @@ export function BlogPage() {
         offset: 0,
       });
       setPosts(posts || []);
+      // console.log("Fetched posts:", posts);
     } catch (e) {
       console.error("Error fetching blog posts:", e);
       setPosts([]);
@@ -65,14 +66,20 @@ export function BlogPage() {
     return sorted;
   }, [categories]);
 
-  const filteredPosts = useMemo(() => {
-    if (selectedCategorySlug === "all") return posts;
+  // const filteredPosts = useMemo(() => {
+  //   if (selectedCategorySlug === "all") return posts;
 
-    // si backend filtre déjà c’est OK, sinon on filtre côté client
-    return posts.filter((p) =>
-      (p.categories || []).some((c) => c.slug === selectedCategorySlug)
-    );
-  }, [posts, selectedCategorySlug]);
+  //   // si backend filtre déjà c’est OK, sinon on filtre côté client
+  //   return posts.filter((p) =>
+  //     (p.categories || []).some((c) => c.slug === selectedCategorySlug)
+  //   );
+  // }, [posts, selectedCategorySlug]);
+
+  const filteredPosts = useMemo(() => {
+    // Le backend renvoie déjà les posts filtrés selon la catégorie demandée.
+    // On retourne simplement les posts reçus.
+    return posts;
+  }, [posts]);
 
   const goToPost = (post: BlogPost) => {
     // route detail: /blog/:slug
