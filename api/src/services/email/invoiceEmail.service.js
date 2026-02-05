@@ -29,8 +29,9 @@ export async function sendOrderInvoiceEmail(orderId) {
 
   // 4) send
   await mailer.sendMail({
-    from: process.env.MAIL_FROM || "no-reply@example.com",
+    from: process.env.MAIL_FROM_EMAIL || "no-reply@example.com",
     to: toEmail,
+    cc: process.env.MAIL_INVOICE_CC || undefined,
     subject: `Votre facture - Commande ${orderId}`,
     html,
   });

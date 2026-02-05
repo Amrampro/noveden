@@ -1,5 +1,8 @@
 // client/src/services/productService.ts
 import { apiEndpoints } from "./apiEndpoints";
+// 👇 1. IMPORT DE LA FONCTION SÉCURISÉE
+import { http } from "./http";
+
 import type {
   Product,
   ProductCategory,
@@ -30,7 +33,7 @@ type CreateProductPayload = {
   usage?: string | null;
   benefits?: any[];
   category_ids?: string[];
-  images?: { image_url: string; alt_text?: string }[]; // <--- New field
+  images?: { image_url: string; alt_text?: string }[];
 };
 
 export type ProductReview = {
@@ -56,31 +59,21 @@ const normalizeReview = (raw: any): ProductReview => ({
 
 type UpdateProductPayload = Partial<CreateProductPayload>;
 
-async function http<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-    credentials: "include",
-    ...options,
-  });
+// ❌ ANCIENNE FONCTION HTTP SUPPRIMÉE (elle est remplacée par l'import)
 
-  const contentType = res.headers.get("content-type") || "";
-  const data = contentType.includes("application/json") ? await res.json() : null;
-
-  if (!res.ok) {
-    const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
-    throw new Error(msg);
-  }
-
-  return data as T;
-}
-
+// 👇 2. MISE À JOUR DE httpForm POUR INCLURE LE TOKEN
+// On garde cette fonction locale car fetch ne gère pas le FormData automatiquement avec le wrapper http standard
 async function httpForm<T>(url: string, formData: FormData): Promise<T> {
+  const token = localStorage.getItem("token"); // Récupération du token
+
   const res = await fetch(url, {
     method: "POST",
     body: formData,
+    headers: {
+      // Pas de Content-Type ici (le navigateur le gère pour le FormData)
+      // Injection du token :
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     credentials: "include",
   });
 
@@ -151,6 +144,7 @@ export const productService = {
           : "false",
     };
 
+    // ✅ Utilise le http importé (token inclus automatiquement)
     const data = await http<{ products: any[] }>(
       `${apiEndpoints.products.list}${qs(normalizedParams)}`
     );
@@ -168,7 +162,7 @@ export const productService = {
     return http<{ categories: ProductCategory[] }>(apiEndpoints.productCategories.list);
   },
 
-  // ---------- Admin Products ----------
+  // ---------- Admin Products (Maintenant sécurisés) ----------
   async adminGetProductById(id: string) {
     const data = await http<{ product: any }>(apiEndpoints.products.admin.byId(id));
     return { product: normalizeProduct(data.product) as Product };
@@ -196,7 +190,7 @@ export const productService = {
     });
   },
 
-  // ---------- Admin Categories ----------
+  // ---------- Admin Categories (Maintenant sécurisés) ----------
   adminCreateCategory(payload: {
     name: string;
     slug?: string;
@@ -234,13 +228,15 @@ export const productService = {
     });
   },
 
-  // ---------- Uploads ----------
+  // ---------- Uploads (Sécurisé via httpForm local) ----------
   async uploadProductImage(file: File): Promise<{ url: string }> {
     const fd = new FormData();
     fd.append("file", file); // must match multer: upload.single("file")
+    // Utilise la fonction locale mise à jour plus haut
     return httpForm<{ url: string }>(apiEndpoints.uploads.productImage, fd);
   },
   
+  // ---------- Reviews ----------
   async listProductReviews(productId: string, params: { limit?: number; offset?: number } = {}) {
     const data = await http<{ reviews: any[] }>(
       `${apiEndpoints.productReviews.listByProductId(productId)}${qs(params)}`
@@ -262,7 +258,7 @@ export const productService = {
     return { review: normalizeReview(data.review) as ProductReview };
   },
 
-  // Admin
+  // Admin Reviews (Maintenant sécurisés)
   async adminListProductReviews(params: { product_id?: string; email?: string; rating?: number; limit?: number; offset?: number } = {}) {
     const data = await http<{ reviews: any[] }>(
       `${apiEndpoints.productReviews.admin.list}${qs(params)}`

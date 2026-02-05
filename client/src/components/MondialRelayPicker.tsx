@@ -83,7 +83,12 @@ function formatDistanceSmart(distanceRaw: any): string | null {
   return `${n.toFixed(2)} km`;
 }
 
-export function MondialRelayPicker({ country, postCode, city, onSelect }: Props) {
+export function MondialRelayPicker({
+  country,
+  postCode,
+  city,
+  onSelect,
+}: Props) {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [points, setPoints] = useState<RelayPoint[]>([]);
@@ -168,12 +173,12 @@ export function MondialRelayPicker({ country, postCode, city, onSelect }: Props)
 
   const selectedPoint = useMemo(
     () => points.find((p) => p.id === selectedId) || null,
-    [points, selectedId]
+    [points, selectedId],
   );
 
   const infoPoint = useMemo(
     () => points.find((p) => p.id === infoOpenId) || null,
-    [points, infoOpenId]
+    [points, infoOpenId],
   );
 
   const infoLatLng = useMemo(() => {
@@ -219,7 +224,10 @@ export function MondialRelayPicker({ country, postCode, city, onSelect }: Props)
     // clear old markers
     markersRef.current.forEach((m) => {
       try {
-        if (m && typeof m === "object") m.map = null;
+        // AdvancedMarkerElement: m.map = null
+        // Marker: m.setMap(null)
+        if (m?.setMap) m.setMap(null);
+        else if (m && typeof m === "object") m.map = null;
       } catch {}
     });
     markersRef.current = [];
@@ -244,9 +252,10 @@ export function MondialRelayPicker({ country, postCode, city, onSelect }: Props)
           title: p.name || p.id,
         });
 
-        // click => select + open info
+        // ✅ IMPORTANT: event AdvancedMarker = "gmp-click"
         // @ts-ignore
-        adv.addListener?.("click", () => onChoose(p, true));
+        adv.addEventListener("gmp-click", () => onChoose(p, true));
+
         markersRef.current.push(adv);
       } else {
         const mk = new window.google.maps.Marker({
@@ -273,7 +282,8 @@ export function MondialRelayPicker({ country, postCode, city, onSelect }: Props)
   return (
     <div style={{ display: "grid", gap: theme.spacing.md }}>
       <div style={{ fontSize: 13, color: theme.colors.text.secondary }}>
-        Entrez un code postal complet (ex: 6044), puis choisissez un Point Relais.
+        Entrez un code postal complet (ex: 6044), puis choisissez un Point
+        Relais.
       </div>
 
       {loadError && (
@@ -361,7 +371,9 @@ export function MondialRelayPicker({ country, postCode, city, onSelect }: Props)
                       const lng = toNumber(p.longitude);
                       if (mapRef.current && lat != null && lng != null) {
                         mapRef.current.panTo({ lat, lng });
-                        mapRef.current.setZoom(Math.max(mapRef.current.getZoom() || 12, 13));
+                        mapRef.current.setZoom(
+                          Math.max(mapRef.current.getZoom() || 12, 13),
+                        );
                       }
                     }}
                     style={{

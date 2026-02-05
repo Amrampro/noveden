@@ -5,6 +5,9 @@ import { authenticateToken, requireAdmin  } from "../../middleware/auth.js";
 
 const router = Router();
 
+
+router.use(authenticateToken, requireAdmin);
+
 // TODO: ajoute ici ton middleware admin si tu en as un (ex: requireAdmin)
 // router.use(authenticateToken, requireAdmin);
 

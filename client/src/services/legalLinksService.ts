@@ -1,4 +1,7 @@
+// client/src/services/legalLinksService.ts
 import { apiEndpoints } from "./apiEndpoints";
+// 👇 1. IMPORT DE LA FONCTION SÉCURISÉE
+import { http } from "./http";
 
 export type LegalLink = {
   id: string;
@@ -23,14 +26,21 @@ type CreateLegalLinkPayload = {
 
 type UpdateLegalLinkPayload = Partial<CreateLegalLinkPayload>;
 
-async function http<T>(url: string, options: RequestInit = {}): Promise<T> {
+// ❌ ANCIENNE FONCTION HTTP SUPPRIMÉE
+
+// 👇 2. AJOUT DE httpForm POUR UPLOAD DE FICHIERS (PDFs, Docs)
+async function httpForm<T>(url: string, formData: FormData): Promise<T> {
+  const token = localStorage.getItem("token");
+
   const res = await fetch(url, {
+    method: "POST",
+    body: formData,
     headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
+      // Pas de Content-Type (géré par FormData)
+      // Injection du token
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     credentials: "include",
-    ...options,
   });
 
   const contentType = res.headers.get("content-type") || "";
@@ -71,6 +81,7 @@ export const legalLinksService = {
     const q = qs({
       active: params.active === undefined ? undefined : params.active ? "1" : "0",
     });
+    // ✅ Utilise le http importé
     const data = await http<{ links: any[] }>(`${apiEndpoints.legalLinks.list}${q}`);
     return { links: (data.links || []).map(normalizeLegalLink) as LegalLink[] };
   },
@@ -80,7 +91,7 @@ export const legalLinksService = {
     return { link: normalizeLegalLink(data.link) as LegalLink };
   },
 
-  // ---------- Admin CRUD ----------
+  // ---------- Admin CRUD (Maintenant sécurisé) ----------
   async adminCreateLegalLink(payload: CreateLegalLinkPayload) {
     const data = await http<{ link: any }>(apiEndpoints.legalLinks.admin.create, {
       method: "POST",
@@ -101,5 +112,13 @@ export const legalLinksService = {
     return http<{ success: true }>(apiEndpoints.legalLinks.admin.delete(id), {
       method: "DELETE",
     });
+  },
+
+  // ---------- Upload (Pour uploader les PDF/Docs) ----------
+  async uploadLegalFile(file: File): Promise<{ url: string }> {
+    const fd = new FormData();
+    fd.append("file", file); // le backend attend "file" via multer
+    // Utilise l'endpoint d'upload générique (ou un spécifique si tu en as créé un)
+    return httpForm<{ url: string }>(apiEndpoints.uploads.productImage, fd);
   },
 };

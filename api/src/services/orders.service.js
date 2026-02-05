@@ -39,8 +39,13 @@ async function computeAutoDiscountPercent(connection, email, phone) {
   );
 
   const paidCount = Number(row?.paid_count || 0);
+  
+  // 1st order (0 previous orders) => 10%
   if (paidCount === 0) return 10;
-  if (paidCount === 3) return 30;
+  
+  // 6th order (5 previous orders) => 15%
+  if (paidCount === 5) return 15;
+
   return 0;
 }
 
@@ -120,8 +125,9 @@ export async function createCheckout({ userId, cart_items, coupon_code, shipping
     // 3) total
     const total_amount = Math.max(0, subtotal_amount - discount_amount + shipping_amount);
 
+    // UPDATED: generate code name based on new logic
     const autoCode =
-      percentOff === 10 ? "AUTO_FIRST_10" : percentOff === 30 ? "AUTO_4TH_30" : null;
+      percentOff === 10 ? "AUTO_FIRST_10" : percentOff === 15 ? "AUTO_6TH_15" : null;
 
     const finalCouponCode = autoCode ?? coupon_code ?? null;
 

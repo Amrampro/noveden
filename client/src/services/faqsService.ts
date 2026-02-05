@@ -1,5 +1,7 @@
 // client/src/services/faqsService.ts
 import { apiEndpoints } from "./apiEndpoints";
+// 👇 1. IMPORT DE LA FONCTION SÉCURISÉE
+import { http } from "./http";
 
 export type Faq = {
   id: string;
@@ -27,26 +29,7 @@ type CreateFaqPayload = {
 
 type UpdateFaqPayload = Partial<CreateFaqPayload>;
 
-async function http<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-    credentials: "include",
-    ...options,
-  });
-
-  const contentType = res.headers.get("content-type") || "";
-  const data = contentType.includes("application/json") ? await res.json() : null;
-
-  if (!res.ok) {
-    const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
-    throw new Error(msg);
-  }
-
-  return data as T;
-}
+// ❌ ANCIENNE FONCTION HTTP SUPPRIMÉE (remplacée par l'import)
 
 function qs(params: Record<string, any>) {
   const sp = new URLSearchParams();
@@ -75,6 +58,7 @@ function normalizeFaq(raw: any): Faq {
 export const faqsService = {
   // ---------- Public ----------
   async listFaqs(params: ListFaqsParams = {}) {
+    // Le token sera envoyé s'il existe (via http importé), mais la route est publique donc pas de souci
     const data = await http<{ faqs: any[] }>(`${apiEndpoints.faqs.list}${qs(params)}`);
     return { faqs: (data.faqs || []).map(normalizeFaq) as Faq[] };
   },
@@ -84,7 +68,7 @@ export const faqsService = {
     return { faq: normalizeFaq(data.faq) as Faq };
   },
 
-  // ---------- Admin ----------
+  // ---------- Admin (Maintenant sécurisé) ----------
   async adminCreateFaq(payload: CreateFaqPayload) {
     const data = await http<{ faq: any }>(apiEndpoints.faqs.admin.create, {
       method: "POST",

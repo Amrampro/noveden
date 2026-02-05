@@ -4,12 +4,14 @@ import {
   getParameters,
   upsertParameters,
 } from "../controllers/parametersController.js";
-// import { authMiddleware } from "../middlewares/auth.middleware.js";
-// import { adminOnly } from "../middlewares/admin.middleware.js"; // si tu l’as
+import { authenticateToken, requireAdmin  } from "../middleware/auth.js";
 
 const router = Router();
 
 router.get("/", getParameters);
+
+// Admin
+router.use(authenticateToken, requireAdmin);
 router.put("/", upsertParameters);
 
 export default router;

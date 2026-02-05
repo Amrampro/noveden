@@ -1,5 +1,7 @@
 // client/src/services/adminOrderService.ts
 import { apiEndpoints } from "../apiEndpoints";
+// 👇 AJOUT : On importe la fonction http qui gère le token (supposée être dans le même dossier)
+import { http } from "../http"; 
 
 export type OrderStatus =
   | "pending_payment"
@@ -137,26 +139,8 @@ type UpdateShippingPayload = Partial<{
   shipping_tracking_url: string | null;
 }>;
 
-async function http<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-    credentials: "include",
-    ...options,
-  });
-
-  const contentType = res.headers.get("content-type") || "";
-  const data = contentType.includes("application/json") ? await res.json() : null;
-
-  if (!res.ok) {
-    const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
-    throw new Error(msg);
-  }
-
-  return data as T;
-}
+// ❌ SUPPRESSION : On a supprimé la fonction async function http<T> locale
+// car elle ne gérait pas le token. On utilise l'import en haut du fichier.
 
 function qs(params: Record<string, any>) {
   const sp = new URLSearchParams();
@@ -171,6 +155,7 @@ function qs(params: Record<string, any>) {
 export const adminOrderService = {
   // ---------- Admin ----------
   listOrders(params: ListOrdersParams = {}) {
+    // Note: http inclut auth: true par défaut grâce à ton fichier http.ts
     return http<ListOrdersResponse>(`${apiEndpoints.adminOrders.list}${qs(params)}`);
   },
 

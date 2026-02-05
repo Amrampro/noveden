@@ -1,4 +1,7 @@
+// client/src/services/bannerService.ts
 import { apiEndpoints } from "./apiEndpoints";
+// 👇 1. On importe le http sécurisé
+import { http } from "./http"; 
 
 export type BannerPageName = "shop" | "home" | "about" | "faqs" | "contact";
 
@@ -34,31 +37,19 @@ type CreateBannerPayload = {
 
 type UpdateBannerPayload = Partial<CreateBannerPayload>;
 
-async function http<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-    credentials: "include",
-    ...options,
-  });
-
-  const contentType = res.headers.get("content-type") || "";
-  const data = contentType.includes("application/json") ? await res.json() : null;
-
-  if (!res.ok) {
-    const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
-    throw new Error(msg);
-  }
-
-  return data as T;
-}
-
+// 👇 2. Fonction spécifique pour l'upload (FormData) AVEC Auth
+// On ne peut pas utiliser le 'http' importé car il force le JSON via 'Content-Type'
 async function httpForm<T>(url: string, formData: FormData): Promise<T> {
+  const token = localStorage.getItem("token"); // Récupère le token
+
   const res = await fetch(url, {
     method: "POST",
     body: formData,
+    headers: {
+      // ⚠️ NE PAS mettre Content-Type (le navigateur le mettra automatiquement avec le boundary)
+      // ✅ AJOUT du token pour passer le middleware admin
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     credentials: "include",
   });
 
@@ -72,6 +63,8 @@ async function httpForm<T>(url: string, formData: FormData): Promise<T> {
 
   return data as T;
 }
+
+// ❌ ANCIENNE FONCTION HTTP LOCALE SUPPRIMÉE
 
 function qs(params: Record<string, any>) {
   const sp = new URLSearchParams();
@@ -99,36 +92,37 @@ export const bannerService = {
   async getActiveBannerByPageName(pageName: "home" | "shop" | "about" | "faqs" | "contact") {
     return http<{ banner: any | null }>(apiEndpoints.banners.activeByPage(pageName));
   },
+
   // ---------- Public ----------
   async listBanners(params: ListBannersParams = {}) {
     const q = qs({
       page_name: params.page_name,
       active: params.active === undefined ? undefined : params.active ? "1" : "0",
     });
-    const data = await http<{ banners: any[] }>(`${apiEndpoints.banners.list}${q}`);
-    return { banners: (data.banners || []).map(normalizeBanner) as Banner[] };
+    return http<{ banners: any[] }>(`${apiEndpoints.banners.list}${q}`).then((data) => ({
+      banners: (data.banners || []).map(normalizeBanner) as Banner[],
+    }));
   },
 
   async getBannerById(id: string) {
-    const data = await http<{ banner: any }>(apiEndpoints.banners.byId(id));
-    return { banner: normalizeBanner(data.banner) as Banner };
+    return http<{ banner: any }>(apiEndpoints.banners.byId(id)).then((data) => ({
+      banner: normalizeBanner(data.banner) as Banner,
+    }));
   },
 
-  // ---------- Admin CRUD ----------
+  // ---------- Admin CRUD (Sécurisé grâce à l'import http) ----------
   async adminCreateBanner(payload: CreateBannerPayload) {
-    const data = await http<{ banner: any }>(apiEndpoints.banners.admin.create, {
+    return http<{ banner: any }>(apiEndpoints.banners.admin.create, {
       method: "POST",
       body: JSON.stringify(payload),
-    });
-    return { banner: normalizeBanner(data.banner) as Banner };
+    }).then((data) => ({ banner: normalizeBanner(data.banner) as Banner }));
   },
 
   async adminUpdateBanner(id: string, payload: UpdateBannerPayload) {
-    const data = await http<{ banner: any }>(apiEndpoints.banners.admin.update(id), {
+    return http<{ banner: any }>(apiEndpoints.banners.admin.update(id), {
       method: "PUT",
       body: JSON.stringify(payload),
-    });
-    return { banner: normalizeBanner(data.banner) as Banner };
+    }).then((data) => ({ banner: normalizeBanner(data.banner) as Banner }));
   },
 
   adminDeleteBanner(id: string) {
@@ -137,11 +131,11 @@ export const bannerService = {
     });
   },
 
-  // ---------- Uploads ----------
-  // Same pattern as your product image upload, but for banners
+  // ---------- Uploads (Sécurisé grâce à httpForm local) ----------
   async uploadBannerImage(file: File): Promise<{ url: string }> {
     const fd = new FormData();
-    fd.append("file", file); // must match multer: upload.single("file")
+    fd.append("file", file); 
+    // Utilise le httpForm défini plus haut qui inclut le Token
     return httpForm<{ url: string }>(apiEndpoints.uploads.productImage, fd);
   },
 };

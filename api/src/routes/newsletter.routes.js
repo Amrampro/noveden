@@ -6,8 +6,7 @@ import {
   adminDeleteNewsletterSubscriber,
 } from "../controllers/newsletterController.js";
 
-import { authenticateToken } from "../middleware/auth.js";
-import { requireAdmin } from "../middleware/auth.js";
+import { authenticateToken, requireAdmin } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -15,18 +14,9 @@ const router = Router();
 router.post("/", subscribeNewsletter);
 
 // Admin
-router.get(
-  "/",
-  // authenticateToken,
-  // requireAdmin,
-  adminListNewsletterSubscribers
-);
+router.use(authenticateToken, requireAdmin);
+router.get("/", adminListNewsletterSubscribers);
 
-router.delete(
-  "/:id",
-  // authenticateToken,
-  // requireAdmin,
-  adminDeleteNewsletterSubscriber
-);
+router.delete("/:id", adminDeleteNewsletterSubscriber);
 
 export default router;

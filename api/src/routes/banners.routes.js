@@ -2,8 +2,8 @@
 import { Router } from "express";
 import * as BannersController from "../controllers/bannersController.js";
 import { getActiveBannerByPageName } from "../controllers/bannersController.js";
-// If you have auth middleware, you can enable it later:
-// import { authMiddleware } from "../middlewares/auth.middleware.js";
+
+import { authenticateToken, requireAdmin  } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -15,7 +15,7 @@ router.get("/active/:page_name", getActiveBannerByPageName);
 
 
 // Admin CRUD (add auth if needed)
-// router.use(authMiddleware);
+router.use(authenticateToken, requireAdmin);
 router.post("/", BannersController.createBanner);
 router.put("/:id", BannersController.updateBanner);
 router.delete("/:id", BannersController.deleteBanner);

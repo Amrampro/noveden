@@ -1,5 +1,7 @@
 // client/src/services/adminFinanceService.ts
 import { apiEndpoints } from "./apiEndpoints";
+// 👇 IMPORT IMPORTANT : On récupère la fonction qui gère le token
+import { http } from "./http";
 
 export type OrderStatus =
   | "pending_payment"
@@ -79,26 +81,7 @@ export type ListFinanceResponse = {
   stats: FinanceStats;
 };
 
-async function http<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-    credentials: "include",
-    ...options,
-  });
-
-  const contentType = res.headers.get("content-type") || "";
-  const data = contentType.includes("application/json") ? await res.json() : null;
-
-  if (!res.ok) {
-    const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
-    throw new Error(msg);
-  }
-
-  return data as T;
-}
+// ❌ SUPPRESSION DE LA FONCTION LOCALE http QUI N'AVAIT PAS L'AUTH ❌
 
 function qs(params: Record<string, any>) {
   const sp = new URLSearchParams();
@@ -112,6 +95,7 @@ function qs(params: Record<string, any>) {
 
 export const adminFinanceService = {
   list(params: ListFinanceParams = {}) {
+    // ✅ Utilise maintenant le http importé qui injecte "Authorization: Bearer ..."
     return http<ListFinanceResponse>(`${apiEndpoints.adminFinance.list}${qs(params)}`);
   },
 };

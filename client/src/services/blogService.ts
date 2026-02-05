@@ -1,5 +1,7 @@
 // client/src/services/blogService.ts
 import { apiEndpoints } from "./apiEndpoints";
+// 👇 1. IMPORT DE LA FONCTION SÉCURISÉE
+import { http } from "./http";
 
 export type BlogCategory = {
   id: string;
@@ -55,31 +57,20 @@ type CreatePostPayload = {
 
 type UpdatePostPayload = Partial<CreatePostPayload>;
 
-async function http<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-    credentials: "include",
-    ...options,
-  });
+// ❌ ANCIENNE FONCTION HTTP SUPPRIMÉE (remplacée par l'import)
 
-  const contentType = res.headers.get("content-type") || "";
-  const data = contentType.includes("application/json") ? await res.json() : null;
-
-  if (!res.ok) {
-    const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
-    throw new Error(msg);
-  }
-
-  return data as T;
-}
-
+// 👇 2. MISE À JOUR DE httpForm POUR INCLURE LE TOKEN (pour l'upload d'images)
 async function httpForm<T>(url: string, formData: FormData): Promise<T> {
+  const token = localStorage.getItem("token"); // Récupère le token
+
   const res = await fetch(url, {
     method: "POST",
     body: formData,
+    headers: {
+      // Pas de Content-Type (géré par FormData)
+      // Injection du token :
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     credentials: "include",
   });
 
@@ -107,6 +98,7 @@ function qs(params: Record<string, any>) {
 export const blogService = {
   // ---------- Public ----------
   listPosts(params: ListPostsParams = {}) {
+    // Note: http inclura le token s'il existe, ce qui est OK même pour les routes publiques
     return http<{ posts: BlogPost[] }>(`${apiEndpoints.blog.list}${qs(params)}`);
   },
 
@@ -119,7 +111,7 @@ export const blogService = {
     return http<{ categories: BlogCategory[] }>(apiEndpoints.blogCategories.list);
   },
 
-  // ---------- Admin ----------
+  // ---------- Admin (Maintenant sécurisé via l'import http) ----------
   adminListPosts(params: AdminListPostsParams = {}) {
     return http<{ posts: BlogPost[] }>(`${apiEndpoints.blog.admin.list}${qs(params)}`);
   },
@@ -160,6 +152,7 @@ export const blogService = {
     });
   },
 
+  // ---------- Admin Categories ----------
   adminCreateCategory(payload: {
     name: string;
     slug?: string;
@@ -197,7 +190,7 @@ export const blogService = {
     });
   },
 
-  // ---------- Uploads ----------
+  // ---------- Uploads (Sécurisé via httpForm local) ----------
   async uploadBlogImage(file: File) {
     const fd = new FormData();
     fd.append("file", file); // backend expects field "file"
