@@ -33,6 +33,7 @@ import AdminProductReviewsPage from "./pages/admin/AdminProductReviewsPage";
 import AdminOrdersLayout from "./pages/admin/orders/AdminOrdersLayout";
 import AdminFinanceLayout from "./pages/admin/finance/AdminFinanceLayout";
 import AdminNewsletterList from "./pages/admin/AdminNewsletterList";
+import OrderSuccessPage from "./pages/OrderSuccessPage";
 
 import PublicLayout from "./layouts/PublicLayout";
 import { SiteParamsProvider } from "./contexts/SiteParamsContext";
@@ -59,6 +60,7 @@ function App() {
               <Route path="/cart" element={<CartPage />} />
               <Route path="/faqs" element={<FAQPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/order-success" element={<OrderSuccessPage />} />
             </Route>
 
             {/* Auth */}

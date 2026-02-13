@@ -51,7 +51,7 @@ export const ordersService = {
     });
   },
 
-  getMyOrder(id: string) {
+  getOrder(id: string) {
     return http<any>(apiEndpoints.orders.byId(id), { method: "GET", auth: false }); // ✅ guest
   },
 };

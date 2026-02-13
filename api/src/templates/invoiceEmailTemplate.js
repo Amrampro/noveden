@@ -17,8 +17,8 @@ export function renderInvoiceEmail({ order, items, address }) {
   const colorBg = "#F4F6F4";    // Fond gris très clair
 
   // ⚠️ IMPORTANT : Remplacez cette ligne par la vraie logique de votre backend
-  // Exemple : const downloadUrl = order.invoice_pdf_link || `https://api.noveden.com/invoices/${order.id}.pdf`;
-  const downloadUrl = order.pdf_url || `https://www.noveden.com/account/orders/${order.id}`;
+  // Exemple : const orderUrl = order.invoice_pdf_link || `https://api.noveden.com/invoices/${order.id}.pdf`;
+  const orderUrl = order.pdf_url || `https://www.noveden.com/order-success?order=${order.id}`;
 
   // Génération des lignes du tableau (Articles)
   const rows = items
@@ -123,8 +123,8 @@ export function renderInvoiceEmail({ order, items, address }) {
               </table>
 
               <div style="text-align:center; margin: 40px 0 10px 0;">
-                <a href="${downloadUrl}" target="_blank" style="background-color:${colorDark}; color:#ffffff; padding:12px 25px; border-radius:50px; text-decoration:none; font-weight:bold; font-size:14px; display:inline-block;">
-                  Télécharger ma facture PDF
+                <a href="${orderUrl}" target="_blank" style="background-color:${colorDark}; color:#ffffff; padding:12px 25px; border-radius:50px; text-decoration:none; font-weight:bold; font-size:14px; display:inline-block;">
+                  Voir sur le site
                 </a>
               </div>
 

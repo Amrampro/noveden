@@ -17,8 +17,12 @@ import { MondialRelayPicker } from "../components/MondialRelayPicker";
 
 // --- INITIALISATION STRIPE ---
 const stripePromise = loadStripe(
-  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string
+  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string,
 );
+
+const baseUrl = import.meta.env.VITE_BASE_URL;
+
+
 
 // --- CONSTANTES TARIFS ET PAYS ---
 // 1. Tarifs Mondial Relay
@@ -99,9 +103,12 @@ function CheckoutInner({
       const result = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${
-            window.location.origin
-          }/order-success?order=${encodeURIComponent(orderId)}`,
+          // Old method
+          // return_url: `${
+          //   window.location.origin
+          // }/order-success?order=${encodeURIComponent(orderId)}`,
+          // New method with redirect:
+          return_url: `${baseUrl}/order-success?order=${encodeURIComponent(orderId)}`,
         },
       });
 
@@ -227,15 +234,18 @@ export function CheckoutPage() {
 
   const shippingCents = useMemo(
     () => (shippingEur !== undefined ? eurToCents(shippingEur) : 0),
-    [shippingEur]
+    [shippingEur],
   );
 
-  const subtotalEur = useMemo(() => Number(getCartTotal() || 0), [getCartTotal]);
+  const subtotalEur = useMemo(
+    () => Number(getCartTotal() || 0),
+    [getCartTotal],
+  );
   const subtotalCents = useMemo(() => eurToCents(subtotalEur), [subtotalEur]);
 
   const totalCentsEstimate = useMemo(
     () => subtotalCents + shippingCents,
-    [subtotalCents, shippingCents]
+    [subtotalCents, shippingCents],
   );
 
   const isCountrySupported = shippingEur !== undefined;
@@ -374,13 +384,17 @@ export function CheckoutPage() {
       >
         <div style={{ maxWidth: theme.container.maxWidth, margin: "0 auto" }}>
           <h1 style={{ ...theme.heading.h1 }}>Commande</h1>
-          <p style={{ ...theme.body.large, color: theme.colors.text.secondary }}>
+          <p
+            style={{ ...theme.body.large, color: theme.colors.text.secondary }}
+          >
             Finalisez vos informations de livraison puis payez via Stripe.
           </p>
         </div>
       </section>
 
-      <section style={{ padding: `${theme.spacing["2xl"]} ${theme.spacing.lg}` }}>
+      <section
+        style={{ padding: `${theme.spacing["2xl"]} ${theme.spacing.lg}` }}
+      >
         <div style={{ maxWidth: theme.container.maxWidth, margin: "0 auto" }}>
           <div
             style={{
@@ -431,7 +445,9 @@ export function CheckoutPage() {
                   >
                     <Button
                       variant={
-                        shippingMethod === "mondial_relay" ? "primary" : "outline"
+                        shippingMethod === "mondial_relay"
+                          ? "primary"
+                          : "outline"
                       }
                       onClick={() => setShippingMethod("mondial_relay")}
                     >
@@ -439,7 +455,9 @@ export function CheckoutPage() {
                     </Button>
                     <Button
                       variant={
-                        shippingMethod === "home_delivery" ? "primary" : "outline"
+                        shippingMethod === "home_delivery"
+                          ? "primary"
+                          : "outline"
                       }
                       onClick={() => setShippingMethod("home_delivery")}
                     >
@@ -516,7 +534,10 @@ export function CheckoutPage() {
                       <input
                         value={addr.postal_code}
                         onChange={(e) =>
-                          setAddr((s) => ({ ...s, postal_code: e.target.value }))
+                          setAddr((s) => ({
+                            ...s,
+                            postal_code: e.target.value,
+                          }))
                         }
                         placeholder="Code postal"
                         style={inputStyle()}
@@ -548,8 +569,14 @@ export function CheckoutPage() {
                     </div>
 
                     {shippingMethod === "mondial_relay" && (
-                      <div style={{ fontSize: 13, color: theme.colors.text.secondary }}>
-                        L’adresse de livraison enregistrée sera celle du Point Relais sélectionné.
+                      <div
+                        style={{
+                          fontSize: 13,
+                          color: theme.colors.text.secondary,
+                        }}
+                      >
+                        L’adresse de livraison enregistrée sera celle du Point
+                        Relais sélectionné.
                       </div>
                     )}
                   </div>
@@ -568,10 +595,14 @@ export function CheckoutPage() {
                       <div style={{ display: "grid", gap: theme.spacing.md }}>
                         {isCountrySupported ? (
                           <>
-                            <h3 style={{ ...theme.heading.h4 }}>Point Relais</h3>
+                            <h3 style={{ ...theme.heading.h4 }}>
+                              Point Relais
+                            </h3>
 
                             <MondialRelayPicker
-                              brandCode={import.meta.env.VITE_MR_BRAND_CODE as string}
+                              brandCode={
+                                import.meta.env.VITE_MR_BRAND_CODE as string
+                              }
                               country={addr.country || "BE"}
                               postCode={addr.postal_code}
                               city={addr.city}
@@ -590,7 +621,8 @@ export function CheckoutPage() {
                             {relayPoint?.id && (
                               <div
                                 style={{
-                                  backgroundColor: theme.colors.background.secondary,
+                                  backgroundColor:
+                                    theme.colors.background.secondary,
                                   border: `1px solid ${theme.colors.border.light}`,
                                   borderRadius: theme.borderRadius.md,
                                   padding: theme.spacing.md,
@@ -599,7 +631,8 @@ export function CheckoutPage() {
                                 <div
                                   style={{
                                     ...theme.body.base,
-                                    fontWeight: theme.typography.fontWeight.medium,
+                                    fontWeight:
+                                      theme.typography.fontWeight.medium,
                                   }}
                                 >
                                   {relayPoint.name || relayPoint.id}
@@ -620,18 +653,21 @@ export function CheckoutPage() {
                           </>
                         ) : (
                           <div style={{ color: theme.colors.error.main }}>
-                            Mondial Relay n'est pas disponible pour ce pays ({addr.country}).
+                            Mondial Relay n'est pas disponible pour ce pays (
+                            {addr.country}).
                           </div>
                         )}
                       </div>
                     )}
 
                     {/* HOME DELIVERY - erreur si non dispo */}
-                    {shippingMethod === "home_delivery" && !isCountrySupported && (
-                      <div style={{ color: theme.colors.error.main }}>
-                        La livraison à domicile n'est pas disponible pour ce pays ({addr.country}).
-                      </div>
-                    )}
+                    {shippingMethod === "home_delivery" &&
+                      !isCountrySupported && (
+                        <div style={{ color: theme.colors.error.main }}>
+                          La livraison à domicile n'est pas disponible pour ce
+                          pays ({addr.country}).
+                        </div>
+                      )}
                   </div>
 
                   {/* ACTION BUTTONS */}
@@ -690,11 +726,22 @@ export function CheckoutPage() {
                   top: 24,
                 }}
               >
-                <h3 style={{ ...theme.heading.h4, marginBottom: theme.spacing.lg }}>
+                <h3
+                  style={{
+                    ...theme.heading.h4,
+                    marginBottom: theme.spacing.lg,
+                  }}
+                >
                   Résumé
                 </h3>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: theme.spacing.sm }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: theme.spacing.sm,
+                  }}
+                >
                   {items.map((it) => (
                     <div
                       key={it.product.id}
@@ -704,7 +751,12 @@ export function CheckoutPage() {
                         gap: theme.spacing.md,
                       }}
                     >
-                      <div style={{ ...theme.body.small, color: theme.colors.text.secondary }}>
+                      <div
+                        style={{
+                          ...theme.body.small,
+                          color: theme.colors.text.secondary,
+                        }}
+                      >
                         {it.product.name} × {it.quantity}
                       </div>
                     </div>
@@ -725,10 +777,20 @@ export function CheckoutPage() {
                       marginBottom: theme.spacing.sm,
                     }}
                   >
-                    <span style={{ ...theme.body.base, color: theme.colors.text.secondary }}>
+                    <span
+                      style={{
+                        ...theme.body.base,
+                        color: theme.colors.text.secondary,
+                      }}
+                    >
                       Sous-total
                     </span>
-                    <span style={{ ...theme.body.base, fontWeight: theme.typography.fontWeight.medium }}>
+                    <span
+                      style={{
+                        ...theme.body.base,
+                        fontWeight: theme.typography.fontWeight.medium,
+                      }}
+                    >
                       {Number(getCartTotal()).toFixed(2)} €
                     </span>
                   </div>
@@ -740,29 +802,63 @@ export function CheckoutPage() {
                       marginBottom: theme.spacing.sm,
                     }}
                   >
-                    <span style={{ ...theme.body.base, color: theme.colors.text.secondary }}>
-                      Livraison ({shippingMethod === "mondial_relay" ? "Relay" : "Domicile"})
+                    <span
+                      style={{
+                        ...theme.body.base,
+                        color: theme.colors.text.secondary,
+                      }}
+                    >
+                      Livraison (
+                      {shippingMethod === "mondial_relay"
+                        ? "Relay"
+                        : "Domicile"}
+                      )
                     </span>
                     <span
                       style={{
                         ...theme.body.base,
                         fontWeight: theme.typography.fontWeight.medium,
-                        color: !isCountrySupported ? theme.colors.error.main : "inherit",
+                        color: !isCountrySupported
+                          ? theme.colors.error.main
+                          : "inherit",
                       }}
                     >
-                      {isCountrySupported ? `${shippingEur!.toFixed(2)} €` : "--"}
+                      {isCountrySupported
+                        ? `${shippingEur!.toFixed(2)} €`
+                        : "--"}
                     </span>
                   </div>
 
-                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: theme.spacing.md }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      marginTop: theme.spacing.md,
+                    }}
+                  >
                     <span style={{ ...theme.heading.h5 }}>Total</span>
-                    <span style={{ ...theme.heading.h4, color: theme.colors.primary.main }}>
-                      {isCountrySupported ? (totalCentsEstimate / 100).toFixed(2) : "--"} €
+                    <span
+                      style={{
+                        ...theme.heading.h4,
+                        color: theme.colors.primary.main,
+                      }}
+                    >
+                      {isCountrySupported
+                        ? (totalCentsEstimate / 100).toFixed(2)
+                        : "--"}{" "}
+                      €
                     </span>
                   </div>
 
-                  <div style={{ marginTop: theme.spacing.sm, ...theme.body.small, color: theme.colors.text.light }}>
-                    Total estimé (hors coupons). Le total final est confirmé sur Stripe.
+                  <div
+                    style={{
+                      marginTop: theme.spacing.sm,
+                      ...theme.body.small,
+                      color: theme.colors.text.light,
+                    }}
+                  >
+                    Total estimé (hors coupons). Le total final est confirmé sur
+                    Stripe.
                   </div>
                 </div>
               </div>

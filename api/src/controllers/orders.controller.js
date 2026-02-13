@@ -28,3 +28,14 @@ export async function getMyOrder(req, res) {
     res.status(404).json({ error: e.message || "Not found" });
   }
 }
+
+// get single order for user (for order success page)
+export async function getOrder(req, res) {
+  try {
+    const orderId = req.params.id;
+    const data = await getOrderForUser({ orderId });
+    res.json(data);
+  } catch (e) {
+    res.status(404).json({ error: e.message || "Not found" });
+  }
+}
