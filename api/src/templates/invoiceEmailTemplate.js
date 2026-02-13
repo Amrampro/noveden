@@ -18,7 +18,7 @@ export function renderInvoiceEmail({ order, items, address }) {
 
   // ⚠️ IMPORTANT : Remplacez cette ligne par la vraie logique de votre backend
   // Exemple : const orderUrl = order.invoice_pdf_link || `https://api.noveden.com/invoices/${order.id}.pdf`;
-  const orderUrl = order.pdf_url || `https://www.noveden.com/order-success?order=${order.id}`;
+  const orderUrl = `https://www.noveden.com/order-success?order=${order.id}`;
 
   // Génération des lignes du tableau (Articles)
   const rows = items

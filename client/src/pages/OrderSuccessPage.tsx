@@ -4,6 +4,8 @@ import { Link, useSearchParams } from "react-router-dom";
 import { theme } from "../config/theme";
 import { ordersService } from "../services/ordersService";
 import { Button } from "../components/Button";
+import { useCart } from "../contexts/CartContext";
+
 
 type Order = {
   id: string;
@@ -101,6 +103,9 @@ export default function OrderSuccessPage() {
   const [err, setErr] = useState<string | null>(null);
   const [data, setData] = useState<OrderResponse | null>(null);
 
+  const { clearCart } = useCart();
+
+
   useEffect(() => {
     if (!orderId) return;
 
@@ -112,6 +117,7 @@ export default function OrderSuccessPage() {
       try {
         const res = await ordersService.getOrder(orderId);
         if (cancelled) return;
+        clearCart();
         setData(res as OrderResponse);
       } catch (e: any) {
         if (cancelled) return;
@@ -129,7 +135,7 @@ export default function OrderSuccessPage() {
     return () => {
       cancelled = true;
     };
-  }, [orderId]);
+  }, [orderId, clearCart]);
 
   const order = data?.order || null;
   const items = data?.items || [];
