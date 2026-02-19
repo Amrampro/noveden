@@ -35,14 +35,14 @@ async function computeAutoDiscountPercent(connection, email, phone) {
         (? <> '' AND a.phone = ?)
       )
     `,
-    [safeEmail, safeEmail, safePhone, safePhone]
+    [safeEmail, safeEmail, safePhone, safePhone],
   );
 
   const paidCount = Number(row?.paid_count || 0);
-  
+
   // 1st order (0 previous orders) => 10%
   if (paidCount === 0) return 10;
-  
+
   // 6th order (5 previous orders) => 15%
   if (paidCount === 5) return 15;
 
@@ -57,7 +57,7 @@ async function fetchProductsForCartItems(connection, cartItems) {
 
   const [rows] = await connection.execute(
     `SELECT id, name, price FROM products WHERE id IN (${placeholders})`,
-    ids
+    ids,
   );
 
   const products = rows || [];
@@ -97,8 +97,14 @@ async function createStripePercentCoupon(percentOff, currency = "EUR") {
   return coupon?.id ?? null;
 }
 
-export async function createCheckout({ userId, cart_items, coupon_code, shipping }) {
-  if (!Array.isArray(cart_items) || cart_items.length === 0) throw new Error("Cart is empty");
+export async function createCheckout({
+  userId,
+  cart_items,
+  coupon_code,
+  shipping,
+}) {
+  if (!Array.isArray(cart_items) || cart_items.length === 0)
+    throw new Error("Cart is empty");
   if (!shipping?.method) throw new Error("Shipping method is required");
   if (!shipping?.address) throw new Error("Shipping address is required");
 
@@ -112,22 +118,41 @@ export async function createCheckout({ userId, cart_items, coupon_code, shipping
     await connection.beginTransaction();
 
     // 1) items + subtotal
-    const normalizedItems = await fetchProductsForCartItems(connection, cart_items);
+    const normalizedItems = await fetchProductsForCartItems(
+      connection,
+      cart_items,
+    );
 
-    const subtotal_amount = normalizedItems.reduce((sum, it) => sum + toInt(it.line_total, 0), 0);
+    const subtotal_amount = normalizedItems.reduce(
+      (sum, it) => sum + toInt(it.line_total, 0),
+      0,
+    );
 
     // 2) auto discount sur subtotal (pas sur shipping)
     const a = shipping.address;
-    const percentOff = await computeAutoDiscountPercent(connection, a.email, a.phone);
+    const percentOff = await computeAutoDiscountPercent(
+      connection,
+      a.email,
+      a.phone,
+    );
 
-    const discount_amount = percentOff ? Math.round(subtotal_amount * (percentOff / 100)) : 0;
+    const discount_amount = percentOff
+      ? Math.round(subtotal_amount * (percentOff / 100))
+      : 0;
 
     // 3) total
-    const total_amount = Math.max(0, subtotal_amount - discount_amount + shipping_amount);
+    const total_amount = Math.max(
+      0,
+      subtotal_amount - discount_amount + shipping_amount,
+    );
 
     // UPDATED: generate code name based on new logic
     const autoCode =
-      percentOff === 10 ? "AUTO_FIRST_10" : percentOff === 15 ? "AUTO_6TH_15" : null;
+      percentOff === 10
+        ? "AUTO_FIRST_10"
+        : percentOff === 15
+          ? "AUTO_6TH_15"
+          : null;
 
     const finalCouponCode = autoCode ?? coupon_code ?? null;
 
@@ -162,7 +187,7 @@ export async function createCheckout({ userId, cart_items, coupon_code, shipping
         total_amount,
         finalCouponCode,
         shipping.method,
-      ]
+      ],
     );
 
     // 6) items
@@ -182,7 +207,7 @@ export async function createCheckout({ userId, cart_items, coupon_code, shipping
           it.unit_price,
           it.quantity,
           it.line_total,
-        ]
+        ],
       );
     }
 
@@ -205,11 +230,14 @@ export async function createCheckout({ userId, cart_items, coupon_code, shipping
         a.postal_code,
         a.address1,
         a.address2 ?? null,
-      ]
+      ],
     );
 
     // 8) shipping details (mondial relay)
-    const relay = shipping.method === "mondial_relay" ? shipping.relay_point ?? null : null;
+    const relay =
+      shipping.method === "mondial_relay"
+        ? (shipping.relay_point ?? null)
+        : null;
 
     await connection.execute(
       `
@@ -225,15 +253,14 @@ export async function createCheckout({ userId, cart_items, coupon_code, shipping
         relay?.id ?? null,
         relay?.name ?? null,
         relay?.address ?? null,
-      ]
+      ],
     );
 
-    // 9) Stripe hosted checkout
-    const successUrl =
-      process.env.STRIPE_SUCCESS_URL ||
-      "http://localhost:5173/order-success?session_id={CHECKOUT_SESSION_ID}";
-    const cancelUrl =
-      process.env.STRIPE_CANCEL_URL || "http://localhost:5173/checkout?canceled=1";
+    /*// 9) Stripe hosted checkout
+    const successUrl = `${process.env.CORS_ORIGIN}/order-success?session_id={CHECKOUT_SESSION_ID}`;
+      // ,"http://localhost:5173/order-success?session_id={CHECKOUT_SESSION_ID}";
+    const cancelUrl = `${process.env.CORS_ORIGIN}/checkout?canceled=1`;
+      // process.env.CORS_ORIGIN || "http://localhost:5173/checkout?canceled=1";
 
     const stripeCouponId = percentOff ? await createStripePercentCoupon(percentOff, currency) : null;
 
@@ -271,6 +298,62 @@ export async function createCheckout({ userId, cart_items, coupon_code, shipping
       },
       success_url: successUrl,
       cancel_url: cancelUrl,
+    });*/
+
+    // 9) Stripe hosted checkout
+    const baseUrl = process.env.CORS_ORIGIN || "http://localhost:5173";
+
+    // ✅ Solution A: retour avec orderId (plus de session_id dans l'URL)
+    const successUrl = `${baseUrl}/order-success?order=${encodeURIComponent(orderId)}`;
+    const cancelUrl = `${baseUrl}/checkout?canceled=1`;
+
+    const stripeCouponId = percentOff
+      ? await createStripePercentCoupon(percentOff, currency)
+      : null;
+
+    // ✅ Ajouter shipping via shipping_options (Stripe gère ça proprement)
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+
+      // ✅ utile: retrouver l'orderId depuis Stripe
+      client_reference_id: orderId,
+
+      line_items: normalizedItems.map((it) => ({
+        quantity: it.quantity,
+        price_data: {
+          currency: "eur",
+          unit_amount: it.unit_price,
+          product_data: { name: it.product_name },
+        },
+      })),
+
+      discounts: stripeCouponId ? [{ coupon: stripeCouponId }] : undefined,
+
+      shipping_options: [
+        {
+          shipping_rate_data: {
+            display_name:
+              shipping.method === "mondial_relay"
+                ? "Mondial Relay"
+                : "Livraison à domicile",
+            fixed_amount: { amount: shipping_amount, currency: "eur" },
+            type: "fixed_amount",
+          },
+        },
+      ],
+
+      customer_email: a.email || undefined,
+
+      metadata: {
+        order_id: orderId,
+        user_id: String(safeUserId),
+        auto_discount_percent: percentOff ? String(percentOff) : "0",
+        shipping_amount: String(shipping_amount),
+        shipping_method: String(shipping.method),
+      },
+
+      success_url: successUrl,
+      cancel_url: cancelUrl,
     });
 
     // 10) payment row
@@ -283,7 +366,7 @@ export async function createCheckout({ userId, cart_items, coupon_code, shipping
         (?, ?, 'stripe', 'requires_payment', NULL, NULL,
          ?, ?, ?, NOW(), NOW())
       `,
-      [crypto.randomUUID(), orderId, session.id, total_amount, currency]
+      [crypto.randomUUID(), orderId, session.id, total_amount, currency],
     );
 
     await connection.commit();
@@ -315,25 +398,33 @@ export async function createCheckout({ userId, cart_items, coupon_code, shipping
 export async function getOrderForUser({ orderId }) {
   if (!orderId) throw new Error("orderId is required");
 
-  const [order] = await query(`SELECT * FROM orders WHERE id = ? LIMIT 1`, [orderId]);
+  const [order] = await query(`SELECT * FROM orders WHERE id = ? LIMIT 1`, [
+    orderId,
+  ]);
   if (!order) throw new Error("Order not found");
 
   const items = await query(
     `SELECT * FROM order_items WHERE order_id = ? ORDER BY created_at ASC`,
-    [orderId]
+    [orderId],
   );
   const [address] = await query(
     `SELECT * FROM order_addresses WHERE order_id = ? LIMIT 1`,
-    [orderId]
+    [orderId],
   );
   const [shipping] = await query(
     `SELECT * FROM order_shipping WHERE order_id = ? LIMIT 1`,
-    [orderId]
+    [orderId],
   );
   const [payment] = await query(
     `SELECT * FROM order_payments WHERE order_id = ? LIMIT 1`,
-    [orderId]
+    [orderId],
   );
 
-  return { order, items, address: address ?? null, shipping: shipping ?? null, payment: payment ?? null };
+  return {
+    order,
+    items,
+    address: address ?? null,
+    shipping: shipping ?? null,
+    payment: payment ?? null,
+  };
 }
