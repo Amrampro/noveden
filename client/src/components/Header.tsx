@@ -78,32 +78,26 @@ export function Header({}: HeaderProps) {
             backgroundColor: theme.colors.background.secondary,
             borderBottom: `1px solid ${theme.colors.border.light}`,
             padding: `${theme.spacing.xs} ${theme.spacing.md}`,
-            textAlign: "center",
+            overflow: "hidden",
           }}
         >
-          <p
-            style={{
-              maxWidth: theme.container.maxWidth,
-              margin: "0 auto",
-              fontSize: "0.75rem", // XS font
-              fontWeight: 500,
-              color: theme.colors.text.secondary,
-              fontFamily: theme.typography.fontFamily.body,
-              letterSpacing: "0.02em",
-            }}
-          >
-            {promotionalText}
-          </p>
+          <div className="marquee">
+            <span className="marquee-text">{promotionalText}</span>
+          </div>
         </div>
       )}
 
       {/* --- MAIN HEADER --- */}
       <header
         style={{
-          backgroundColor: scrolled ? "rgba(255, 255, 255, 0.95)" : theme.colors.background.primary,
+          backgroundColor: scrolled
+            ? "rgba(255, 255, 255, 0.95)"
+            : theme.colors.background.primary,
           backdropFilter: scrolled ? "blur(10px)" : "none",
           boxShadow: scrolled || mobileMenuOpen ? theme.shadow.md : "none",
-          borderBottom: mobileMenuOpen ? "none" : `1px solid ${theme.colors.border.light}`,
+          borderBottom: mobileMenuOpen
+            ? "none"
+            : `1px solid ${theme.colors.border.light}`,
           position: "sticky",
           top: 0,
           zIndex: 1000,
@@ -118,7 +112,7 @@ export function Header({}: HeaderProps) {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            position: "relative", // Needed for absolute mobile menu
+            position: "relative",
           }}
         >
           {/* 1. LOGO */}
@@ -133,28 +127,25 @@ export function Header({}: HeaderProps) {
               display: "flex",
               alignItems: "center",
               gap: theme.spacing.sm,
-              zIndex: 1002, // Keep logo above mobile menu
+              zIndex: 1002,
             }}
           >
             {navbarLogo ? (
               <img
                 src={navbarLogo}
                 alt="Logo"
-                className="header-logo" // Handled in <style> tag below
-                style={{
-                  width: "auto",
-                  objectFit: "contain",
-                }}
+                className="header-logo"
+                style={{ width: "auto", objectFit: "contain" }}
               />
             ) : (
-              <Leaf 
-                className="header-logo-icon" // Handled in <style> tag below
-                color={theme.colors.primary.main} 
+              <Leaf
+                className="header-logo-icon"
+                color={theme.colors.primary.main}
               />
             )}
           </Link>
 
-          {/* 2. DESKTOP NAVIGATION (Hidden on mobile via CSS) */}
+          {/* 2. DESKTOP NAVIGATION */}
           <nav className="desktop-nav">
             <ul
               style={{
@@ -170,7 +161,7 @@ export function Header({}: HeaderProps) {
                 <li key={item.to}>
                   <Link
                     to={item.to}
-                    className="nav-link" // Used for hover styles in <style>
+                    className="nav-link"
                     style={{
                       fontFamily: theme.typography.fontFamily.body,
                       fontSize: theme.typography.fontSize.sm,
@@ -199,7 +190,7 @@ export function Header({}: HeaderProps) {
               display: "flex",
               alignItems: "center",
               gap: theme.spacing.md,
-              zIndex: 1002, // Keep above mobile menu
+              zIndex: 1002,
             }}
           >
             {/* Cart Icon */}
@@ -212,6 +203,7 @@ export function Header({}: HeaderProps) {
                 display: "flex",
                 alignItems: "center",
               }}
+              title="Panier"
             >
               <ShoppingCart size={22} strokeWidth={1.5} />
               {getCartCount() > 0 && (
@@ -238,35 +230,50 @@ export function Header({}: HeaderProps) {
               )}
             </Link>
 
-            {/* Desktop User Actions (Hidden on mobile via CSS) */}
-            <div className="desktop-actions" style={{ display: "flex", gap: theme.spacing.md, alignItems: "center" }}>
+            {/* Desktop User Actions */}
+            <div
+              className="desktop-actions"
+              style={{
+                display: "flex",
+                gap: theme.spacing.md,
+                alignItems: "center",
+              }}
+            >
               {user?.is_admin && (
-                <Link to="/admin" title="Admin" style={{ color: theme.colors.text.primary }}>
-                   <Settings size={20} strokeWidth={1.5} />
+                <Link
+                  to="/admin"
+                  title="Admin"
+                  style={{ color: theme.colors.text.primary }}
+                >
+                  <Settings size={20} strokeWidth={1.5} />
                 </Link>
               )}
-              
+
               {user ? (
-                 <button
-                 onClick={handleSignOut}
-                 style={{
-                   background: "none",
-                   border: "none",
-                   cursor: "pointer",
-                   color: theme.colors.text.primary
-                 }}
-                 title="Déconnexion"
-                 >
-                    <LogOut size={20} strokeWidth={1.5} />
-                 </button>
+                <button
+                  onClick={handleSignOut}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: theme.colors.text.primary,
+                  }}
+                  title="Déconnexion"
+                >
+                  <LogOut size={20} strokeWidth={1.5} />
+                </button>
               ) : (
-                <Link to="/auth" title="Connexion" style={{ color: theme.colors.text.primary }}>
+                <Link
+                  to="/auth"
+                  title="Connexion"
+                  style={{ color: theme.colors.text.primary }}
+                >
                   <User size={22} strokeWidth={1.5} />
                 </Link>
               )}
             </div>
 
-            {/* Mobile Menu Toggle (Visible only on mobile via CSS) */}
+            {/* Mobile Menu Toggle */}
             <button
               className="mobile-menu-toggle"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -290,23 +297,23 @@ export function Header({}: HeaderProps) {
 
         {/* --- MOBILE MENU DROPDOWN --- */}
         <div
-           className={mobileMenuOpen ? "mobile-menu open" : "mobile-menu"}
-           style={{
-             position: "absolute",
-             top: "100%",
-             left: 0,
-             right: 0,
-             backgroundColor: theme.colors.background.primary,
-             borderBottom: `1px solid ${theme.colors.border.light}`,
-             boxShadow: theme.shadow.lg,
-             padding: mobileMenuOpen ? `${theme.spacing.lg} ${theme.spacing.lg}` : 0,
-             maxHeight: mobileMenuOpen ? "100vh" : "0", // Animate height
-             overflow: "hidden",
-             transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-             opacity: mobileMenuOpen ? 1 : 0,
-             visibility: mobileMenuOpen ? "visible" : "hidden",
-             zIndex: 999,
-           }}
+          className={mobileMenuOpen ? "mobile-menu open" : "mobile-menu"}
+          style={{
+            position: "absolute",
+            top: "100%",
+            left: 0,
+            right: 0,
+            backgroundColor: theme.colors.background.primary,
+            borderBottom: `1px solid ${theme.colors.border.light}`,
+            boxShadow: theme.shadow.lg,
+            padding: mobileMenuOpen ? `${theme.spacing.lg} ${theme.spacing.lg}` : 0,
+            maxHeight: mobileMenuOpen ? "100vh" : "0",
+            overflow: "hidden",
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            opacity: mobileMenuOpen ? 1 : 0,
+            visibility: mobileMenuOpen ? "visible" : "hidden",
+            zIndex: 999,
+          }}
         >
           <ul
             style={{
@@ -342,45 +349,117 @@ export function Header({}: HeaderProps) {
               </li>
             ))}
 
-            <hr style={{ width: "100%", border: `1px solid ${theme.colors.border.light}`, margin: "8px 0" }} />
+            <hr
+              style={{
+                width: "100%",
+                border: `1px solid ${theme.colors.border.light}`,
+                margin: "8px 0",
+              }}
+            />
 
             {/* Mobile Auth Actions */}
             {user ? (
-               <li style={{display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center'}}>
-                 {user.is_admin && (
-                    <button onClick={() => handleMobileNav("/admin")} style={{background:'none', border:'none', fontSize:'1rem', display:'flex', alignItems:'center', gap: 8}}>
-                        <Settings size={18} /> Admin
-                    </button>
-                 )}
-                 <button onClick={handleSignOut} style={{background:'none', border:'none', fontSize:'1rem', color: theme.colors.error || 'red', display:'flex', alignItems:'center', gap: 8}}>
-                    <LogOut size={18} /> Déconnexion
-                 </button>
-               </li>
+              <li
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "1rem",
+                  alignItems: "center",
+                }}
+              >
+                {user.is_admin && (
+                  <button
+                    onClick={() => handleMobileNav("/admin")}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      fontSize: "1rem",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <Settings size={18} /> Admin
+                  </button>
+                )}
+                <button
+                  onClick={handleSignOut}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    fontSize: "1rem",
+                    color: theme.colors.error || "red",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    cursor: "pointer",
+                  }}
+                >
+                  <LogOut size={18} /> Déconnexion
+                </button>
+              </li>
             ) : (
-               <li>
-                 <button onClick={() => handleMobileNav("/auth")} style={{background:'none', border:'none', fontSize:'1.1rem', fontWeight: 500, display:'flex', alignItems:'center', justifyContent:'center', gap: 8}}>
-                    <User size={20} /> Connexion / Inscription
-                 </button>
-               </li>
+              <li>
+                <button
+                  onClick={() => handleMobileNav("/auth")}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    fontSize: "1.1rem",
+                    fontWeight: 500,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    cursor: "pointer",
+                  }}
+                >
+                  <User size={20} /> Connexion / Inscription
+                </button>
+              </li>
             )}
           </ul>
         </div>
       </header>
 
-      {/* --- CSS MEDIA QUERIES --- */}
+      {/* --- CSS MEDIA QUERIES + MARQUEE --- */}
       <style>{`
         /* Desktop Default */
         .desktop-nav { display: block; }
         .desktop-actions { display: flex; }
         .mobile-menu-toggle { display: none !important; }
 
-        /* Logo Sizing - Large on Desktop (UPDATED) */
-        .header-logo { height: 100px; } 
+        /* Logo Sizing */
+        .header-logo { height: 100px; }
         .header-logo-icon { width: 64px; height: 64px; }
 
         /* Hover effect for desktop links */
         .nav-link:hover {
           color: ${theme.colors.primary.main} !important;
+        }
+
+        /* Marquee (single text) */
+        .marquee {
+          width: 100%;
+          overflow: hidden;
+          white-space: nowrap;
+        }
+
+        .marquee-text {
+          display: inline-block;
+          padding-left: 100%;
+          animation: marqueeMove 25s linear infinite;
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: ${theme.colors.text.secondary};
+          font-family: ${theme.typography.fontFamily.body};
+          letter-spacing: 0.02em;
+        }
+
+        @keyframes marqueeMove {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-100%); }
         }
 
         /* Mobile Breakpoint */
@@ -389,7 +468,6 @@ export function Header({}: HeaderProps) {
           .desktop-actions { display: none !important; }
           .mobile-menu-toggle { display: block !important; }
 
-          /* Reset Logo to Normal size on Mobile (UPDATED) */
           .header-logo { height: 50px; }
           .header-logo-icon { width: 40px; height: 40px; }
         }
