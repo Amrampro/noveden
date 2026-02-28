@@ -8,6 +8,7 @@ import {
   User,
   LogOut,
   Settings,
+  UserCheck,
 } from "lucide-react";
 import { theme } from "../config/theme";
 import { useCart } from "../contexts/CartContext";
@@ -52,6 +53,7 @@ export function Header({}: HeaderProps) {
     { label: "À propos", to: "/about" },
     { label: "Blog", to: "/blog" },
     { label: "FAQ", to: "/faqs" },
+    { label: "Fidélité", to: "/fidelity" },
     { label: "Contact", to: "/contact" },
   ];
 
@@ -239,7 +241,9 @@ export function Header({}: HeaderProps) {
                 alignItems: "center",
               }}
             >
-              {user?.is_admin && (
+              {user ? (
+                <>
+                  {/* {user.is_admin && (
                 <Link
                   to="/admin"
                   title="Admin"
@@ -247,21 +251,27 @@ export function Header({}: HeaderProps) {
                 >
                   <Settings size={20} strokeWidth={1.5} />
                 </Link>
-              )}
-
-              {user ? (
-                <button
-                  onClick={handleSignOut}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: theme.colors.text.primary,
-                  }}
-                  title="Déconnexion"
-                >
-                  <LogOut size={20} strokeWidth={1.5} />
-                </button>
+              )} */}
+                  <Link
+                    to="/account"
+                    title="Compte"
+                    style={{ color: theme.colors.text.primary }}
+                  >
+                    <UserCheck size={20} strokeWidth={1.5} />
+                  </Link>
+                  <button
+                    onClick={handleSignOut}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: theme.colors.text.primary,
+                    }}
+                    title="Déconnexion"
+                  >
+                    <LogOut size={20} strokeWidth={1.5} />
+                  </button>
+                </>
               ) : (
                 <Link
                   to="/auth"
@@ -306,7 +316,9 @@ export function Header({}: HeaderProps) {
             backgroundColor: theme.colors.background.primary,
             borderBottom: `1px solid ${theme.colors.border.light}`,
             boxShadow: theme.shadow.lg,
-            padding: mobileMenuOpen ? `${theme.spacing.lg} ${theme.spacing.lg}` : 0,
+            padding: mobileMenuOpen
+              ? `${theme.spacing.lg} ${theme.spacing.lg}`
+              : 0,
             maxHeight: mobileMenuOpen ? "100vh" : "0",
             overflow: "hidden",
             transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",

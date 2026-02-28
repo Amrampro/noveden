@@ -11,6 +11,8 @@ export const apiEndpoints = {
     signup: `${API_BASE_URL}/auth/signup`,
     signin: `${API_BASE_URL}/auth/signin`,
     me: `${API_BASE_URL}/auth/me`,
+    profile: `${API_BASE_URL}/auth/profile`, // GET/PUT
+  password: `${API_BASE_URL}/auth/password`, // ✅ PUT
   },
 
   products: {
@@ -152,6 +154,30 @@ export const apiEndpoints = {
   mondialRelay: {
   parcelshops: `${API_BASE_URL}/mondial-relay/parcelshops`,
 },
+
+  // ✅ =====================================================
+  // ✅ AMBASSADORS (NEW)
+  // ✅ =====================================================
+
+  ambassadors: {
+    me: `${API_BASE_URL}/ambassadors/me`,                 // GET
+    register: `${API_BASE_URL}/ambassadors/me/register`,  // POST
+    bank: `${API_BASE_URL}/ambassadors/me/bank`,          // PUT
+    orders: `${API_BASE_URL}/ambassadors/me/orders`,      // GET
+    payouts: `${API_BASE_URL}/ambassadors/me/payouts`,    // GET
+  },
+
+  adminAmbassadors: {
+    list: `${API_BASE_URL}/admin/ambassadors`,
+    byId: (id: string) =>
+      `${API_BASE_URL}/admin/ambassadors/${encodeURIComponent(id)}`,
+    orders: (id: string) =>
+      `${API_BASE_URL}/admin/ambassadors/${encodeURIComponent(id)}/orders`,
+    payouts: (id: string) =>
+      `${API_BASE_URL}/admin/ambassadors/${encodeURIComponent(id)}/payouts`,
+    pay: (id: string) =>
+      `${API_BASE_URL}/admin/ambassadors/${encodeURIComponent(id)}/pay`,
+  },
 
 
 } as const;

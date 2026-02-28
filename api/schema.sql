@@ -449,5 +449,66 @@ END//
 DELIMITER ;
 
 -- =====================================================
+-- AMBASSADORS
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS ambassadors (
+  id               CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  user_id          CHAR(36) NOT NULL,
+  code             VARCHAR(50) NOT NULL UNIQUE,
+  commission_type  ENUM('percentage','fixed') NOT NULL DEFAULT 'percentage',
+  commission_value DECIMAL(10,2) NOT NULL DEFAULT 10.00, -- ex: 10% si percentage
+  iban             VARCHAR(64) NULL,
+  bank_account_name VARCHAR(191) NULL,
+  is_active        TINYINT(1) NOT NULL DEFAULT 1,
+  created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  CONSTRAINT fk_ambassadors_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_amb_code (code),
+  INDEX idx_amb_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================
+-- Orders: link to ambassador + store commission snapshot
+-- =====================================================
+
+ALTER TABLE orders
+  ADD COLUMN ambassador_id CHAR(36) NULL AFTER coupon_code,
+  ADD COLUMN ambassador_code VARCHAR(50) NULL AFTER ambassador_id,
+  ADD COLUMN ambassador_commission_amount INT NOT NULL DEFAULT 0 AFTER ambassador_code,
+  ADD COLUMN ambassador_commission_currency VARCHAR(10) NOT NULL DEFAULT 'EUR' AFTER ambassador_commission_amount;
+
+ALTER TABLE orders
+  ADD CONSTRAINT fk_orders_ambassador
+  FOREIGN KEY (ambassador_id) REFERENCES ambassadors(id) ON DELETE SET NULL;
+
+CREATE INDEX idx_orders_ambassador ON orders(ambassador_id);
+CREATE INDEX idx_orders_ambassador_code ON orders(ambassador_code);
+
+-- =====================================================
+-- Ambassador payouts (admin -> ambassador payments)
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS ambassador_payouts (
+  id            CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  ambassador_id CHAR(36) NOT NULL,
+  amount        INT NOT NULL, -- cents
+  currency      VARCHAR(10) NOT NULL DEFAULT 'EUR',
+  paid_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  created_by_admin_id CHAR(36) NULL, -- users.id admin (optionnel)
+  note          VARCHAR(500) NULL,
+
+  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  CONSTRAINT fk_payouts_ambassador FOREIGN KEY (ambassador_id) REFERENCES ambassadors(id) ON DELETE CASCADE,
+  CONSTRAINT fk_payouts_admin FOREIGN KEY (created_by_admin_id) REFERENCES users(id) ON DELETE SET NULL,
+
+  INDEX idx_payouts_amb (ambassador_id),
+  INDEX idx_payouts_paid_at (paid_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================
 -- END
 -- =====================================================

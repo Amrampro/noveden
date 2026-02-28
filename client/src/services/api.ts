@@ -126,6 +126,13 @@ class ApiService {
     });
   }
 
+  async updatePassword(payload: { currentPassword: string; newPassword: string }) {
+    return await this.request(`/auth/password`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  }
+
   // -----------------------
   // Products
   // -----------------------

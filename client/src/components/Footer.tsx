@@ -19,6 +19,8 @@ import {
 } from "../services/legalLinksService";
 import { newsletterService } from "../services/newsletterService";
 
+import { Link } from "react-router-dom";
+
 interface FooterProps {
   onNavigate?: (page: string) => void;
 }
@@ -411,6 +413,7 @@ export function Footer({ onNavigate }: FooterProps) {
               >
                 Navigation
               </h4>
+              <Link to="/admin">Administration</Link>
               <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
                 {[
                   { label: "Accueil", key: "home" },

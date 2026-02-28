@@ -1,3 +1,4 @@
+// api/src/server.js
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -21,6 +22,9 @@ import adminOrdersRoutes from "./routes/admin/orders.routes.js";
 import adminFinanceRoutes from "./routes/admin/financeRoutes.js";
 import stripeWebhookRoutes from "./routes/stripeWebhook.routes.js";
 import newsletterRoutes from "./routes/newsletter.routes.js";
+
+import adminAmbassadorsRoutes from "./routes/admin/ambassadors.routes.js";
+import ambassadorsRoute from "./routes/ambassadors/me.routes.js";
 
 import mondialRelayRoutes from "./routes/mondialRelay.routes.js";
 
@@ -84,6 +88,8 @@ app.use("/api/admin/orders", adminOrdersRoutes);
 app.use("/api/admin/finance", adminFinanceRoutes);
 app.use("/api/admin/newsletter-subscribers", newsletterRoutes);
 app.use("/api/mondial-relay", mondialRelayRoutes);
+app.use("/api/admin/ambassadors", adminAmbassadorsRoutes);
+app.use("/api/ambassadors/me", ambassadorsRoute);
 
 
 app.use((err, req, res, next) => {

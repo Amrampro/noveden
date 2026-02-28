@@ -22,8 +22,6 @@ const stripePromise = loadStripe(
 
 const baseUrl = import.meta.env.VITE_BASE_URL;
 
-
-
 // --- CONSTANTES TARIFS ET PAYS ---
 // 1. Tarifs Mondial Relay
 const RATES_RELAY: Record<string, number> = {
@@ -191,6 +189,8 @@ export function CheckoutPage() {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
 
+  const [ambassadorCode, setAmbassadorCode] = useState("");
+
   const [shippingMethod, setShippingMethod] = useState<
     "mondial_relay" | "home_delivery"
   >("mondial_relay");
@@ -345,6 +345,7 @@ export function CheckoutPage() {
       const payload = {
         cart_items: cartItemsPayload,
         coupon_code: null,
+        ambassador_code: ambassadorCode.trim() ? ambassadorCode.trim() : null, // ✅ NEW
         shipping: {
           method: shippingMethod,
           amount: shippingCents,
@@ -352,6 +353,8 @@ export function CheckoutPage() {
           relay_point: shippingMethod === "mondial_relay" ? relayPoint : null,
         },
       };
+
+      // alert("Code ambassadeur: " + payload.ambassador_code);
 
       const { stripe } = await ordersService.checkout(payload);
       window.location.href = stripe.checkout_url;
@@ -474,6 +477,12 @@ export function CheckoutPage() {
                         setAddr((s) => ({ ...s, full_name: e.target.value }))
                       }
                       placeholder="Nom complet"
+                      style={inputStyle()}
+                    />
+                    <input
+                      value={ambassadorCode}
+                      onChange={(e) => setAmbassadorCode(e.target.value)}
+                      placeholder="Code ambassadeur (optionnel)"
                       style={inputStyle()}
                     />
 

@@ -1,3 +1,4 @@
+// api/src/controllers/admin/usersController.js
 import { query } from '../../config/database.js';
 import bcrypt from 'bcrypt';
 

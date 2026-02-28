@@ -34,12 +34,16 @@ import AdminOrdersLayout from "./pages/admin/orders/AdminOrdersLayout";
 import AdminFinanceLayout from "./pages/admin/finance/AdminFinanceLayout";
 import AdminNewsletterList from "./pages/admin/AdminNewsletterList";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
+import { AdminAmbassadorsPage } from "./pages/admin/AdminAmbassadorsPage";
+import { AmbassadorDashboardPage } from "./pages/AmbassadorDashboardPage";
+import { FidelitePage } from "./pages/FidelitePage";
 
 import PublicLayout from "./layouts/PublicLayout";
 import { SiteParamsProvider } from "./contexts/SiteParamsContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import RequireAdmin from "./routes/RequireAdmin";
 import { ScrollToTop } from "./components/ScrollToTop";
+import { AccountPage } from "./pages/AccountPage";
 
 function App() {
   return (
@@ -60,12 +64,16 @@ function App() {
               <Route path="/cart" element={<CartPage />} />
               <Route path="/faqs" element={<FAQPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/fidelity" element={<FidelitePage />} />
               <Route path="/order-success" element={<OrderSuccessPage />} />
             </Route>
 
             {/* Auth */}
             <Route path="/auth" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+
+            <Route path="/account" element={<AccountPage />} />            
+            <Route path="/ambassador" element={<AmbassadorDashboardPage />} />
 
             {/* ✅ Admin protected */}
             <Route
@@ -143,6 +151,8 @@ function App() {
 
               {/* Newsletter */}
               <Route path="newsletter" element={<AdminNewsletterList />} />
+
+              <Route path="ambassadors" element={<AdminAmbassadorsPage />} />
             </Route>
 
             {/* Fallback */}
