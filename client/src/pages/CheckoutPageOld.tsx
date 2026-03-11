@@ -73,8 +73,8 @@ type AddressForm = {
   country: string;
   city: string;
   postal_code: string;
-  address1?: string;
-  address2?: string;
+  address1?: string; // ✅ optionnel (MR)
+  address2?: string; // ✅ optionnel (MR)
 };
 
 // --- COMPOSANT INTERNE : FORMULAIRE STRIPE ---
@@ -101,6 +101,11 @@ function CheckoutInner({
       const result = await stripe.confirmPayment({
         elements,
         confirmParams: {
+          // Old method
+          // return_url: `${
+          //   window.location.origin
+          // }/order-success?order=${encodeURIComponent(orderId)}`,
+          // New method with redirect:
           return_url: `${baseUrl}/order-success?order=${encodeURIComponent(orderId)}`,
         },
       });
@@ -190,6 +195,7 @@ export function CheckoutPage() {
     "mondial_relay" | "home_delivery"
   >("mondial_relay");
 
+  // ✅ On stocke aussi city/postalCode/country quand dispo (meilleur pour DB)
   const [relayPoint, setRelayPoint] = useState<{
     id: string;
     name?: string;
@@ -221,30 +227,21 @@ export function CheckoutPage() {
   const currentRateTable =
     shippingMethod === "mondial_relay" ? RATES_RELAY : RATES_HOME;
 
-  const subtotalEur = useMemo(
-    () => Number(getCartTotal() || 0),
-    [getCartTotal],
-  );
-  const subtotalCents = useMemo(() => eurToCents(subtotalEur), [subtotalEur]);
-
-  const isBelgiumFreeShipping = useMemo(() => {
-    return (addr.country || "").toUpperCase() === "BE" && subtotalEur >= 65;
-  }, [addr.country, subtotalEur]);
-
   const shippingEur = useMemo(() => {
     const code = (addr.country || "BE").toUpperCase();
-    const baseRate = currentRateTable[code];
-
-    if (baseRate === undefined) return undefined;
-    if (isBelgiumFreeShipping) return 0;
-
-    return baseRate;
-  }, [addr.country, currentRateTable, isBelgiumFreeShipping]);
+    return currentRateTable[code];
+  }, [addr.country, currentRateTable]);
 
   const shippingCents = useMemo(
     () => (shippingEur !== undefined ? eurToCents(shippingEur) : 0),
     [shippingEur],
   );
+
+  const subtotalEur = useMemo(
+    () => Number(getCartTotal() || 0),
+    [getCartTotal],
+  );
+  const subtotalCents = useMemo(() => eurToCents(subtotalEur), [subtotalEur]);
 
   const totalCentsEstimate = useMemo(
     () => subtotalCents + shippingCents,
@@ -301,7 +298,9 @@ export function CheckoutPage() {
 
     if (shippingMethod === "mondial_relay") {
       if (!relayPoint?.id) return "Veuillez choisir un point Mondial Relay.";
+      // ✅ pas besoin de addr.address1
     } else {
+      // ✅ home delivery: adresse obligatoire
       if (!String(addr.address1 || "").trim()) return "Champ requis: address1";
     }
 
@@ -317,6 +316,7 @@ export function CheckoutPage() {
     try {
       const countryCode = (addr.country || "BE").toUpperCase();
 
+      // ✅ Adresse enregistrée en DB = RELAIS si MR, sinon domicile
       const shippingAddress =
         shippingMethod === "mondial_relay"
           ? {
@@ -326,7 +326,9 @@ export function CheckoutPage() {
               country: (relayPoint?.country || countryCode).toUpperCase(),
               city: relayPoint?.city || addr.city,
               postal_code: relayPoint?.postalCode || addr.postal_code,
+              // ✅ adresse du relais
               address1: relayPoint?.address || "Point Relais Mondial Relay",
+              // ✅ on stocke le nom du relais en address2 (pratique)
               address2: relayPoint?.name || null,
             }
           : {
@@ -343,7 +345,7 @@ export function CheckoutPage() {
       const payload = {
         cart_items: cartItemsPayload,
         coupon_code: null,
-        ambassador_code: ambassadorCode.trim() ? ambassadorCode.trim() : null,
+        ambassador_code: ambassadorCode.trim() ? ambassadorCode.trim() : null, // ✅ NEW
         shipping: {
           method: shippingMethod,
           amount: shippingCents,
@@ -351,6 +353,8 @@ export function CheckoutPage() {
           relay_point: shippingMethod === "mondial_relay" ? relayPoint : null,
         },
       };
+
+      // alert("Code ambassadeur: " + payload.ambassador_code);
 
       const { stripe } = await ordersService.checkout(payload);
       window.location.href = stripe.checkout_url;
@@ -362,15 +366,8 @@ export function CheckoutPage() {
   };
 
   const getOptionLabel = (countryCode: string, label: string) => {
-    const normalizedCountry = countryCode.toUpperCase();
-    const price = currentRateTable[normalizedCountry];
-
+    const price = currentRateTable[countryCode];
     if (price === undefined) return `${label} — Non disponible`;
-
-    if (normalizedCountry === "BE" && subtotalEur >= 65) {
-      return `${label} — Gratuit dès 65€`;
-    }
-
     return `${label} — ${price.toFixed(2)} €`;
   };
 
@@ -514,6 +511,7 @@ export function CheckoutPage() {
                       />
                     </div>
 
+                    {/* ✅ Adresse domicile uniquement si home_delivery */}
                     {shippingMethod === "home_delivery" && (
                       <>
                         <input
@@ -579,22 +577,6 @@ export function CheckoutPage() {
                       </select>
                     </div>
 
-                    {isBelgiumFreeShipping && (
-                      <div
-                        style={{
-                          padding: theme.spacing.md,
-                          borderRadius: theme.borderRadius.md,
-                          backgroundColor: theme.colors.success[50],
-                          border: `1px solid ${theme.colors.success.main}`,
-                          color: theme.colors.success.main,
-                          fontSize: theme.typography.fontSize.sm,
-                          fontWeight: theme.typography.fontWeight.medium,
-                        }}
-                      >
-                        Livraison offerte en Belgique dès 65€ d'achat.
-                      </div>
-                    )}
-
                     {shippingMethod === "mondial_relay" && (
                       <div
                         style={{
@@ -617,6 +599,7 @@ export function CheckoutPage() {
                       gap: theme.spacing.md,
                     }}
                   >
+                    {/* MONDIAL RELAY */}
                     {shippingMethod === "mondial_relay" && (
                       <div style={{ display: "grid", gap: theme.spacing.md }}>
                         {isCountrySupported ? (
@@ -686,6 +669,7 @@ export function CheckoutPage() {
                       </div>
                     )}
 
+                    {/* HOME DELIVERY - erreur si non dispo */}
                     {shippingMethod === "home_delivery" &&
                       !isCountrySupported && (
                         <div style={{ color: theme.colors.error.main }}>
@@ -695,6 +679,7 @@ export function CheckoutPage() {
                       )}
                   </div>
 
+                  {/* ACTION BUTTONS */}
                   <div
                     style={{
                       display: "flex",
@@ -844,15 +829,11 @@ export function CheckoutPage() {
                         fontWeight: theme.typography.fontWeight.medium,
                         color: !isCountrySupported
                           ? theme.colors.error.main
-                          : isBelgiumFreeShipping
-                            ? theme.colors.success.main
-                            : "inherit",
+                          : "inherit",
                       }}
                     >
                       {isCountrySupported
-                        ? shippingEur === 0
-                          ? "Gratuite"
-                          : `${shippingEur!.toFixed(2)} €`
+                        ? `${shippingEur!.toFixed(2)} €`
                         : "--"}
                     </span>
                   </div>
