@@ -37,6 +37,8 @@ import OrderSuccessPage from "./pages/OrderSuccessPage";
 import { AdminAmbassadorsPage } from "./pages/admin/AdminAmbassadorsPage";
 import { AmbassadorDashboardPage } from "./pages/AmbassadorDashboardPage";
 import { FidelitePage } from "./pages/FidelitePage";
+import { AmbassadorsPage } from "./pages/AmbassadorsPage";
+import { AmbassadorPage } from "./pages/AmbassadorPage";
 
 import PublicLayout from "./layouts/PublicLayout";
 import { SiteParamsProvider } from "./contexts/SiteParamsContext";
@@ -66,6 +68,7 @@ function App() {
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/fidelity" element={<FidelitePage />} />
               <Route path="/order-success" element={<OrderSuccessPage />} />
+              <Route path="/ambassadors" element={<AmbassadorsPage />} />
             </Route>
 
             {/* Auth */}
@@ -74,6 +77,7 @@ function App() {
 
             <Route path="/account" element={<AccountPage />} />            
             <Route path="/ambassador" element={<AmbassadorDashboardPage />} />
+            <Route path="/ambassador/account" element={<AmbassadorPage />} />
 
             {/* ✅ Admin protected */}
             <Route

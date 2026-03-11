@@ -357,11 +357,18 @@ export function SignupPage() {
 
             <Button
               type="submit"
-              variant="primary"
-              size="large"
-              fullWidth
               disabled={loading}
-              style={{ marginBottom: theme.spacing.md }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                padding: theme.spacing.md,
+                backgroundColor: theme.colors.primary.main,
+                color: "#fff",
+                borderRadius: theme.borderRadius.md,
+                marginBottom: theme.spacing.lg,
+              }}
             >
               {loading ? (
                 "Création du compte..."

@@ -54,6 +54,7 @@ export function Header({}: HeaderProps) {
     { label: "Blog", to: "/blog" },
     { label: "FAQ", to: "/faqs" },
     { label: "Fidélité", to: "/fidelity" },
+    { label: "Ambassadeurs", to: "/ambassadors" },
     { label: "Contact", to: "/contact" },
   ];
 

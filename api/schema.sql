@@ -469,6 +469,10 @@ CREATE TABLE IF NOT EXISTS ambassadors (
   INDEX idx_amb_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+ALTER TABLE ambassadors
+MODIFY COLUMN commission_value DECIMAL(10,2) NOT NULL DEFAULT 5.00;
+
+
 -- =====================================================
 -- Orders: link to ambassador + store commission snapshot
 -- =====================================================

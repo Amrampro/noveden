@@ -3,7 +3,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { theme } from "../config/theme";
 import { Button } from "../components/Button";
-import HERO_IMG from "../assets/img/fidelity.jpg";
+import HERO_IMG from "../assets/img/fidelity2.jpg";
 
 export function FidelitePage() {
   const navigate = useNavigate();
@@ -34,53 +34,6 @@ export function FidelitePage() {
       </div>
 
       <div style={container()}>
-        {/* PROGRAMME AMBASSADEUR */}
-        <section style={{ paddingTop: theme.spacing["2xl"] }}>
-          <div style={sectionHeader()}>
-            <h2 style={{ ...theme.heading.h3, margin: 0 }}>
-              Programme Ambassadeur
-            </h2>
-            <p
-              style={{
-                ...theme.body.base,
-                marginTop: theme.spacing.sm,
-                color: theme.colors.text.secondary,
-              }}
-            >
-              Devenez ambassadeur et gagnez des commissions sur chaque parrainage.
-            </p>
-          </div>
-
-          <div style={card()}>
-            <ol
-              style={{
-                marginTop: theme.spacing.lg,
-                paddingLeft: 18,
-                color: theme.colors.text.primary,
-                lineHeight: 1.7,
-              }}
-            >
-              <li>Créez votre compte sur notre plateforme.</li>
-              <li>Rendez-vous dans <b>Mon compte</b>.</li>
-              <li>
-                Vous verrez l’option <b>Ambassadeur</b> pour activer votre compte
-                et obtenir votre code de parrainage.
-              </li>
-            </ol>
-
-            <div
-              style={{
-                marginTop: theme.spacing.xl,
-                display: "flex",
-                justifyContent: "center",
-              }}
-            >
-              <Button variant="primary" onClick={() => navigate("/account")}>
-                Accéder à mon compte
-              </Button>
-            </div>
-          </div>
-        </section>
 
         {/* IMAGE CENTRÉE */}
         <section style={{ padding: `${theme.spacing["2xl"]} 0` }}>
@@ -123,15 +76,15 @@ export function FidelitePage() {
 
           <div style={grid2()}>
             <DiscountCard
-              title="Après votre 1ère commande"
+              title="À votre 1ère commande"
               highlight="-10%"
-              desc="Bénéficiez de 10% de réduction sur votre prochaine commande."
+              desc="Bénéficiez de 10% de réduction sur votre première commande."
               icon="🎁"
             />
             <DiscountCard
-              title="À partir de votre 6ème commande"
-              highlight="15%"
-              desc="Obtenez 15% de réduction à compter de votre sixième commande."
+              title="À votre 6ème commande"
+              highlight="-15%"
+              desc="Obtenez 15% de réduction sur votre sixième commande."
               icon="🏷️"
             />
           </div>

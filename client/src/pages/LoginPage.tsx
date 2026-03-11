@@ -31,19 +31,27 @@ export function LoginPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: theme.colors.background.primary }}>
-
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: theme.colors.background.primary,
+      }}
+    >
       <section
         style={{
           backgroundColor: theme.colors.background.sage,
           padding: `${theme.spacing["3xl"]} ${theme.spacing.lg}`,
         }}
       >
-        <div style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center" }}>
+        <div
+          style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center" }}
+        >
           <h1 style={{ ...theme.heading.h1, marginBottom: theme.spacing.lg }}>
             Connexion
           </h1>
-          <p style={{ ...theme.body.large, color: theme.colors.text.secondary }}>
+          <p
+            style={{ ...theme.body.large, color: theme.colors.text.secondary }}
+          >
             Connectez-vous à votre compte pour passer votre commande
           </p>
         </div>
@@ -68,7 +76,9 @@ export function LoginPage() {
                   marginBottom: theme.spacing.lg,
                 }}
               >
-                <p style={{ ...theme.body.base, color: theme.colors.error.main }}>
+                <p
+                  style={{ ...theme.body.base, color: theme.colors.error.main }}
+                >
                   {error}
                 </p>
               </div>
@@ -158,11 +168,18 @@ export function LoginPage() {
 
             <Button
               type="submit"
-              variant="primary"
-              size="large"
-              fullWidth
               disabled={loading}
-              style={{ marginBottom: theme.spacing.md }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                padding: theme.spacing.md,
+                backgroundColor: theme.colors.primary.main,
+                color: "#fff",
+                borderRadius: theme.borderRadius.md,
+                marginBottom: theme.spacing.lg,
+              }}
             >
               {loading ? (
                 "Connexion en cours..."
@@ -191,7 +208,6 @@ export function LoginPage() {
           </form>
         </div>
       </section>
-
     </div>
   );
 }
