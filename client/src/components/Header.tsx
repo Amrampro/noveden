@@ -244,15 +244,6 @@ export function Header({}: HeaderProps) {
             >
               {user ? (
                 <>
-                  {/* {user.is_admin && (
-                <Link
-                  to="/admin"
-                  title="Admin"
-                  style={{ color: theme.colors.text.primary }}
-                >
-                  <Settings size={20} strokeWidth={1.5} />
-                </Link>
-              )} */}
                   <Link
                     to="/account"
                     title="Compte"
@@ -372,17 +363,17 @@ export function Header({}: HeaderProps) {
 
             {/* Mobile Auth Actions */}
             {user ? (
-              <li
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "1rem",
-                  alignItems: "center",
-                }}
-              >
-                {user.is_admin && (
+              <>
+                <li
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "1rem",
+                    alignItems: "center",
+                  }}
+                >
                   <button
-                    onClick={() => handleMobileNav("/admin")}
+                    onClick={() => handleMobileNav("/account")}
                     style={{
                       background: "none",
                       border: "none",
@@ -393,25 +384,25 @@ export function Header({}: HeaderProps) {
                       cursor: "pointer",
                     }}
                   >
-                    <Settings size={18} /> Admin
+                    <UserCheck size={18} /> Mon Compte
                   </button>
-                )}
-                <button
-                  onClick={handleSignOut}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    fontSize: "1rem",
-                    color: theme.colors.error || "red",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    cursor: "pointer",
-                  }}
-                >
-                  <LogOut size={18} /> Déconnexion
-                </button>
-              </li>
+                  <button
+                    onClick={handleSignOut}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      fontSize: "1rem",
+                      color: theme.colors.error || "red",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <LogOut size={18} /> Déconnexion
+                  </button>
+                </li>
+              </>
             ) : (
               <li>
                 <button
