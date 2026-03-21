@@ -25,26 +25,27 @@ const baseUrl = import.meta.env.VITE_BASE_URL;
 // --- CONSTANTES TARIFS ET PAYS ---
 // 1. Tarifs Mondial Relay
 const RATES_RELAY: Record<string, number> = {
-  BE: 3.86,
+  BE: 3.90,
   FR: 5.69,
-  NL: 4.32,
-  LU: 4.32,
-  DE: 8.62,
-  ES: 6.68,
-  IT: 6.68,
-  PL: 8.5,
-  PT: 7.5,
+  NL: 4.40,
+  LU: 4.45,
+  DE: 9.35,
+  ES: 6.97,
+  IT: 6.92,
+  PL: 9.23,
+  PT: 6.95,
+  AT: 12.12,
 };
 
 // 2. Tarifs Livraison à Domicile
 const RATES_HOME: Record<string, number> = {
-  BE: 11.64,
-  DE: 12.24,
-  FR: 11.88,
-  IT: 12.48,
-  LU: 11.88,
+  BE: 11.78,
+  DE: 12.40,
+  FR: 12.10,
+  IT: 12.70,
+  LU: 12.10,
   NL: 11.88,
-  AT: 15.48,
+  AT: 15.73,
 };
 
 // 3. Liste complète des pays

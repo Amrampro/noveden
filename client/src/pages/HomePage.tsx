@@ -11,7 +11,7 @@ import { productService, type ProductCategory } from "../services/productService
 import { blogService, type BlogPost } from "../services/blogService";
 import { PageBanner } from "../components/PageBanner";
 import { useSiteParams } from "../contexts/SiteParamsContext";
-import promoimg from "../assets/img/promofirst.jpg";
+import promoimg from "../assets/img/promoimage.jpg";
 
 export function HomePage() {
   const { addToCart } = useCart();
