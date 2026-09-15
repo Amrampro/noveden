@@ -82,7 +82,22 @@ export function AmbassadorsPage() {
                 Comment devenir ambassadeur
               </h2>
             </div>
-
+            <div
+              style={{
+                marginTop: theme.spacing.lg,
+                padding: theme.spacing.md,
+                borderRadius: theme.borderRadius.md,
+                backgroundColor: theme.colors.background.secondary,
+                border: `1px solid ${theme.colors.border.light}`,
+              }}
+            >
+              <ol style={{ ...theme.body.base, margin: 0, paddingLeft: theme.spacing.lg, lineHeight: 1.8 }}>
+                <li>Créez votre compte sur notre plateforme si vous n'en avez pas encore un.</li>
+                <li>Connectez-vous à votre compte.</li>
+                <li>Rendez-vous dans "Mon Compte".</li>
+                <li>Vous verrez l'option "Paramètres du compte ambassadeur". Cliquez dessus et remplissez les informations et le tour est joué !</li>
+              </ol>
+            </div>
             <div
               style={{
                 marginTop: theme.spacing.lg,

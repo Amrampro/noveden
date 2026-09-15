@@ -1,6 +1,7 @@
 // client/src/pages/ShopPage.tsx
 import { useEffect, useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { theme } from "../config/theme";
 import { Button } from "../components/Button";
 import { ProductCard } from "../components/ProductCard";
@@ -15,11 +16,14 @@ interface ShopPageProps {
 
 export function ShopPage({ onViewProduct }: ShopPageProps) {
   const { addToCart } = useCart();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<ProductCategory[]>([]);
-  const [selectedCategorySlug, setSelectedCategorySlug] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategorySlug, setSelectedCategorySlug] = useState<string>(
+    searchParams.get("category") || "all"
+  );
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingCategories, setLoadingCategories] = useState(true);
 
@@ -31,6 +35,13 @@ export function ShopPage({ onViewProduct }: ShopPageProps) {
     void fetchProducts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategorySlug]);
+
+  useEffect(() => {
+    const category = searchParams.get("category") || "all";
+    const search = searchParams.get("search") || "";
+    setSelectedCategorySlug(category);
+    setSearchQuery(search);
+  }, [searchParams]);
 
   const fetchCategories = async () => {
     setLoadingCategories(true);
@@ -98,6 +109,29 @@ export function ShopPage({ onViewProduct }: ShopPageProps) {
     return sorted;
   }, [categories]);
 
+  const selectCategory = (slug: string) => {
+    setSelectedCategorySlug(slug);
+    const next = new URLSearchParams(searchParams);
+    if (slug === "all") {
+      next.delete("category");
+    } else {
+      next.set("category", slug);
+    }
+    setSearchParams(next);
+  };
+
+  const updateSearch = (value: string) => {
+    setSearchQuery(value);
+    const next = new URLSearchParams(searchParams);
+    const trimmed = value.trim();
+    if (trimmed) {
+      next.set("search", trimmed);
+    } else {
+      next.delete("search");
+    }
+    setSearchParams(next);
+  };
+
   return (
     <div>
 
@@ -131,7 +165,7 @@ export function ShopPage({ onViewProduct }: ShopPageProps) {
             >
               <Button
                 variant={selectedCategorySlug === "all" ? "primary" : "outline"}
-                onClick={() => setSelectedCategorySlug("all")}
+                onClick={() => selectCategory("all")}
               >
                 Tous les produits
               </Button>
@@ -152,7 +186,7 @@ export function ShopPage({ onViewProduct }: ShopPageProps) {
                   <Button
                     key={c.id}
                     variant={selectedCategorySlug === c.slug ? "primary" : "outline"}
-                    onClick={() => setSelectedCategorySlug(c.slug)}
+                    onClick={() => selectCategory(c.slug)}
                   >
                     {c.name}
                   </Button>
@@ -175,7 +209,7 @@ export function ShopPage({ onViewProduct }: ShopPageProps) {
 
               {searchQuery && (
                 <button
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => updateSearch("")}
                   aria-label="Effacer la recherche"
                   style={{
                     position: "absolute",
@@ -196,7 +230,7 @@ export function ShopPage({ onViewProduct }: ShopPageProps) {
                 type="text"
                 placeholder="Rechercher (nom, description, ingrédients, catégorie)..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => updateSearch(e.target.value)}
                 style={{
                   width: "100%",
                   padding: `${theme.spacing.md} ${theme.spacing["3xl"]} ${theme.spacing.md} 3rem`,

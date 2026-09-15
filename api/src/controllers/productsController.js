@@ -180,6 +180,12 @@ export const createProduct = async (req, res) => {
       is_new = false,
       ingredients = null,
       usage = null,
+      suitability = null,
+      formula_benefits = null,
+      cure_duration = null,
+      usage_advice = null,
+      composition = null,
+      precautions = null,
       benefits = [],
       category_ids = [],
       images = [], // Gallery images array: [{ image_url: "..." }, ...]
@@ -206,9 +212,10 @@ export const createProduct = async (req, res) => {
       `
       INSERT INTO products
         (id, name, slug, description, short_description, price, compare_at_price, image_url,
-         stock_status, is_featured, is_new, ingredients, \`usage\`, benefits)
+         stock_status, is_featured, is_new, ingredients, \`usage\`, suitability,
+         formula_benefits, cure_duration, usage_advice, composition, precautions, benefits)
       VALUES
-        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         id,
@@ -224,6 +231,12 @@ export const createProduct = async (req, res) => {
         is_new ? 1 : 0,
         ingredients,
         usage,
+        suitability,
+        formula_benefits,
+        cure_duration,
+        usage_advice,
+        composition,
+        precautions,
         JSON.stringify(Array.isArray(benefits) ? benefits : []),
       ]
     );
@@ -309,6 +322,12 @@ export const updateProduct = async (req, res) => {
       is_new,
       ingredients,
       usage,
+      suitability,
+      formula_benefits,
+      cure_duration,
+      usage_advice,
+      composition,
+      precautions,
       benefits,
       category_ids,
       images, // Optional: replace gallery
@@ -388,6 +407,36 @@ export const updateProduct = async (req, res) => {
     if (usage !== undefined) {
       patch.push("`usage` = ?");
       params.push(usage);
+    }
+
+    if (suitability !== undefined) {
+      patch.push("suitability = ?");
+      params.push(suitability);
+    }
+
+    if (formula_benefits !== undefined) {
+      patch.push("formula_benefits = ?");
+      params.push(formula_benefits);
+    }
+
+    if (cure_duration !== undefined) {
+      patch.push("cure_duration = ?");
+      params.push(cure_duration);
+    }
+
+    if (usage_advice !== undefined) {
+      patch.push("usage_advice = ?");
+      params.push(usage_advice);
+    }
+
+    if (composition !== undefined) {
+      patch.push("composition = ?");
+      params.push(composition);
+    }
+
+    if (precautions !== undefined) {
+      patch.push("precautions = ?");
+      params.push(precautions);
     }
 
     if (benefits !== undefined) {

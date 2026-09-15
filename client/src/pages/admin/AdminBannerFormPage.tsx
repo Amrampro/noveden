@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { bannerService } from "../../services/bannerService";
 
-type BannerPageName = "shop" | "home" | "about" | "faqs" | "contact";
+type BannerPageName = "shop" | "home" | "about" | "faqs" | "contact" | "approach" | "consultation" | "events";
 
 type FormState = {
   page_name: BannerPageName;
@@ -42,7 +42,7 @@ export default function AdminBannerFormPage() {
   const [imageMeta, setImageMeta] = useState<{ name?: string; sizeKb?: number } | null>(null);
 
   const pageOptions = useMemo<BannerPageName[]>(
-    () => ["home", "shop", "about", "faqs", "contact"],
+    () => ["home", "shop", "approach", "about", "consultation", "events", "faqs", "contact"],
     []
   );
 

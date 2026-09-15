@@ -54,7 +54,7 @@ export function SignupPage() {
       return;
     }
 
-    navigate("/", { replace: true });
+    navigate("/account", { replace: true });
   };
 
   return (

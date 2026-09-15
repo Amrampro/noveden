@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { ArrowLeft, Clock, Calendar, Folder } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { theme } from "../config/theme";
 import { Button } from "../components/Button";
 import { blogService, BlogPost } from "../services/blogService";
 import DOMPurify from "dompurify";
+import { SITE_NAME, SITE_URL } from "../components/Seo";
 
 interface BlogDetailPageProps {
   slug: string;
@@ -177,6 +179,10 @@ export function BlogDetailPage({ slug }: BlogDetailPageProps) {
     });
   }, [post?.content]);
 
+  const plainExcerpt = String(post?.excerpt || "")
+    .replace(/<[^>]+>/g, "")
+    .trim();
+
   // ✅ LOADING
   if (loading) {
     return (
@@ -293,6 +299,49 @@ export function BlogDetailPage({ slug }: BlogDetailPageProps) {
         backgroundColor: theme.colors.background.primary,
       }}
     >
+      <Helmet>
+        <title>{`${post.title} | ${SITE_NAME}`}</title>
+        <meta
+          name="description"
+          content={
+            plainExcerpt ||
+            "Conseil H&H autour du cycle, des hormones, de la fertilité et du bien-être naturel."
+          }
+        />
+        <meta name="robots" content="index,follow,max-image-preview:large" />
+        <link rel="canonical" href={`${SITE_URL}/blog/${post.slug}`} />
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={`${post.title} | ${SITE_NAME}`} />
+        <meta
+          property="og:description"
+          content={
+            plainExcerpt ||
+            "Conseil H&H autour du cycle, des hormones et du bien-être naturel."
+          }
+        />
+        <meta property="og:url" content={`${SITE_URL}/blog/${post.slug}`} />
+        {post.image_url ? <meta property="og:image" content={post.image_url} /> : null}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: post.title,
+            description: plainExcerpt || post.title,
+            image: post.image_url ? [post.image_url] : undefined,
+            datePublished: post.published_at || post.created_at,
+            dateModified: post.updated_at || post.published_at || post.created_at,
+            author: {
+              "@type": "Organization",
+              name: SITE_NAME,
+            },
+            publisher: {
+              "@type": "Organization",
+              name: SITE_NAME,
+            },
+            mainEntityOfPage: `${SITE_URL}/blog/${post.slug}`,
+          })}
+        </script>
+      </Helmet>
       {/* HERO */}
       <section
         style={{

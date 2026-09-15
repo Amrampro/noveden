@@ -73,6 +73,29 @@ export const apiEndpoints = {
       `${API_BASE_URL}/admin/blog-categories/${encodeURIComponent(id)}`,
   },
 
+  events: {
+    list: `${API_BASE_URL}/events`,
+    bySlug: (slug: string) => `${API_BASE_URL}/events/slug/${encodeURIComponent(slug)}`,
+    admin: {
+      list: `${API_BASE_URL}/events/admin`,
+      create: `${API_BASE_URL}/events/admin`,
+      update: (id: string) => `${API_BASE_URL}/events/admin/${encodeURIComponent(id)}`,
+      delete: (id: string) => `${API_BASE_URL}/events/admin/${encodeURIComponent(id)}`,
+    },
+  },
+
+  appointments: {
+    services: `${API_BASE_URL}/appointments/services`,
+    slots: `${API_BASE_URL}/appointments/slots`,
+    book: `${API_BASE_URL}/appointments/book`,
+    admin: {
+      list: `${API_BASE_URL}/appointments/admin`,
+      services: `${API_BASE_URL}/appointments/admin/services`,
+      slots: `${API_BASE_URL}/appointments/admin/slots`,
+      slot: (id: string) => `${API_BASE_URL}/appointments/admin/slots/${encodeURIComponent(id)}`,
+    },
+  },
+
   coupons: {
     base: `${API_BASE_URL}/coupons`,
   },

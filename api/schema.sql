@@ -1,518 +1,404 @@
--- =====================================================
--- E-Commerce Database Schema for MySQL (FINAL – CLEAN)
--- =====================================================
--- Created: 2025-12-25
--- Database: ecommerce_db
--- =====================================================
+CREATE DATABASE IF NOT EXISTS hormone CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE hormone;
 
-CREATE DATABASE IF NOT EXISTS ecommerce_db
-CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE ecommerce_db;
-
--- =====================================================
--- USERS
--- =====================================================
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS appointments;
+DROP TABLE IF EXISTS appointment_slots;
+DROP TABLE IF EXISTS appointment_services;
+DROP TABLE IF EXISTS events;
+DROP TABLE IF EXISTS banners;
+DROP TABLE IF EXISTS parameters;
+DROP TABLE IF EXISTS faqs;
+DROP TABLE IF EXISTS order_payments;
+DROP TABLE IF EXISTS order_shipping;
+DROP TABLE IF EXISTS order_items;
+DROP TABLE IF EXISTS order_addresses;
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS coupon_usage;
+DROP TABLE IF EXISTS coupons;
+DROP TABLE IF EXISTS blog_post_category_pivot;
+DROP TABLE IF EXISTS blog_posts;
+DROP TABLE IF EXISTS blog_categories;
+DROP TABLE IF EXISTS product_reviews;
+DROP TABLE IF EXISTS product_images;
+DROP TABLE IF EXISTS product_category_pivot;
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS product_categories;
+DROP TABLE IF EXISTS user_addresses;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS ambassadors;
+SET FOREIGN_KEY_CHECKS = 1;
 
 CREATE TABLE users (
-    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    first_name VARCHAR(100) NOT NULL DEFAULT '',
-    last_name VARCHAR(100) NOT NULL DEFAULT '',
-    phone VARCHAR(20) DEFAULT '',
-    is_admin BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_email (email),
-    INDEX idx_is_admin (is_admin)
-) ENGINE=InnoDB;
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  email VARCHAR(190) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  first_name VARCHAR(100) NOT NULL,
+  last_name VARCHAR(100) NOT NULL,
+  phone VARCHAR(30) DEFAULT NULL,
+  is_admin TINYINT(1) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE user_addresses (
-    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    user_id VARCHAR(36) NOT NULL,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    phone VARCHAR(20) NOT NULL,
-    address_line1 VARCHAR(255) NOT NULL,
-    address_line2 VARCHAR(255) DEFAULT '',
-    town VARCHAR(100) NOT NULL,
-    postal_code VARCHAR(20) NOT NULL,
-    country VARCHAR(100) NOT NULL,
-    is_default BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_user_id (user_id)
-) ENGINE=InnoDB;
-
--- =====================================================
--- PRODUCT CATEGORIES
--- =====================================================
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  user_id VARCHAR(36) NOT NULL,
+  first_name VARCHAR(100) NOT NULL,
+  last_name VARCHAR(100) NOT NULL,
+  email VARCHAR(190) NOT NULL,
+  phone VARCHAR(30) DEFAULT NULL,
+  address_line1 VARCHAR(255) NOT NULL,
+  address_line2 VARCHAR(255) DEFAULT NULL,
+  town VARCHAR(120) NOT NULL,
+  postal_code VARCHAR(20) NOT NULL,
+  country VARCHAR(120) NOT NULL,
+  is_default TINYINT(1) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_user_addresses_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE product_categories (
-    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    parent_id VARCHAR(36) NULL,
-    name VARCHAR(150) NOT NULL,
-    slug VARCHAR(150) NOT NULL UNIQUE,
-    description TEXT,
-    image_url VARCHAR(500),
-    display_order INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (parent_id) REFERENCES product_categories(id) ON DELETE SET NULL,
-    INDEX idx_slug (slug)
-) ENGINE=InnoDB;
-
--- =====================================================
--- PRODUCTS
--- =====================================================
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  parent_id VARCHAR(36) DEFAULT NULL,
+  name VARCHAR(190) NOT NULL,
+  slug VARCHAR(190) NOT NULL UNIQUE,
+  description TEXT DEFAULT NULL,
+  image_url VARCHAR(1000) DEFAULT NULL,
+  display_order INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_product_categories_parent FOREIGN KEY (parent_id) REFERENCES product_categories(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE products (
-    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    name VARCHAR(255) NOT NULL,
-    slug VARCHAR(255) NOT NULL UNIQUE,
-    description TEXT,
-    short_description TEXT,
-    price DECIMAL(10,2) NOT NULL,
-    compare_at_price DECIMAL(10,2),
-    image_url VARCHAR(500),
-    stock_status ENUM('in_stock','limited','out_of_stock') DEFAULT 'in_stock',
-    is_featured BOOLEAN DEFAULT FALSE,
-    is_new BOOLEAN DEFAULT FALSE,
-    ingredients TEXT,
-    `usage` TEXT,
-    benefits JSON,
-    average_rating DECIMAL(3,2) DEFAULT 0.00,
-    review_count INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_slug (slug),
-    INDEX idx_stock (stock_status)
-) ENGINE=InnoDB;
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  name VARCHAR(190) NOT NULL,
+  slug VARCHAR(190) NOT NULL UNIQUE,
+  description TEXT DEFAULT NULL,
+  short_description VARCHAR(500) DEFAULT NULL,
+  price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  compare_at_price DECIMAL(10,2) DEFAULT NULL,
+  image_url VARCHAR(1000) DEFAULT NULL,
+  category_id VARCHAR(36) DEFAULT NULL,
+  stock_status ENUM('in_stock','limited','out_of_stock') NOT NULL DEFAULT 'in_stock',
+  is_featured TINYINT(1) NOT NULL DEFAULT 0,
+  is_new TINYINT(1) NOT NULL DEFAULT 0,
+  ingredients TEXT DEFAULT NULL,
+  `usage` TEXT DEFAULT NULL,
+  suitability TEXT DEFAULT NULL,
+  formula_benefits TEXT DEFAULT NULL,
+  cure_duration TEXT DEFAULT NULL,
+  usage_advice TEXT DEFAULT NULL,
+  composition TEXT DEFAULT NULL,
+  precautions TEXT DEFAULT NULL,
+  benefits JSON DEFAULT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_products_category FOREIGN KEY (category_id) REFERENCES product_categories(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE product_category_pivot (
-    product_id VARCHAR(36) NOT NULL,
-    category_id VARCHAR(36) NOT NULL,
-    PRIMARY KEY (product_id, category_id),
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-    FOREIGN KEY (category_id) REFERENCES product_categories(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+  product_id VARCHAR(36) NOT NULL,
+  category_id VARCHAR(36) NOT NULL,
+  PRIMARY KEY (product_id, category_id),
+  CONSTRAINT fk_product_category_pivot_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+  CONSTRAINT fk_product_category_pivot_category FOREIGN KEY (category_id) REFERENCES product_categories(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE product_images (
-    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    product_id VARCHAR(36) NOT NULL,
-    image_url VARCHAR(500) NOT NULL,
-    alt_text VARCHAR(255),
-    display_order INT DEFAULT 0,
-    is_primary BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  product_id VARCHAR(36) NOT NULL,
+  image_url VARCHAR(1000) NOT NULL,
+  alt_text VARCHAR(255) DEFAULT NULL,
+  display_order INT NOT NULL DEFAULT 0,
+  is_primary TINYINT(1) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_product_images_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE product_reviews (
-    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    product_id VARCHAR(36) NOT NULL,
-    customer_name VARCHAR(100) NOT NULL,
-    customer_email VARCHAR(255) NOT NULL,
-    rating INT CHECK (rating BETWEEN 1 AND 5),
-    title VARCHAR(200),
-    comment TEXT,
-    is_verified_purchase BOOLEAN DEFAULT FALSE,
-    helpful_count INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  product_id VARCHAR(36) NOT NULL,
+  customer_name VARCHAR(190) NOT NULL,
+  customer_email VARCHAR(190) NOT NULL,
+  rating TINYINT UNSIGNED NOT NULL,
+  title VARCHAR(190) DEFAULT NULL,
+  comment TEXT DEFAULT NULL,
+  is_verified_purchase TINYINT(1) NOT NULL DEFAULT 0,
+  helpful_count INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_product_reviews_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- =====================================================
--- ORDERS
--- =====================================================
+CREATE TABLE blog_categories (
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  parent_id VARCHAR(36) DEFAULT NULL,
+  name VARCHAR(190) NOT NULL,
+  slug VARCHAR(190) NOT NULL UNIQUE,
+  description TEXT DEFAULT NULL,
+  image_url VARCHAR(1000) DEFAULT NULL,
+  display_order INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_blog_categories_parent FOREIGN KEY (parent_id) REFERENCES blog_categories(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS orders (
-  id              VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-  user_id         BIGINT UNSIGNED NOT NULL,
-  status          ENUM('pending_payment','paid','processing','shipped','delivered','cancelled','refunded')
-                  NOT NULL DEFAULT 'pending_payment',
+CREATE TABLE blog_posts (
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  slug VARCHAR(190) NOT NULL UNIQUE,
+  excerpt VARCHAR(500) DEFAULT NULL,
+  content LONGTEXT DEFAULT NULL,
+  image_url VARCHAR(1000) DEFAULT NULL,
+  status ENUM('draft','published','archived') NOT NULL DEFAULT 'published',
+  published_at DATETIME DEFAULT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-  currency        VARCHAR(10) NOT NULL DEFAULT 'EUR',
+CREATE TABLE blog_post_category_pivot (
+  blog_post_id VARCHAR(36) NOT NULL,
+  category_id VARCHAR(36) NOT NULL,
+  PRIMARY KEY (blog_post_id, category_id),
+  CONSTRAINT fk_blog_post_category_pivot_post FOREIGN KEY (blog_post_id) REFERENCES blog_posts(id) ON DELETE CASCADE,
+  CONSTRAINT fk_blog_post_category_pivot_category FOREIGN KEY (category_id) REFERENCES blog_categories(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE coupons (
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  code VARCHAR(80) NOT NULL UNIQUE,
+  description VARCHAR(500) NOT NULL,
+  discount_type ENUM('percentage','fixed') NOT NULL,
+  discount_value DECIMAL(10,2) NOT NULL,
+  min_purchase_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  max_discount_amount DECIMAL(10,2) DEFAULT NULL,
+  valid_from DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  valid_until DATETIME DEFAULT NULL,
+  usage_limit_per_user INT NOT NULL DEFAULT 1,
+  total_usage_limit INT DEFAULT NULL,
+  current_usage_count INT NOT NULL DEFAULT 0,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  requires_first_order TINYINT(1) NOT NULL DEFAULT 0,
+  requires_min_orders INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE coupon_usage (
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  coupon_id VARCHAR(36) NOT NULL,
+  user_id VARCHAR(36) NOT NULL,
+  order_id VARCHAR(36) DEFAULT NULL,
+  used_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_coupon_usage_coupon FOREIGN KEY (coupon_id) REFERENCES coupons(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE ambassadors (
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  code VARCHAR(80) NOT NULL UNIQUE,
+  name VARCHAR(190) DEFAULT NULL,
+  email VARCHAR(190) DEFAULT NULL,
+  commission_type ENUM('percentage','fixed') NOT NULL DEFAULT 'percentage',
+  commission_value DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE orders (
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  order_number VARCHAR(80) DEFAULT NULL,
+  user_id VARCHAR(36) DEFAULT NULL,
+  status VARCHAR(50) NOT NULL DEFAULT 'pending_payment',
+  currency CHAR(3) NOT NULL DEFAULT 'EUR',
   subtotal_amount INT NOT NULL DEFAULT 0,
   discount_amount INT NOT NULL DEFAULT 0,
   shipping_amount INT NOT NULL DEFAULT 0,
-  total_amount    INT NOT NULL DEFAULT 0,
-
-  coupon_code     VARCHAR(50) NULL,
-
-  shipping_method ENUM('mondial_relay','home_delivery') NULL,
-  shipping_status ENUM('not_set','label_created','in_transit','delivered','returned') NOT NULL DEFAULT 'not_set',
-
-  shipping_tracking_number VARCHAR(80) NULL,
-  shipping_tracking_url    VARCHAR(255) NULL,
-
-  created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-  INDEX idx_orders_user (user_id),
-  INDEX idx_orders_status (status)
+  total_amount INT NOT NULL DEFAULT 0,
+  coupon_code VARCHAR(80) DEFAULT NULL,
+  ambassador_id VARCHAR(36) DEFAULT NULL,
+  ambassador_code VARCHAR(80) DEFAULT NULL,
+  ambassador_commission_amount INT NOT NULL DEFAULT 0,
+  ambassador_commission_currency CHAR(3) NOT NULL DEFAULT 'EUR',
+  shipping_method VARCHAR(80) DEFAULT NULL,
+  shipping_status VARCHAR(50) NOT NULL DEFAULT 'not_set',
+  shipping_tracking_number VARCHAR(190) DEFAULT NULL,
+  shipping_tracking_url VARCHAR(1000) DEFAULT NULL,
+  invoice_sent_at DATETIME DEFAULT NULL,
+  stripe_checkout_session_id VARCHAR(255) DEFAULT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-ALTER TABLE orders
-  ADD COLUMN invoice_sent_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at;
-
-
-CREATE TABLE IF NOT EXISTS order_items (
-  id          VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-  order_id    VARCHAR(36) NOT NULL,
-  product_id  VARCHAR(36) NOT NULL,
-
-  product_name VARCHAR(255) NOT NULL,
-  unit_price   INT NOT NULL,
-  quantity     INT NOT NULL DEFAULT 1,
-  line_total   INT NOT NULL,
-
-  created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-  INDEX idx_order_items_order (order_id),
-  INDEX idx_order_items_product (product_id),
-
-  CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS order_addresses (
-  id          VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-  order_id    VARCHAR(36) NOT NULL UNIQUE,
-
-  full_name   VARCHAR(191) NOT NULL,
-  email       VARCHAR(191) NOT NULL,
-  phone       VARCHAR(50)  NOT NULL,
-
-  country     VARCHAR(2)   NOT NULL,
-  city        VARCHAR(120) NOT NULL,
-  postal_code VARCHAR(30)  NOT NULL,
-  address1    VARCHAR(255) NOT NULL,
-  address2    VARCHAR(255) NULL,
-
-  created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
+CREATE TABLE order_addresses (
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  order_id VARCHAR(36) NOT NULL,
+  full_name VARCHAR(190) NOT NULL,
+  email VARCHAR(190) NOT NULL,
+  phone VARCHAR(30) DEFAULT NULL,
+  country VARCHAR(2) NOT NULL DEFAULT 'BE',
+  city VARCHAR(120) NOT NULL,
+  postal_code VARCHAR(20) NOT NULL,
+  address1 VARCHAR(255) NOT NULL,
+  address2 VARCHAR(255) DEFAULT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_order_addresses_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS order_payments (
-  id                  VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-  order_id            VARCHAR(36) NOT NULL,
-
-  provider            ENUM('stripe') NOT NULL DEFAULT 'stripe',
-  status              ENUM('requires_payment','processing','succeeded','failed','refunded') NOT NULL DEFAULT 'requires_payment',
-
-  stripe_payment_intent_id VARCHAR(100) NULL,
-  stripe_charge_id         VARCHAR(100) NULL,
-
-  amount              INT NOT NULL,
-  currency            VARCHAR(10) NOT NULL DEFAULT 'EUR',
-
-  created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-  UNIQUE KEY uniq_order_payment (order_id),
-  INDEX idx_payment_intent (stripe_payment_intent_id),
-
-  CONSTRAINT fk_order_payments_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+CREATE TABLE order_items (
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  order_id VARCHAR(36) NOT NULL,
+  product_id VARCHAR(36) DEFAULT NULL,
+  product_name VARCHAR(190) NOT NULL,
+  unit_price INT NOT NULL,
+  quantity INT NOT NULL,
+  line_total INT NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  CONSTRAINT fk_order_items_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-ALTER TABLE order_payments ADD COLUMN stripe_checkout_session_id VARCHAR(100) NULL;
-CREATE INDEX idx_checkout_session ON order_payments(stripe_checkout_session_id);
-
-
-CREATE TABLE IF NOT EXISTS order_shipping (
-  id              VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-  order_id        VARCHAR(36) NOT NULL UNIQUE,
-
-  provider        ENUM('mondial_relay') NOT NULL DEFAULT 'mondial_relay',
-  relay_point_id  VARCHAR(80) NULL,
-  relay_point_name VARCHAR(191) NULL,
-  relay_point_address TEXT NULL,
-
-  label_url       VARCHAR(255) NULL,
-  tracking_number VARCHAR(80) NULL,
-  tracking_url    VARCHAR(255) NULL,
-
-  created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
+CREATE TABLE order_shipping (
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  order_id VARCHAR(36) NOT NULL,
+  provider VARCHAR(80) DEFAULT NULL,
+  relay_point_id VARCHAR(190) DEFAULT NULL,
+  relay_point_name VARCHAR(190) DEFAULT NULL,
+  relay_point_address VARCHAR(500) DEFAULT NULL,
+  label_url VARCHAR(1000) DEFAULT NULL,
+  tracking_number VARCHAR(190) DEFAULT NULL,
+  tracking_url VARCHAR(1000) DEFAULT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_order_shipping_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
--- =====================================================
--- COUPONS
--- =====================================================
-
-CREATE TABLE coupons (
-    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    code VARCHAR(50) UNIQUE NOT NULL,
-    description TEXT NOT NULL,
-    discount_type ENUM('percentage','fixed') NOT NULL,
-    discount_value DECIMAL(10,2) NOT NULL,
-    min_purchase_amount DECIMAL(10,2) DEFAULT 0,
-    max_discount_amount DECIMAL(10,2),
-    valid_from TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    valid_until TIMESTAMP NULL,
-    usage_limit_per_user INT DEFAULT 1,
-    total_usage_limit INT,
-    current_usage_count INT DEFAULT 0,
-    is_active BOOLEAN DEFAULT TRUE,
-    requires_first_order BOOLEAN DEFAULT FALSE,
-    requires_min_orders INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE order_payments (
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  order_id VARCHAR(36) NOT NULL,
+  provider VARCHAR(80) NOT NULL,
+  status VARCHAR(80) NOT NULL,
+  stripe_payment_intent_id VARCHAR(255) DEFAULT NULL,
+  stripe_charge_id VARCHAR(255) DEFAULT NULL,
+  stripe_checkout_session_id VARCHAR(255) DEFAULT NULL,
+  amount INT NOT NULL,
+  currency CHAR(3) NOT NULL DEFAULT 'EUR',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_order_payments_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
-CREATE TABLE coupon_usage (
-    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    coupon_id VARCHAR(36),
-    user_id VARCHAR(36),
-    order_id VARCHAR(36),
-    discount_applied DECIMAL(10,2),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (coupon_id) REFERENCES coupons(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
-
-ALTER TABLE orders
-ADD CONSTRAINT fk_orders_coupon
-FOREIGN KEY (coupon_id) REFERENCES coupons(id) ON DELETE SET NULL;
-
--- =====================================================
--- BLOG CATEGORIES & POSTS (MANY TO MANY)
--- =====================================================
-
-CREATE TABLE blog_categories (
-    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    parent_id VARCHAR(36),
-    name VARCHAR(150) NOT NULL,
-    slug VARCHAR(150) NOT NULL UNIQUE,
-    description TEXT,
-    image_url VARCHAR(500),
-    display_order INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (parent_id) REFERENCES blog_categories(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
-
-CREATE TABLE blog_posts (
-    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    title VARCHAR(255) NOT NULL,
-    slug VARCHAR(255) NOT NULL UNIQUE,
-    excerpt TEXT,
-    content LONGTEXT NOT NULL,
-    image_url VARCHAR(500),
-    reading_time INT DEFAULT 5,
-    views INT DEFAULT 0,
-    published_at TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
-ALTER TABLE blog_posts
-  MODIFY COLUMN content MEDIUMTEXT NOT NULL;
-
-
-CREATE TABLE blog_post_category_pivot (
-    blog_post_id VARCHAR(36) NOT NULL,
-    category_id VARCHAR(36) NOT NULL,
-    PRIMARY KEY (blog_post_id, category_id),
-    FOREIGN KEY (blog_post_id) REFERENCES blog_posts(id) ON DELETE CASCADE,
-    FOREIGN KEY (category_id) REFERENCES blog_categories(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
-
--- =====================================================
--- FAQ
--- =====================================================
-
 CREATE TABLE faqs (
-    id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    question VARCHAR(500),
-    answer TEXT,
-    category VARCHAR(100),
-    display_order INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
-CREATE TABLE banners (
-    id              CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    page_name       ENUM('shop', 'home', 'about', 'faqs', 'contact') NOT NULL,
-        title           VARCHAR(255) NULL,
-    subtitle        TEXT NULL,
-    button          VARCHAR(100) NULL,               -- texte du bouton
-    link            VARCHAR(500) NULL,               -- URL du bouton
-    background_img  VARCHAR(500) NULL,               -- URL ou path image
-
-    is_active       TINYINT(1) NOT NULL DEFAULT 1,
-    display_order   INT NOT NULL DEFAULT 0,
-
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-    INDEX idx_page_name (page_name),
-    INDEX idx_active (is_active)
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  question VARCHAR(500) NOT NULL,
+  answer TEXT NOT NULL,
+  category VARCHAR(120) DEFAULT NULL,
+  display_order INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE parameters (
-    id                  CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-
-    promotional_text    TEXT NULL,
-
-    home_text           TEXT NULL,
-    story               TEXT NULL,
-    mission             TEXT NULL,
-    vision              TEXT NULL,
-    expertise           TEXT NULL,
-
-    name                VARCHAR(255) NULL,           -- nom entreprise
-    email               VARCHAR(191) NULL,
-    address             VARCHAR(255) NULL,
-    phone               VARCHAR(50) NULL,
-    enterprise_number   VARCHAR(100) NULL,
-
-    facebook_link       VARCHAR(255) NULL,
-    instagram_link      VARCHAR(255) NULL,
-    twitter_link        VARCHAR(255) NULL,
-    whatsapp_link       VARCHAR(255) NULL,
-
-    logo_navbar        VARCHAR(500) NULL,           -- URL ou path image
-    logo_footer        VARCHAR(500) NULL,           -- URL ou path image
-
-    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE legal_links (
-    id              CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    name            VARCHAR(255) NOT NULL,       -- ex: Mentions légales, CGV
-    file            VARCHAR(500) NOT NULL,       -- URL ou path fichier
-
-    display_order   INT NOT NULL DEFAULT 0,
-    is_active       TINYINT(1) NOT NULL DEFAULT 1,
-
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- api/database/schema.sql
-CREATE TABLE IF NOT EXISTS newsletter_subscribers (
-  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  email VARCHAR(191) NOT NULL,
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  promotional_text VARCHAR(500) DEFAULT NULL,
+  home_text TEXT DEFAULT NULL,
+  story TEXT DEFAULT NULL,
+  mission TEXT DEFAULT NULL,
+  vision TEXT DEFAULT NULL,
+  expertise TEXT DEFAULT NULL,
+  name VARCHAR(190) DEFAULT NULL,
+  email VARCHAR(190) DEFAULT NULL,
+  address VARCHAR(255) DEFAULT NULL,
+  phone VARCHAR(30) DEFAULT NULL,
+  enterprise_number VARCHAR(80) DEFAULT NULL,
+  facebook_link VARCHAR(1000) DEFAULT NULL,
+  instagram_link VARCHAR(1000) DEFAULT NULL,
+  twitter_link VARCHAR(1000) DEFAULT NULL,
+  whatsapp_link VARCHAR(1000) DEFAULT NULL,
+  logo_navbar VARCHAR(1000) DEFAULT NULL,
+  logo_footer VARCHAR(1000) DEFAULT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  UNIQUE KEY uq_newsletter_email (email)
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
--- =====================================================
--- TRIGGERS
--- =====================================================
-
-DELIMITER //
-CREATE TRIGGER update_product_rating
-AFTER INSERT ON product_reviews
-FOR EACH ROW
-BEGIN
-    UPDATE products
-    SET average_rating = (
-        SELECT AVG(rating) FROM product_reviews WHERE product_id = NEW.product_id
-    ),
-    review_count = (
-        SELECT COUNT(*) FROM product_reviews WHERE product_id = NEW.product_id
-    )
-    WHERE id = NEW.product_id;
-END//
-DELIMITER ;
-
-DELIMITER //
-CREATE TRIGGER generate_order_number
-BEFORE INSERT ON orders
-FOR EACH ROW
-BEGIN
-    DECLARE counter INT;
-    DECLARE date_part VARCHAR(8);
-
-    SET date_part = DATE_FORMAT(CURDATE(), '%Y%m%d');
-
-    SELECT COUNT(*) + 1 INTO counter
-    FROM orders
-    WHERE order_number LIKE CONCAT('ORD-', date_part, '-%');
-
-    SET NEW.order_number = CONCAT('ORD-', date_part, '-', LPAD(counter, 5, '0'));
-END//
-DELIMITER ;
-
--- =====================================================
--- AMBASSADORS
--- =====================================================
-
-CREATE TABLE IF NOT EXISTS ambassadors (
-  id               CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-  user_id          CHAR(36) NOT NULL,
-  code             VARCHAR(50) NOT NULL UNIQUE,
-  commission_type  ENUM('percentage','fixed') NOT NULL DEFAULT 'percentage',
-  commission_value DECIMAL(10,2) NOT NULL DEFAULT 10.00, -- ex: 10% si percentage
-  iban             VARCHAR(64) NULL,
-  bank_account_name VARCHAR(191) NULL,
-  is_active        TINYINT(1) NOT NULL DEFAULT 1,
-  created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-  CONSTRAINT fk_ambassadors_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  INDEX idx_amb_code (code),
-  INDEX idx_amb_user (user_id)
+CREATE TABLE banners (
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  page_name VARCHAR(120) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  subtitle VARCHAR(500) DEFAULT NULL,
+  button VARCHAR(120) DEFAULT NULL,
+  link VARCHAR(500) DEFAULT NULL,
+  background_img VARCHAR(1000) DEFAULT NULL,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  display_order INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-ALTER TABLE ambassadors
-MODIFY COLUMN commission_value DECIMAL(10,2) NOT NULL DEFAULT 5.00;
-
-
--- =====================================================
--- Orders: link to ambassador + store commission snapshot
--- =====================================================
-
-ALTER TABLE orders
-  ADD COLUMN ambassador_id CHAR(36) NULL AFTER coupon_code,
-  ADD COLUMN ambassador_code VARCHAR(50) NULL AFTER ambassador_id,
-  ADD COLUMN ambassador_commission_amount INT NOT NULL DEFAULT 0 AFTER ambassador_code,
-  ADD COLUMN ambassador_commission_currency VARCHAR(10) NOT NULL DEFAULT 'EUR' AFTER ambassador_commission_amount;
-
-ALTER TABLE orders
-  ADD CONSTRAINT fk_orders_ambassador
-  FOREIGN KEY (ambassador_id) REFERENCES ambassadors(id) ON DELETE SET NULL;
-
-CREATE INDEX idx_orders_ambassador ON orders(ambassador_id);
-CREATE INDEX idx_orders_ambassador_code ON orders(ambassador_code);
-
--- =====================================================
--- Ambassador payouts (admin -> ambassador payments)
--- =====================================================
-
-CREATE TABLE IF NOT EXISTS ambassador_payouts (
-  id            CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-  ambassador_id CHAR(36) NOT NULL,
-  amount        INT NOT NULL, -- cents
-  currency      VARCHAR(10) NOT NULL DEFAULT 'EUR',
-  paid_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-  created_by_admin_id CHAR(36) NULL, -- users.id admin (optionnel)
-  note          VARCHAR(500) NULL,
-
-  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-  CONSTRAINT fk_payouts_ambassador FOREIGN KEY (ambassador_id) REFERENCES ambassadors(id) ON DELETE CASCADE,
-  CONSTRAINT fk_payouts_admin FOREIGN KEY (created_by_admin_id) REFERENCES users(id) ON DELETE SET NULL,
-
-  INDEX idx_payouts_amb (ambassador_id),
-  INDEX idx_payouts_paid_at (paid_at)
+CREATE TABLE events (
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  slug VARCHAR(190) NOT NULL UNIQUE,
+  short_description VARCHAR(500) DEFAULT NULL,
+  description LONGTEXT DEFAULT NULL,
+  cover_image_url VARCHAR(1000) DEFAULT NULL,
+  event_type ENUM('physical','online','hybrid') NOT NULL DEFAULT 'physical',
+  location_name VARCHAR(190) DEFAULT NULL,
+  city VARCHAR(120) DEFAULT NULL,
+  online_url VARCHAR(1000) DEFAULT NULL,
+  starts_at DATETIME NOT NULL,
+  ends_at DATETIME DEFAULT NULL,
+  capacity INT DEFAULT NULL,
+  price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  currency CHAR(3) NOT NULL DEFAULT 'EUR',
+  status ENUM('draft','published','archived') NOT NULL DEFAULT 'draft',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- =====================================================
--- END
--- =====================================================
+CREATE TABLE appointment_services (
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  name VARCHAR(190) NOT NULL,
+  slug VARCHAR(190) NOT NULL UNIQUE,
+  short_description VARCHAR(500) DEFAULT NULL,
+  description TEXT DEFAULT NULL,
+  duration_minutes INT NOT NULL DEFAULT 60,
+  price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  meeting_type ENUM('online','physical','phone','hybrid') NOT NULL DEFAULT 'online',
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  display_order INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE appointment_slots (
+  id VARCHAR(36) NOT NULL PRIMARY KEY,
+  service_id VARCHAR(36) NOT NULL,
+  available_date DATE NOT NULL,
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  status ENUM('available','booked','blocked') NOT NULL DEFAULT 'available',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_appointment_slots_service FOREIGN KEY (service_id) REFERENCES appointment_services(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE appointments (
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  appointment_number VARCHAR(80) NOT NULL UNIQUE,
+  service_id VARCHAR(36) NOT NULL,
+  slot_id VARCHAR(36) NOT NULL,
+  first_name VARCHAR(100) NOT NULL,
+  last_name VARCHAR(100) NOT NULL,
+  email VARCHAR(190) NOT NULL,
+  phone VARCHAR(30) DEFAULT NULL,
+  message TEXT DEFAULT NULL,
+  status ENUM('confirmed','cancelled_by_client','cancelled_by_admin','completed','no_show') NOT NULL DEFAULT 'confirmed',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_appointments_service FOREIGN KEY (service_id) REFERENCES appointment_services(id) ON DELETE CASCADE,
+  CONSTRAINT fk_appointments_slot FOREIGN KEY (slot_id) REFERENCES appointment_slots(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -1,7 +1,21 @@
 // client/src/pages/ProductDetailPage.tsx
 import { useEffect, useMemo, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Star, ShoppingCart, Check, ThumbsUp } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  CalendarDays,
+  Check,
+  ChevronRight,
+  HelpCircle,
+  Leaf,
+  PlusCircle,
+  ShoppingCart,
+  Star,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 
 import { theme } from "../config/theme";
 import { Button } from "../components/Button";
@@ -14,8 +28,15 @@ import {
   type ProductImage,
   type ProductReview,
 } from "../services/productService";
+import { SITE_NAME, SITE_URL } from "../components/Seo";
 
 type RouteParams = { slug?: string };
+type ProductInfoSection = {
+  id: string;
+  title: string;
+  content: string;
+  Icon: LucideIcon;
+};
 
 export default function ProductDetailPage() {
   const navigate = useNavigate();
@@ -38,6 +59,8 @@ export default function ProductDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [addedToCart, setAddedToCart] = useState(false);
+  const [activeProductInfo, setActiveProductInfo] =
+    useState<ProductInfoSection | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -225,8 +248,105 @@ export default function ProductDetailPage() {
         ]
       : [];
 
+  const productInfoSections: ProductInfoSection[] = [
+    {
+      id: "suitability",
+      title: "Est-ce fait pour vous ?",
+      content: product.suitability || "",
+      Icon: Check,
+    },
+    {
+      id: "formula_benefits",
+      title: "Ce que cette formule peut vous apporter",
+      content:
+        product.formula_benefits ||
+        (Array.isArray(product.benefits) ? product.benefits.join("\n") : ""),
+      Icon: PlusCircle,
+    },
+    {
+      id: "cure_duration",
+      title: "Durée de la cure",
+      content: product.cure_duration || "",
+      Icon: CalendarDays,
+    },
+    {
+      id: "usage_advice",
+      title: "Conseils d'utilisation",
+      content: product.usage_advice || product.usage || "",
+      Icon: HelpCircle,
+    },
+    {
+      id: "composition",
+      title: "Composition",
+      content: product.composition || product.ingredients || "",
+      Icon: Leaf,
+    },
+    {
+      id: "precautions",
+      title: "Précautions d'emploi",
+      content: product.precautions || "",
+      Icon: AlertTriangle,
+    },
+  ].filter((section) => section.content.trim().length > 0);
+
   return (
     <div>
+      <Helmet>
+        <title>{`${product.name} | ${SITE_NAME}`}</title>
+        <meta
+          name="description"
+          content={
+            product.short_description ||
+            product.description ||
+            `Découvrez ${product.name}, un produit H&H pour accompagner naturellement votre équilibre.`
+          }
+        />
+        <meta name="robots" content="index,follow,max-image-preview:large" />
+        <link rel="canonical" href={`${SITE_URL}/products/${product.slug}`} />
+        <meta property="og:type" content="product" />
+        <meta property="og:title" content={`${product.name} | ${SITE_NAME}`} />
+        <meta
+          property="og:description"
+          content={
+            product.short_description ||
+            product.description ||
+            `Découvrez ${product.name} sur Hormones & Harmonie.`
+          }
+        />
+        <meta property="og:url" content={`${SITE_URL}/products/${product.slug}`} />
+        {product.image_url ? <meta property="og:image" content={product.image_url} /> : null}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: product.name,
+            description: product.short_description || product.description || product.name,
+            image: product.image_url ? [product.image_url] : undefined,
+            brand: {
+              "@type": "Brand",
+              name: SITE_NAME,
+            },
+            offers: {
+              "@type": "Offer",
+              priceCurrency: "EUR",
+              price: Number(product.price).toFixed(2),
+              availability:
+                product.stock_status === "out_of_stock"
+                  ? "https://schema.org/OutOfStock"
+                  : "https://schema.org/InStock",
+              url: `${SITE_URL}/products/${product.slug}`,
+            },
+            aggregateRating:
+              reviewCount > 0
+                ? {
+                    "@type": "AggregateRating",
+                    ratingValue: averageRating.toFixed(1),
+                    reviewCount,
+                  }
+                : undefined,
+          })}
+        </script>
+      </Helmet>
       <section
         style={{
           backgroundColor: theme.colors.background.primary,
@@ -483,66 +603,55 @@ export default function ProductDetailPage() {
                     </ul>
                   </div>
                 )}
+
+              {productInfoSections.length > 0 && (
+                <div
+                  style={{
+                    marginTop: theme.spacing.xl,
+                    borderTop: `1px solid ${theme.colors.border.light}`,
+                  }}
+                >
+                  {productInfoSections.map(({ id, title, Icon, ...section }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() =>
+                        setActiveProductInfo({ id, title, Icon, content: section.content })
+                      }
+                      style={{
+                        width: "100%",
+                        minHeight: 58,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: theme.spacing.md,
+                        border: "none",
+                        borderBottom: `1px solid ${theme.colors.border.light}`,
+                        background: "transparent",
+                        cursor: "pointer",
+                        padding: `${theme.spacing.md} 0`,
+                        textAlign: "left",
+                        color: theme.colors.text.primary,
+                        fontFamily: theme.typography.fontFamily.body,
+                        fontSize: theme.typography.fontSize.base,
+                      }}
+                    >
+                      <Icon
+                        size={24}
+                        color={theme.colors.primary.main}
+                        style={{ flexShrink: 0 }}
+                      />
+                      <span style={{ flex: 1 }}>{title}</span>
+                      <ChevronRight
+                        size={20}
+                        color={theme.colors.text.light}
+                        style={{ flexShrink: 0 }}
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-
-          {product.ingredients && (
-            <div
-              style={{
-                backgroundColor: theme.colors.background.sage,
-                padding: theme.spacing.xl,
-                borderRadius: theme.borderRadius.lg,
-                border: `1px solid ${theme.colors.border.light}`,
-                marginBottom: theme.spacing.xl,
-              }}
-            >
-              <h3
-                style={{ ...theme.heading.h4, marginBottom: theme.spacing.md }}
-              >
-                Ingrédients
-              </h3>
-              <p
-                style={{
-                  fontFamily: theme.typography.fontFamily.body,
-                  fontSize: theme.typography.fontSize.base,
-                  color: theme.colors.text.secondary,
-                  lineHeight: theme.typography.lineHeight.body,
-                  margin: 0,
-                }}
-              >
-                {product.ingredients}
-              </p>
-            </div>
-          )}
-
-          {product.usage && (
-            <div
-              style={{
-                backgroundColor: theme.colors.background.sage,
-                padding: theme.spacing.xl,
-                borderRadius: theme.borderRadius.lg,
-                border: `1px solid ${theme.colors.border.light}`,
-                marginBottom: theme.spacing["3xl"],
-              }}
-            >
-              <h3
-                style={{ ...theme.heading.h4, marginBottom: theme.spacing.md }}
-              >
-                Mode d&apos;emploi
-              </h3>
-              <p
-                style={{
-                  fontFamily: theme.typography.fontFamily.body,
-                  fontSize: theme.typography.fontSize.base,
-                  color: theme.colors.text.secondary,
-                  lineHeight: theme.typography.lineHeight.body,
-                  margin: 0,
-                }}
-              >
-                {product.usage}
-              </p>
-            </div>
-          )}
 
           {/* REVIEWS */}
           <div id="reviews">
@@ -986,6 +1095,86 @@ export default function ProductDetailPage() {
           </div>
         </div>
       </section>
+
+      {activeProductInfo && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={activeProductInfo.title}
+          onClick={() => setActiveProductInfo(null)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            backgroundColor: "rgba(0, 0, 0, 0.45)",
+            display: "flex",
+            justifyContent: "flex-end",
+          }}
+        >
+          <aside
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "min(100%, 460px)",
+              height: "100%",
+              backgroundColor: theme.colors.background.primary,
+              boxShadow: "-16px 0 40px rgba(0, 0, 0, 0.18)",
+              overflowY: "auto",
+            }}
+          >
+            <div
+              style={{
+                minHeight: 72,
+                display: "flex",
+                alignItems: "center",
+                borderBottom: `1px solid ${theme.colors.border.light}`,
+                padding: `0 ${theme.spacing.xl}`,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setActiveProductInfo(null)}
+                aria-label="Fermer"
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: "50%",
+                  border: `1px solid ${theme.colors.text.primary}`,
+                  background: "transparent",
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: theme.colors.text.primary,
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div style={{ padding: theme.spacing.xl }}>
+              <h2
+                style={{
+                  ...theme.heading.h2,
+                  fontSize: theme.typography.fontSize["2xl"],
+                  marginBottom: theme.spacing.md,
+                }}
+              >
+                {activeProductInfo.title}
+              </h2>
+              <div
+                style={{
+                  fontFamily: theme.typography.fontFamily.body,
+                  fontSize: theme.typography.fontSize.base,
+                  lineHeight: 1.55,
+                  color: theme.colors.text.primary,
+                  whiteSpace: "pre-line",
+                }}
+              >
+                {activeProductInfo.content}
+              </div>
+            </div>
+          </aside>
+        </div>
+      )}
     </div>
   );
 }

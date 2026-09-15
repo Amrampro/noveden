@@ -32,6 +32,12 @@ type FormState = {
   is_new: boolean;
   ingredients: string;
   usage: string;
+  suitability: string;
+  formula_benefits: string;
+  cure_duration: string;
+  usage_advice: string;
+  composition: string;
+  precautions: string;
   benefitsText: string;
   category_ids: string[];
 };
@@ -50,6 +56,12 @@ const emptyForm = (): FormState => ({
   is_new: false,
   ingredients: "",
   usage: "",
+  suitability: "",
+  formula_benefits: "",
+  cure_duration: "",
+  usage_advice: "",
+  composition: "",
+  precautions: "",
   benefitsText: "",
   category_ids: [],
 });
@@ -143,6 +155,12 @@ export default function AdminProductFormPage() {
             is_new: Boolean((product as any).is_new),
             ingredients: (product as any).ingredients ?? "",
             usage: (product as any).usage ?? "",
+            suitability: (product as any).suitability ?? "",
+            formula_benefits: (product as any).formula_benefits ?? "",
+            cure_duration: (product as any).cure_duration ?? "",
+            usage_advice: (product as any).usage_advice ?? "",
+            composition: (product as any).composition ?? "",
+            precautions: (product as any).precautions ?? "",
             benefitsText: benefitsToText((product as any).benefits),
             category_ids: catIds,
           });
@@ -205,6 +223,12 @@ export default function AdminProductFormPage() {
         is_new: form.is_new,
         ingredients: form.ingredients.trim() || null,
         usage: form.usage.trim() || null,
+        suitability: form.suitability.trim() || null,
+        formula_benefits: form.formula_benefits.trim() || null,
+        cure_duration: form.cure_duration.trim() || null,
+        usage_advice: form.usage_advice.trim() || null,
+        composition: form.composition.trim() || null,
+        precautions: form.precautions.trim() || null,
         benefits: benefitsFromText(form.benefitsText),
         category_ids: form.category_ids,
       };
@@ -438,6 +462,60 @@ export default function AdminProductFormPage() {
                      onChange={(e) => setForm({...form, benefitsText: e.target.value})}
                      placeholder={"Hydrate la peau\nRéduit les rides\n..."}
                      className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-indigo-500 outline-none text-sm h-32 font-mono"
+                   />
+                </div>
+             </div>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-5">
+             <h3 className="text-lg font-semibold text-slate-800">Sections de la fiche produit</h3>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                   <label className="block text-sm font-medium text-slate-700 mb-1">Est-ce fait pour vous ?</label>
+                   <textarea
+                     value={form.suitability}
+                     onChange={(e) => setForm({...form, suitability: e.target.value})}
+                     className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-indigo-500 outline-none text-sm h-36"
+                   />
+                </div>
+                <div>
+                   <label className="block text-sm font-medium text-slate-700 mb-1">Ce que cette formule peut vous apporter</label>
+                   <textarea
+                     value={form.formula_benefits}
+                     onChange={(e) => setForm({...form, formula_benefits: e.target.value})}
+                     className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-indigo-500 outline-none text-sm h-36"
+                   />
+                </div>
+                <div>
+                   <label className="block text-sm font-medium text-slate-700 mb-1">Durée de la cure</label>
+                   <textarea
+                     value={form.cure_duration}
+                     onChange={(e) => setForm({...form, cure_duration: e.target.value})}
+                     className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-indigo-500 outline-none text-sm h-32"
+                   />
+                </div>
+                <div>
+                   <label className="block text-sm font-medium text-slate-700 mb-1">Conseils d'utilisation</label>
+                   <textarea
+                     value={form.usage_advice}
+                     onChange={(e) => setForm({...form, usage_advice: e.target.value})}
+                     className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-indigo-500 outline-none text-sm h-32"
+                   />
+                </div>
+                <div>
+                   <label className="block text-sm font-medium text-slate-700 mb-1">Composition</label>
+                   <textarea
+                     value={form.composition}
+                     onChange={(e) => setForm({...form, composition: e.target.value})}
+                     className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-indigo-500 outline-none text-sm h-36"
+                   />
+                </div>
+                <div>
+                   <label className="block text-sm font-medium text-slate-700 mb-1">Précautions d'emploi</label>
+                   <textarea
+                     value={form.precautions}
+                     onChange={(e) => setForm({...form, precautions: e.target.value})}
+                     className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-indigo-500 outline-none text-sm h-36"
                    />
                 </div>
              </div>

@@ -1,7 +1,7 @@
 // client/src/pages/HomePage.tsx
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Truck, Award, Leaf, ShieldCheck, ArrowRight, Tag, X } from "lucide-react";
+import { Truck, Award, Leaf, ShieldCheck, ArrowRight, Tag, X, CalendarDays, HeartPulse, Sprout, Pill, Heart } from "lucide-react";
 import { theme } from "../config/theme";
 import { Button } from "../components/Button";
 import { ProductCard } from "../components/ProductCard";
@@ -11,7 +11,7 @@ import { productService, type ProductCategory } from "../services/productService
 import { blogService, type BlogPost } from "../services/blogService";
 import { PageBanner } from "../components/PageBanner";
 import { useSiteParams } from "../contexts/SiteParamsContext";
-import promoimg from "../assets/img/promoimage.jpg";
+import promoimg from "../assets/img/hh-promo.jpeg";
 
 export function HomePage() {
   const { addToCart } = useCart();
@@ -127,24 +127,24 @@ export function HomePage() {
     () => [
       {
         icon: Leaf,
-        title: "Nature & pureté",
+        title: "100% naturel",
         description:
-          "Des formules inspirées du meilleur de la nature, pensées pour une routine simple et efficace.",
+          "Des solutions douces, pensées sans arômes artificiels et en cohérence avec le corps.",
       },
       {
         icon: ShieldCheck,
-        title: "Tolérance",
-        description: "Des actifs sélectionnés pour leur douceur et leur efficacité au quotidien.",
+        title: "Sélectionné avec soin",
+        description: "Chaque plante, bourgeon ou nutriment est choisi pour répondre à un besoin précis.",
       },
       {
         icon: Truck,
-        title: "Livraison offerte",
-        description: "Livraison gratuite en Belgique dès 65€ d’achat.",
+        title: "Livraison suivie",
+        description: "Une boutique claire avec paiement, panier et suivi des commandes.",
       },
       {
         icon: Award,
-        title: "Qualité premium",
-        description: "Laboratoire Français & Belge, exigences élevées, résultats visibles.",
+        title: "Accompagnement global",
+        description: "Produits, conseils, événements et rendez-vous pour une démarche personnalisée.",
       },
     ],
     []
@@ -159,19 +159,196 @@ export function HomePage() {
     return copy.slice(0, 8);
   }, [categories]);
 
+  const packPillars = useMemo(
+    () => [
+      {
+        icon: Sprout,
+        title: "1. Phytothérapie",
+        color: theme.colors.primary.main,
+        text: "Nous utilisons les bienfaits des plantes médicinales, notamment à travers nos tisanes H&H, sélectionnées et formulées selon des besoins spécifiques.",
+      },
+      {
+        icon: Leaf,
+        title: "2. Gemmothérapie",
+        color: theme.colors.secondary.main,
+        text: "Elle utilise les macérats de bourgeons et de jeunes pousses, concentrés en actifs naturels, pour soutenir l'équilibre de façon douce.",
+      },
+      {
+        icon: Pill,
+        title: "3. Nutrithérapie",
+        color: theme.colors.accent.main,
+        text: "Elle repose sur une sélection ciblée de vitamines, minéraux, acides gras, antioxydants et autres nutriments pour soutenir l'équilibre au quotidien.",
+      },
+    ],
+    []
+  );
+
   return (
     <div style={{ position: "relative" }}>
       <PageBanner />
 
+      <section
+        className="home-pack-composition"
+        style={{
+          backgroundColor: theme.colors.background.primary,
+          marginTop: "-2px",
+          padding: `${theme.spacing.xl} ${theme.spacing.lg} ${theme.spacing["3xl"]}`,
+          position: "relative",
+          overflow: "visible",
+        }}
+      >
+        <div className="home-banner-wave" aria-hidden="true">
+          <svg viewBox="0 0 1440 88" preserveAspectRatio="none">
+            <path d="M0 42 L80 18 L160 42 L240 18 L320 42 L400 18 L480 42 L560 18 L640 42 L720 18 L800 42 L880 18 L960 42 L1040 18 L1120 42 L1200 18 L1280 42 L1360 18 L1440 42 L1440 88 L0 88 Z" />
+            <polyline points="0,42 80,18 160,42 240,18 320,42 400,18 480,42 560,18 640,42 720,18 800,42 880,18 960,42 1040,18 1120,42 1200,18 1280,42 1360,18 1440,42" />
+          </svg>
+        </div>
+
+        <div
+          style={{
+            maxWidth: theme.container.maxWidth,
+            margin: "0 auto",
+            position: "relative",
+            zIndex: 1,
+            textAlign: "center",
+            paddingTop: theme.spacing["2xl"],
+          }}
+        >
+          <h2
+            style={{
+              ...theme.heading.h3,
+              color: theme.colors.accent.main,
+              textTransform: "uppercase",
+              marginBottom: theme.spacing.sm,
+            }}
+          >
+            Comment sont composés nos packs ?
+          </h2>
+          <p
+            style={{
+              fontFamily: theme.typography.fontFamily.body,
+              color: theme.colors.text.secondary,
+              margin: `0 auto ${theme.spacing["2xl"]}`,
+              maxWidth: 920,
+              lineHeight: theme.typography.lineHeight.body,
+            }}
+          >
+            Nos packs associent trois approches complémentaires pour agir en profondeur et soutenir votre équilibre hormonal naturellement.
+          </p>
+
+          <div
+            className="pack-pillars-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+              gap: theme.spacing.xl,
+              marginBottom: theme.spacing.xl,
+            }}
+          >
+            {packPillars.map((pillar) => (
+              <article
+                key={pillar.title}
+                style={{
+                  backgroundColor: theme.colors.background.secondary,
+                  border: `1px solid ${theme.colors.border.light}`,
+                  borderRadius: theme.borderRadius.lg,
+                  padding: theme.spacing.xl,
+                  minHeight: 250,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textAlign: "center",
+                }}
+              >
+                <div
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: "50%",
+                    border: `1px solid ${pillar.color}`,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: theme.spacing.md,
+                  }}
+                >
+                  <pillar.icon size={30} color={pillar.color} strokeWidth={1.5} />
+                </div>
+                <h3
+                  style={{
+                    ...theme.heading.h5,
+                    color: pillar.color,
+                    textTransform: "uppercase",
+                    marginBottom: theme.spacing.md,
+                  }}
+                >
+                  {pillar.title}
+                </h3>
+                <p
+                  style={{
+                    fontFamily: theme.typography.fontFamily.body,
+                    fontSize: theme.typography.fontSize.sm,
+                    color: theme.colors.text.secondary,
+                    lineHeight: theme.typography.lineHeight.body,
+                    margin: 0,
+                  }}
+                >
+                  {pillar.text}
+                </p>
+              </article>
+            ))}
+          </div>
+
+          <div
+            style={{
+              maxWidth: 820,
+              margin: "0 auto",
+              backgroundColor: theme.colors.primary[100],
+              borderRadius: theme.borderRadius.full,
+              padding: `${theme.spacing.md} ${theme.spacing.xl}`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: theme.spacing.md,
+              color: theme.colors.text.secondary,
+              fontFamily: theme.typography.fontFamily.body,
+              lineHeight: 1.45,
+            }}
+          >
+            <span
+              style={{
+                width: 42,
+                height: 42,
+                borderRadius: "50%",
+                backgroundColor: theme.colors.primary.main,
+                color: theme.colors.text.inverse,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <Heart size={22} />
+            </span>
+            <span>
+              <strong>Notre objectif :</strong> associer ces différentes approches de façon cohérente et personnalisée pour vous offrir un accompagnement complet, doux et durable.
+            </span>
+          </div>
+        </div>
+      </section>
+
       {/* BRAND STORY */}
       <section
         style={{
-          backgroundColor: theme.colors.background.sage,
+          backgroundColor: theme.colors.background.primary,
           padding: `${theme.spacing["2xl"]} ${theme.spacing.lg}`,
         }}
       >
         <div style={{ maxWidth: theme.container.maxWidth, margin: "0 auto", textAlign: "center" }}>
-          <h2 style={{ ...theme.heading.h2, marginBottom: theme.spacing.lg }}>Mère Nature</h2>
+          <h2 style={{ ...theme.heading.h2, marginBottom: theme.spacing.lg, color: theme.colors.primary.main }}>
+            Hormones & Harmonie
+          </h2>
           <p
             style={{
               fontFamily: theme.typography.fontFamily.body,
@@ -183,8 +360,54 @@ export function HomePage() {
               whiteSpace: "pre-line",
             }}
           >
-            {home_text}
+            {home_text || "Comprendre son corps. Retrouver son équilibre. Avancer naturellement. H&H accompagne les femmes, les hommes et les couples avec des tisanes, des compléments alimentaires et un suivi personnalisé autour de l'équilibre hormonal, du cycle et de la fertilité."}
           </p>
+          <div style={{ display: "flex", justifyContent: "center", gap: theme.spacing.md, flexWrap: "wrap" }}>
+            <Button variant="primary" size="large" onClick={() => navigate("/shop")}>
+              Découvrir nos produits
+            </Button>
+            <Button variant="outline" size="large" onClick={() => navigate("/consultation")}>
+              Prendre rendez-vous
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <section
+        style={{
+          backgroundColor: theme.colors.background.tertiary,
+          padding: `${theme.spacing["3xl"]} ${theme.spacing.lg}`,
+        }}
+      >
+        <div
+          style={{
+            maxWidth: theme.container.maxWidth,
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+            gap: theme.spacing.xl,
+          }}
+        >
+          {[
+            ["SOPK / SMOP", "Accompagner les déséquilibres fréquents du cycle."],
+            ["Fibrome & myome", "Soutenir le confort féminin avec une approche globale."],
+            ["Fertilité", "Aider les femmes, les hommes et les couples dans leur parcours."],
+            ["Endométriose", "Apporter des pistes naturelles en complément du suivi médical."],
+          ].map(([title, text]) => (
+            <article
+              key={title}
+              style={{
+                background: theme.colors.background.secondary,
+                border: `1px solid ${theme.colors.border.light}`,
+                borderRadius: theme.borderRadius.lg,
+                padding: theme.spacing.xl,
+              }}
+            >
+              <HeartPulse size={28} color={theme.colors.accent.main} />
+              <h3 style={{ ...theme.heading.h5, color: theme.colors.primary.main }}>{title}</h3>
+              <p style={{ color: theme.colors.text.secondary }}>{text}</p>
+            </article>
+          ))}
         </div>
       </section>
 
@@ -197,7 +420,9 @@ export function HomePage() {
       >
         <div style={{ maxWidth: theme.container.maxWidth, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: theme.spacing["3xl"] }}>
-            <h2 style={{ ...theme.heading.h2, marginBottom: theme.spacing.lg }}>Nos produits phares</h2>
+            <h2 style={{ ...theme.heading.h2, marginBottom: theme.spacing.lg, color: theme.colors.primary.main }}>
+              Nos produits phares
+            </h2>
 
             {loadingCategories ? (
               <div style={{ textAlign: "center", color: theme.colors.text.secondary }}>
@@ -286,7 +511,7 @@ export function HomePage() {
 
               <div style={{ textAlign: "center" }}>
                 <Button variant="primary" size="large" onClick={() => navigate("/shop")}>
-                  Voir tous les produits
+                  Voir tous nos produits
                 </Button>
               </div>
             </>
@@ -318,14 +543,14 @@ export function HomePage() {
                 key={index}
                 style={{
                   padding: theme.spacing.xl,
-                  backgroundColor: theme.colors.background.sage,
+                  backgroundColor: theme.colors.background.tertiary,
                   borderRadius: theme.borderRadius.lg,
                   border: `1px solid ${theme.colors.border.light}`,
                 }}
               >
                 <feature.icon
                   size={48}
-                  color={theme.colors.secondary.main}
+                  color={theme.colors.accent.main}
                   style={{ margin: `0 auto ${theme.spacing.md}` }}
                 />
                 <h3 style={{ ...theme.heading.h5, marginBottom: theme.spacing.sm }}>
@@ -349,7 +574,10 @@ export function HomePage() {
       >
         <div style={{ maxWidth: theme.container.maxWidth, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: theme.spacing["3xl"] }}>
-            <h2 style={{ ...theme.heading.h2 }}>Inspirez votre routine beauté</h2>
+            <h2 style={{ ...theme.heading.h2, color: theme.colors.primary.main }}>Conseils et événements</h2>
+            <p style={{ color: theme.colors.text.secondary }}>
+              Des repères pour comprendre le cycle, les hormones et les gestes naturels du quotidien.
+            </p>
           </div>
 
           {loadingPosts ? (
@@ -403,6 +631,26 @@ export function HomePage() {
             </div>
           )}
         </div>
+      </section>
+
+      <section
+        style={{
+          backgroundColor: theme.colors.secondary.main,
+          color: theme.colors.text.inverse,
+          padding: `${theme.spacing["3xl"]} ${theme.spacing.lg}`,
+          textAlign: "center",
+        }}
+      >
+        <CalendarDays size={34} color={theme.colors.accent.main} style={{ margin: "0 auto 1rem" }} />
+        <h2 style={{ ...theme.heading.h2, color: theme.colors.text.inverse, marginBottom: theme.spacing.md }}>
+          Besoin d'un avis personnalisé ?
+        </h2>
+        <p style={{ maxWidth: 720, margin: "0 auto 1.5rem", color: theme.colors.text.inverse }}>
+          Réservez un bilan ou un accompagnement fertilité sur les créneaux proposés par H&H.
+        </p>
+        <Button variant="primary" size="large" onClick={() => navigate("/consultation")}>
+          Prendre rendez-vous
+        </Button>
       </section>
 
       {/* MODAL PROMO (animée + responsive) */}
@@ -494,13 +742,57 @@ export function HomePage() {
                     window.setTimeout(() => navigate("/shop"), 180);
                   }}
                 >
-                  J'en profite 🎁
+                  Découvrir maintenant
                 </Button>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      <style>{`
+        .home-banner-wave {
+          position: absolute;
+          top: -40px;
+          left: 0;
+          right: 0;
+          height: 88px;
+          color: ${theme.colors.background.primary};
+          pointer-events: none;
+          z-index: 2;
+        }
+
+        .home-banner-wave svg {
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+
+        .home-banner-wave path {
+          fill: currentColor;
+        }
+
+        .home-banner-wave polyline {
+          fill: none;
+          stroke: ${theme.colors.primary.main};
+          stroke-width: 4;
+          stroke-linejoin: round;
+          stroke-linecap: round;
+        }
+
+        @media (max-width: 900px) {
+          .pack-pillars-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .home-banner-wave {
+            top: -28px;
+            height: 62px;
+          }
+        }
+      `}</style>
     </div>
   );
 }

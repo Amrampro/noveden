@@ -24,6 +24,8 @@ import {
   User,
   ChevronDown,
   Mail,
+  CalendarDays,
+  CalendarRange,
 } from "lucide-react";
 
 function getInitials(first?: string, last?: string, email?: string) {
@@ -89,6 +91,8 @@ export default function AdminLayout() {
       items: [
         { to: "/admin/blog-posts", label: "Articles de blog", icon: FileText },
         { to: "/admin/blog-categories", label: "Catégories blog", icon: MessageSquare },
+        { to: "/admin/events", label: "Événements", icon: CalendarRange },
+        { to: "/admin/appointments", label: "Rendez-vous", icon: CalendarDays },
         { to: "/admin/faqs", label: "FAQ", icon: HelpCircle },
         { to: "/admin/newsletter", label: "Newsletter", icon: Mail },
       ],

@@ -1,11 +1,8 @@
 // client/src/pages/AboutPage.tsx
 import {
   Sparkles,
-  Truck,
-  Award,
   Heart,
   Leaf,
-  ShieldCheck,
   Globe,
 } from "lucide-react";
 import { theme } from "../config/theme";
@@ -16,24 +13,24 @@ export function AboutPage() {
   const features = [
     {
       icon: Leaf,
-      title: "Originelle",
+      title: "Écoute",
       description:
-        "Reconnecter la peau et les cheveux à leur beauté naturelle.",
+        "Comprendre les symptômes, le terrain et les besoins réels.",
     },
     {
       icon: Heart,
-      title: "Pure",
-      description: "Sans artifices. Sans danger.",
+      title: "Naturelle",
+      description: "Des solutions douces, globales et respectueuses du corps.",
     },
     {
       icon: Globe,
-      title: "Consciente",
-      description: "Retour à l’essentiel.",
+      title: "Personnalisée",
+      description: "Chaque accompagnement s'adapte au profil et aux priorités.",
     },
     {
       icon: Sparkles,
-      title: "Engagée",
-      description: "Une beauté saine, transparente et responsable.",
+      title: "Complète",
+      description: "Produits, conseils et rendez-vous avancent ensemble.",
     },
   ];
 
@@ -125,8 +122,8 @@ export function AboutPage() {
                 margin: "0 auto",
               }}
             >
-              Une routine simple, des actifs choisis avec exigence, et des
-              standards de qualité élevés.
+              Une démarche naturelle et structurée autour de l'équilibre hormonal,
+              du cycle féminin, du confort intime et de la fertilité.
             </p>
           </div>
 

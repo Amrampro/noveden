@@ -55,7 +55,7 @@ export function Footer({ onNavigate }: FooterProps) {
         const links = (data.links || [])
           .filter(
             (l: LegalLink) =>
-              l.is_active === true || l.is_active === 1 || l.is_active === "1"
+              String(l.is_active) === "true" || String(l.is_active) === "1"
           )
           .sort(
             (a: LegalLink, b: LegalLink) =>
@@ -148,11 +148,8 @@ export function Footer({ onNavigate }: FooterProps) {
         label: "WhatsApp",
       });
 
-    // WhatsApp: si tu veux, on peut l’ajouter avec une icône custom ou lucide (si dispo)
-    // if (whatsapp) arr.push({ key: "wa", href: whatsapp, Icon: WhatsAppIcon, label: "WhatsApp" });
-
     return arr;
-  }, [facebook, instagram, twitter]);
+  }, [facebook, instagram, twitter, whatsapp]);
 
   return (
     <footer>
@@ -417,8 +414,10 @@ export function Footer({ onNavigate }: FooterProps) {
               <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
                 {[
                   { label: "Accueil", key: "home" },
-                  { label: "Boutique", key: "shop" },
-                  { label: "Blog", key: "blog" },
+                  { label: "Nos produits", key: "shop" },
+                  { label: "Notre approche", key: "approach" },
+                  { label: "Consultation", key: "consultation" },
+                  { label: "Événements", key: "events" },
                   { label: "FAQ", key: "faqs" },
                   { label: "Contact", key: "contact" },
                 ].map((item) => (
@@ -622,7 +621,7 @@ export function Footer({ onNavigate }: FooterProps) {
                 margin: 0,
               }}
             >
-              © 2025, Novéden. Tous droits réservés.
+              © 2026, Hormones & Harmonie. Tous droits réservés.
             </p>
           </div>
         </div>

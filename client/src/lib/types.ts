@@ -104,6 +104,12 @@ export type Product = {
 
   ingredients: string | null;
   usage: string | null;
+  suitability: string | null;
+  formula_benefits: string | null;
+  cure_duration: string | null;
+  usage_advice: string | null;
+  composition: string | null;
+  precautions: string | null;
 
   // DB is JSON; API parses, but keep safe
   benefits: string[];

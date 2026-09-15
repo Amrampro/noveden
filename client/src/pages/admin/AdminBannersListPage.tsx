@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { bannerService } from "../../services/bannerService";
 
-type BannerPageName = "shop" | "home" | "about" | "faqs" | "contact";
+type BannerPageName = "shop" | "home" | "about" | "faqs" | "contact" | "approach" | "consultation" | "events";
 
 export default function AdminBannersListPage() {
   const [banners, setBanners] = useState<any[]>([]);
@@ -96,6 +96,9 @@ export default function AdminBannersListPage() {
             <option value="home">home</option>
             <option value="shop">shop</option>
             <option value="about">about</option>
+            <option value="approach">approach</option>
+            <option value="consultation">consultation</option>
+            <option value="events">events</option>
             <option value="faqs">faqs</option>
             <option value="contact">contact</option>
           </select>

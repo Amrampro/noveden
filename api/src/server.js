@@ -16,6 +16,8 @@ import legalLinksRoutes from "./routes/legalLinks.routes.js";
 import parametersRoutes from "./routes/parameters.routes.js";
 import productReviewsRoutes from "./routes/productReviews.routes.js";
 import contactRoutes from "./routes/contact.routes.js";
+import appointmentsRoutes from "./routes/appointments.routes.js";
+import eventsRoutes from "./routes/events.routes.js";
 
 import ordersRoutes from "./routes/orders.routes.js";
 import adminOrdersRoutes from "./routes/admin/orders.routes.js";
@@ -60,7 +62,9 @@ app.get('/', (req, res) => {
       blog: '/api/blog',
       faq: '/api/faq',
       theme: '/api/theme',
-      admin: '/api/admin'
+      admin: '/api/admin',
+      appointments: '/api/appointments',
+      events: '/api/events'
     }
   });
 });
@@ -84,6 +88,8 @@ app.use("/api/parameters", parametersRoutes);
 app.use("/api/pr", productReviewsRoutes);
 app.use("/api/orders", ordersRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/appointments", appointmentsRoutes);
+app.use("/api/events", eventsRoutes);
 app.use("/api/admin/orders", adminOrdersRoutes);
 app.use("/api/admin/finance", adminFinanceRoutes);
 app.use("/api/admin/newsletter-subscribers", newsletterRoutes);

@@ -67,6 +67,12 @@ export const createProduct = async (req, res) => {
       isNew,
       ingredients,
       usage,
+      suitability,
+      formulaBenefits,
+      cureDuration,
+      usageAdvice,
+      composition,
+      precautions,
       benefits
     } = req.body;
 
@@ -76,10 +82,11 @@ export const createProduct = async (req, res) => {
 
     const benefitsJson = Array.isArray(benefits) ? JSON.stringify(benefits) : '[]';
 
-    const result = await query(
-      `INSERT INTO products (name, slug, description, short_description, price, compare_at_price,
-       image_url, category_id, stock_status, is_featured, is_new, ingredients, \`usage\`, benefits)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    await query(
+      `INSERT INTO products (id, name, slug, description, short_description, price, compare_at_price,
+       image_url, category_id, stock_status, is_featured, is_new, ingredients, \`usage\`, suitability,
+       formula_benefits, cure_duration, usage_advice, composition, precautions, benefits)
+       VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         name,
         slug,
@@ -94,11 +101,17 @@ export const createProduct = async (req, res) => {
         isNew ? 1 : 0,
         ingredients || '',
         usage || '',
+        suitability || '',
+        formulaBenefits || '',
+        cureDuration || '',
+        usageAdvice || '',
+        composition || '',
+        precautions || '',
         benefitsJson
       ]
     );
 
-    const products = await query('SELECT * FROM products WHERE id = ?', [result.insertId]);
+    const products = await query('SELECT * FROM products WHERE slug = ? LIMIT 1', [slug]);
 
     res.status(201).json({
       message: 'Product created successfully',
@@ -127,6 +140,12 @@ export const updateProduct = async (req, res) => {
       isNew,
       ingredients,
       usage,
+      suitability,
+      formulaBenefits,
+      cureDuration,
+      usageAdvice,
+      composition,
+      precautions,
       benefits
     } = req.body;
 
@@ -184,6 +203,30 @@ export const updateProduct = async (req, res) => {
     if (usage !== undefined) {
       updates.push('`usage` = ?');
       values.push(usage);
+    }
+    if (suitability !== undefined) {
+      updates.push('suitability = ?');
+      values.push(suitability);
+    }
+    if (formulaBenefits !== undefined) {
+      updates.push('formula_benefits = ?');
+      values.push(formulaBenefits);
+    }
+    if (cureDuration !== undefined) {
+      updates.push('cure_duration = ?');
+      values.push(cureDuration);
+    }
+    if (usageAdvice !== undefined) {
+      updates.push('usage_advice = ?');
+      values.push(usageAdvice);
+    }
+    if (composition !== undefined) {
+      updates.push('composition = ?');
+      values.push(composition);
+    }
+    if (precautions !== undefined) {
+      updates.push('precautions = ?');
+      values.push(precautions);
     }
     if (benefits !== undefined) {
       updates.push('benefits = ?');

@@ -4,7 +4,7 @@ import { bannerService } from "../services/bannerService";
 import { theme } from "../config/theme";
 import { Button } from "./Button";
 
-type BannerPageName = "home" | "shop" | "about" | "faqs" | "contact";
+type BannerPageName = "home" | "shop" | "about" | "faqs" | "contact" | "approach" | "consultation" | "events";
 
 type Banner = {
   id: string;
@@ -45,6 +45,9 @@ function routeToPageName(pathname: string): BannerPageName | null {
   if (p === "/" || p === "") return "home";
   if (p === "/shop" || p.startsWith("/shop/")) return "shop";
   if (p === "/about" || p.startsWith("/about/")) return "about";
+  if (p === "/approach" || p.startsWith("/approach/")) return "approach";
+  if (p === "/consultation" || p.startsWith("/consultation/")) return "consultation";
+  if (p === "/events" || p.startsWith("/events/")) return "events";
   if (p === "/faqs" || p.startsWith("/faqs/")) return "faqs";
   if (p === "/contact" || p.startsWith("/contact/")) return "contact";
 
@@ -53,7 +56,7 @@ function routeToPageName(pathname: string): BannerPageName | null {
 
 const toBool = (v: any) => v === true || v === 1 || v === "1";
 
-export function PageBanner({ defaultKicker = "" }: Props) {
+export function PageBanner({}: Props) {
   const location = useLocation();
   const navigate = useNavigate();
   
@@ -67,13 +70,11 @@ export function PageBanner({ defaultKicker = "" }: Props) {
 
   const [banner, setBanner] = useState<Banner | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
 
     async function load() {
-      setError(null);
 
       if (!pageName) {
         if (!mounted) return;
@@ -91,7 +92,6 @@ export function PageBanner({ defaultKicker = "" }: Props) {
       } catch (e: any) {
         if (!mounted) return;
         setBanner(null);
-        setError(e?.message || "Failed to load banner");
       } finally {
         if (!mounted) return;
         setLoaded(true);

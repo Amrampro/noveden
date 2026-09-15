@@ -47,10 +47,10 @@ export const createCoupon = async (req, res) => {
     }
 
     const result = await query(
-      `INSERT INTO coupons (code, description, discount_type, discount_value, min_purchase_amount,
+      `INSERT INTO coupons (id, code, description, discount_type, discount_value, min_purchase_amount,
        max_discount_amount, valid_from, valid_until, usage_limit_per_user, total_usage_limit,
        is_active, requires_first_order, requires_min_orders)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         code.toUpperCase(),
         description,
@@ -68,7 +68,7 @@ export const createCoupon = async (req, res) => {
       ]
     );
 
-    const coupons = await query('SELECT * FROM coupons WHERE id = ?', [result.insertId]);
+    const coupons = await query('SELECT * FROM coupons WHERE code = ? LIMIT 1', [code.toUpperCase()]);
 
     res.status(201).json({
       message: 'Coupon created successfully',

@@ -1,6 +1,6 @@
 // client/src/pages/BlogPage.tsx
 import { useEffect, useMemo, useState } from "react";
-import { Clock, Eye, Newspaper } from "lucide-react";
+import { Clock, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { theme } from "../config/theme";
 import { Button } from "../components/Button";

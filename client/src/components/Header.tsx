@@ -1,20 +1,26 @@
 // client/src/components/Header.tsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Menu,
   X,
   ShoppingCart,
   Leaf,
   User,
   LogOut,
-  Settings,
   UserCheck,
+  CalendarDays,
 } from "lucide-react";
 import { theme } from "../config/theme";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSiteParams } from "../contexts/SiteParamsContext";
+import { productService } from "../services/productService";
+import type { ProductCategory } from "../lib/types";
+import defaultCategoryImage from "../assets/img/default_cat.jpg";
 
 interface HeaderProps {}
 
@@ -23,6 +29,9 @@ export function Header({}: HeaderProps) {
   const { user, signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [productsDropdownOpen, setProductsDropdownOpen] = useState(false);
+  const [categories, setCategories] = useState<ProductCategory[]>([]);
+  const dropdownScrollRef = useRef<HTMLDivElement | null>(null);
 
   const siteState = useSiteParams() as any;
   const parameters =
@@ -41,6 +50,22 @@ export function Header({}: HeaderProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+    async function loadCategories() {
+      try {
+        const data = await productService.listCategories();
+        if (mounted) setCategories(data.categories || []);
+      } catch (error) {
+        if (mounted) setCategories([]);
+      }
+    }
+    void loadCategories();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const handleSignOut = async () => {
     await signOut();
     setMobileMenuOpen(false);
@@ -48,13 +73,11 @@ export function Header({}: HeaderProps) {
   };
 
   const navItems: { label: string; to: string }[] = [
-    { label: "Accueil", to: "/" },
-    { label: "Boutique", to: "/shop" },
+    { label: "Notre approche", to: "/approach" },
     { label: "À propos", to: "/about" },
-    { label: "Blog", to: "/blog" },
+    { label: "Consultation", to: "/consultation" },
+    { label: "Événements", to: "/events" },
     { label: "FAQ", to: "/faqs" },
-    { label: "Fidélité", to: "/fidelity" },
-    { label: "Ambassadeurs", to: "/ambassadors" },
     { label: "Contact", to: "/contact" },
   ];
 
@@ -66,7 +89,32 @@ export function Header({}: HeaderProps) {
   const handleMobileNav = (to: string) => {
     navigate(to);
     setMobileMenuOpen(false);
+    setProductsDropdownOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const sortedCategories = [...categories].sort((a, b) => {
+    const ao = Number(a.display_order ?? 0);
+    const bo = Number(b.display_order ?? 0);
+    if (ao !== bo) return ao - bo;
+    return String(a.name || "").localeCompare(String(b.name || ""));
+  });
+
+  const goToShopCategory = (slug?: string) => {
+    const target = slug ? `/shop?category=${encodeURIComponent(slug)}` : "/shop";
+    navigate(target);
+    setProductsDropdownOpen(false);
+    setMobileMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const scrollDropdown = (direction: "left" | "right") => {
+    const el = dropdownScrollRef.current;
+    if (!el) return;
+    el.scrollBy({
+      left: direction === "left" ? -360 : 360,
+      behavior: "smooth",
+    });
   };
 
   const navbarLogo = String(parameters?.logo_navbar || "").trim();
@@ -160,6 +208,66 @@ export function Header({}: HeaderProps) {
                 alignItems: "center",
               }}
             >
+              <li>
+                <Link
+                  to="/"
+                  className="nav-link"
+                  style={{
+                    fontFamily: theme.typography.fontFamily.body,
+                    fontSize: theme.typography.fontSize.sm,
+                    color: isActive("/")
+                      ? theme.colors.primary.main
+                      : theme.colors.text.primary,
+                    fontWeight: isActive("/") ? 600 : 400,
+                    textDecoration: "none",
+                    paddingBottom: "4px",
+                    borderBottom: isActive("/")
+                      ? `2px solid ${theme.colors.primary.main}`
+                      : "2px solid transparent",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  Accueil
+                </Link>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => setProductsDropdownOpen((open) => !open)}
+                  className="nav-link product-dropdown-trigger"
+                  style={{
+                    fontFamily: theme.typography.fontFamily.body,
+                    fontSize: theme.typography.fontSize.sm,
+                    color: isActive("/shop")
+                      ? theme.colors.primary.main
+                      : theme.colors.text.primary,
+                    fontWeight: isActive("/shop") ? 600 : 400,
+                    textDecoration: "none",
+                    paddingBottom: "4px",
+                    border: "none",
+                    borderBottom: isActive("/shop")
+                      ? `2px solid ${theme.colors.primary.main}`
+                      : "2px solid transparent",
+                    transition: "all 0.2s ease",
+                    background: "transparent",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                  aria-expanded={productsDropdownOpen}
+                  aria-controls="products-mega-dropdown"
+                >
+                  Nos produits
+                  <ChevronDown
+                    size={16}
+                    style={{
+                      transform: productsDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      transition: "transform 0.25s ease",
+                    }}
+                  />
+                </button>
+              </li>
               {navItems.map((item) => (
                 <li key={item.to}>
                   <Link
@@ -197,6 +305,19 @@ export function Header({}: HeaderProps) {
             }}
           >
             {/* Cart Icon */}
+            <Link
+              to={"/consultation"}
+              onClick={() => setMobileMenuOpen(false)}
+              style={{
+                color: theme.colors.text.primary,
+                display: "flex",
+                alignItems: "center",
+              }}
+              title="Prendre rendez-vous"
+            >
+              <CalendarDays size={22} strokeWidth={1.5} />
+            </Link>
+
             <Link
               to={"/cart"}
               onClick={() => setMobileMenuOpen(false)}
@@ -297,6 +418,60 @@ export function Header({}: HeaderProps) {
           </div>
         </div>
 
+        <div
+          id="products-mega-dropdown"
+          className={productsDropdownOpen ? "products-mega open" : "products-mega"}
+        >
+          <div className="products-mega-inner">
+            <button
+              type="button"
+              className="products-mega-arrow products-mega-arrow-left"
+              onClick={() => scrollDropdown("left")}
+              aria-label="Voir les catégories précédentes"
+            >
+              <ChevronLeft size={22} />
+            </button>
+
+            <div className="products-mega-scroll" ref={dropdownScrollRef}>
+              <button
+                type="button"
+                className="products-mega-card"
+                onClick={() => goToShopCategory()}
+              >
+                <img src={defaultCategoryImage} alt="" />
+                <span>Tous les produits</span>
+              </button>
+
+              {sortedCategories.map((category) => (
+                <button
+                  type="button"
+                  className="products-mega-card"
+                  key={category.id}
+                  onClick={() => goToShopCategory(category.slug)}
+                >
+                  <img
+                    src={category.image_url || defaultCategoryImage}
+                    alt=""
+                    onError={(event) => {
+                      event.currentTarget.src = defaultCategoryImage;
+                    }}
+                  />
+                  <span>{category.name}</span>
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className="products-mega-arrow products-mega-arrow-right"
+              onClick={() => scrollDropdown("right")}
+              aria-label="Voir les catégories suivantes"
+            >
+              <ChevronRight size={22} />
+            </button>
+          </div>
+        </div>
+
         {/* --- MOBILE MENU DROPDOWN --- */}
         <div
           className={mobileMenuOpen ? "mobile-menu open" : "mobile-menu"}
@@ -330,6 +505,88 @@ export function Header({}: HeaderProps) {
               textAlign: "center",
             }}
           >
+            <li>
+              <button
+                onClick={() => handleMobileNav("/")}
+                style={{
+                  width: "100%",
+                  background: "none",
+                  border: "none",
+                  fontFamily: theme.typography.fontFamily.body,
+                  fontSize: theme.typography.fontSize.lg,
+                  color: isActive("/")
+                    ? theme.colors.primary.main
+                    : theme.colors.text.primary,
+                  fontWeight: isActive("/") ? 600 : 400,
+                  cursor: "pointer",
+                  padding: theme.spacing.xs,
+                }}
+              >
+                Accueil
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => setProductsDropdownOpen((open) => !open)}
+                style={{
+                  width: "100%",
+                  background: "none",
+                  border: "none",
+                  fontFamily: theme.typography.fontFamily.body,
+                  fontSize: theme.typography.fontSize.lg,
+                  color: isActive("/shop")
+                    ? theme.colors.primary.main
+                    : theme.colors.text.primary,
+                  fontWeight: isActive("/shop") ? 600 : 400,
+                  cursor: "pointer",
+                  padding: theme.spacing.xs,
+                  display: "inline-flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                Nos produits
+                <ChevronDown
+                  size={18}
+                  style={{
+                    transform: productsDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "transform 0.25s ease",
+                  }}
+                />
+              </button>
+              <div
+                style={{
+                  maxHeight: productsDropdownOpen ? 420 : 0,
+                  overflow: "hidden",
+                  transition: "max-height 0.3s ease",
+                }}
+              >
+                <div className="mobile-category-grid">
+                  <button type="button" onClick={() => goToShopCategory()}>
+                    <img src={defaultCategoryImage} alt="" />
+                    <span>Tous les produits</span>
+                  </button>
+                  {sortedCategories.map((category) => (
+                    <button
+                      type="button"
+                      key={category.id}
+                      onClick={() => goToShopCategory(category.slug)}
+                    >
+                      <img
+                        src={category.image_url || defaultCategoryImage}
+                        alt=""
+                        onError={(event) => {
+                          event.currentTarget.src = defaultCategoryImage;
+                        }}
+                      />
+                      <span>{category.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </li>
+
             {navItems.map((item) => (
               <li key={item.to}>
                 <button
@@ -392,7 +649,7 @@ export function Header({}: HeaderProps) {
                       background: "none",
                       border: "none",
                       fontSize: "1rem",
-                      color: theme.colors.error || "red",
+                      color: theme.colors.error.main,
                       display: "flex",
                       alignItems: "center",
                       gap: 8,
@@ -435,12 +692,158 @@ export function Header({}: HeaderProps) {
         .mobile-menu-toggle { display: none !important; }
 
         /* Logo Sizing */
-        .header-logo { height: 100px; }
+        .header-logo { height: 78px; }
         .header-logo-icon { width: 64px; height: 64px; }
 
         /* Hover effect for desktop links */
         .nav-link:hover {
           color: ${theme.colors.primary.main} !important;
+        }
+
+        .product-dropdown-trigger:hover {
+          color: ${theme.colors.primary.main} !important;
+        }
+
+        .products-mega {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          background: ${theme.colors.background.primary};
+          border-bottom: 1px solid ${theme.colors.border.light};
+          box-shadow: ${theme.shadow.lg};
+          overflow: hidden;
+          max-height: 0;
+          opacity: 0;
+          transform: translateY(-8px);
+          transition: max-height 0.38s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease, transform 0.28s ease;
+          pointer-events: none;
+          z-index: 1001;
+        }
+
+        .products-mega.open {
+          max-height: 360px;
+          opacity: 1;
+          transform: translateY(0);
+          pointer-events: auto;
+        }
+
+        .products-mega-inner {
+          max-width: ${theme.container.maxWidth};
+          margin: 0 auto;
+          padding: 28px ${theme.spacing.lg} 34px;
+          position: relative;
+        }
+
+        .products-mega-scroll {
+          display: flex;
+          gap: 22px;
+          overflow-x: auto;
+          scroll-behavior: smooth;
+          scrollbar-width: none;
+          padding: 0 44px;
+        }
+
+        .products-mega-scroll::-webkit-scrollbar {
+          display: none;
+        }
+
+        .products-mega-card {
+          border: none;
+          background: transparent;
+          padding: 0;
+          cursor: pointer;
+          text-align: left;
+          flex: 0 0 clamp(220px, 23vw, 320px);
+          color: ${theme.colors.text.primary};
+          font-family: ${theme.typography.fontFamily.body};
+        }
+
+        .products-mega-card img {
+          width: 100%;
+          aspect-ratio: 1.55 / 1;
+          object-fit: cover;
+          border-radius: 16px;
+          display: block;
+          background: ${theme.colors.background.secondary};
+          transition: transform 0.28s ease, box-shadow 0.28s ease;
+        }
+
+        .products-mega-card:hover img {
+          transform: translateY(-2px);
+          box-shadow: 0 16px 34px rgba(58, 35, 43, 0.14);
+        }
+
+        .products-mega-card span {
+          display: block;
+          margin-top: 12px;
+          font-size: ${theme.typography.fontSize.base};
+          font-weight: 500;
+        }
+
+        .products-mega-arrow {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 38px;
+          height: 38px;
+          border-radius: 50%;
+          border: none;
+          background: rgba(31, 31, 31, 0.78);
+          color: #fff;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 2;
+          transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .products-mega-arrow:hover {
+          background: rgba(31, 31, 31, 0.95);
+          transform: translateY(-50%) scale(1.04);
+        }
+
+        .products-mega-arrow-left {
+          left: ${theme.spacing.lg};
+        }
+
+        .products-mega-arrow-right {
+          right: ${theme.spacing.lg};
+        }
+
+        .mobile-category-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
+          padding: 14px 0 2px;
+        }
+
+        .mobile-category-grid button {
+          border: 1px solid ${theme.colors.border.light};
+          background: ${theme.colors.background.secondary};
+          border-radius: 12px;
+          padding: 8px;
+          text-align: left;
+          color: ${theme.colors.text.primary};
+          font-family: ${theme.typography.fontFamily.body};
+          cursor: pointer;
+        }
+
+        .mobile-category-grid img {
+          width: 100%;
+          aspect-ratio: 1.45 / 1;
+          object-fit: cover;
+          border-radius: 8px;
+          display: block;
+          margin-bottom: 8px;
+        }
+
+        .mobile-category-grid span {
+          display: block;
+          font-size: 0.85rem;
+          line-height: 1.25;
+          font-weight: 500;
         }
 
         /* Marquee (single text) */
@@ -471,6 +874,7 @@ export function Header({}: HeaderProps) {
           .desktop-nav { display: none !important; }
           .desktop-actions { display: none !important; }
           .mobile-menu-toggle { display: block !important; }
+          .products-mega { display: none; }
 
           .header-logo { height: 50px; }
           .header-logo-icon { width: 40px; height: 40px; }

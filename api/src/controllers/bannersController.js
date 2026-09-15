@@ -12,9 +12,9 @@ const toBoolTiny = (v, def = 1) => {
   return def;
 };
 
-const ALLOWED_PAGES = new Set(["shop", "home", "about", "faqs", "contact"]);
+const ALLOWED_PAGES = new Set(["shop", "home", "about", "faqs", "contact", "approach", "consultation", "events"]);
 
-const allowedPages = new Set(["shop", "home", "about", "faqs", "contact"]);
+const allowedPages = ALLOWED_PAGES;
 
 export const getActiveBannerByPageName = async (req, res) => {
   try {

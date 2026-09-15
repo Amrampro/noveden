@@ -3,7 +3,7 @@ import { apiEndpoints } from "./apiEndpoints";
 // 👇 1. On importe le http sécurisé
 import { http } from "./http"; 
 
-export type BannerPageName = "shop" | "home" | "about" | "faqs" | "contact";
+export type BannerPageName = "shop" | "home" | "about" | "faqs" | "contact" | "approach" | "consultation" | "events";
 
 export type Banner = {
   id: string;
@@ -89,7 +89,7 @@ function normalizeBanner(raw: any): Banner {
 
 export const bannerService = {
   // ✅ Public: active banner by page
-  async getActiveBannerByPageName(pageName: "home" | "shop" | "about" | "faqs" | "contact") {
+  async getActiveBannerByPageName(pageName: BannerPageName) {
     return http<{ banner: any | null }>(apiEndpoints.banners.activeByPage(pageName));
   },
 

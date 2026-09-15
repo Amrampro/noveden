@@ -1,5 +1,6 @@
 // client/src/pages/admin/ProductCategoriesPage.tsx
 import React, { useEffect, useMemo, useState } from "react";
+import { UploadCloud, X } from "lucide-react";
 import { productService } from "../../services/productService";
 import type { ProductCategory } from "../../lib/types";
 
@@ -63,6 +64,7 @@ export default function ProductCategoriesPage() {
   const [editTarget, setEditTarget] = useState<ProductCategory | null>(null);
   const [editForm, setEditForm] = useState<FormState>(emptyForm());
   const [editSlugTouched, setEditSlugTouched] = useState(false);
+  const [imageBusy, setImageBusy] = useState(false);
 
   const sortedCategories = useMemo(() => {
     const copy = [...categories];
@@ -228,6 +230,31 @@ export default function ProductCategoriesPage() {
     }
   }
 
+  async function handleCategoryImageUpload(file: File | null, target: "create" | "edit") {
+    if (!file) return;
+    if (!["image/png", "image/jpeg", "image/jpg", "image/webp"].includes(file.type)) {
+      return setError("Format non supporté. Utilisez PNG, JPG ou WEBP.");
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      return setError("Image trop volumineuse. Maximum 4MB.");
+    }
+
+    setError(null);
+    setImageBusy(true);
+    try {
+      const { url } = await productService.uploadProductImage(file);
+      if (target === "create") {
+        setCreateForm((f) => ({ ...f, image_url: url }));
+      } else {
+        setEditForm((f) => ({ ...f, image_url: url }));
+      }
+    } catch (e: any) {
+      setError(e?.message || "Upload failed");
+    } finally {
+      setImageBusy(false);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
@@ -372,6 +399,8 @@ export default function ProductCategoriesPage() {
               excludeId={null}
               onSlugTouched={() => setCreateSlugTouched(true)}
               busy={busy}
+              imageBusy={imageBusy}
+              onUploadImage={(file) => handleCategoryImageUpload(file, "create")}
             />
 
             <div className="flex justify-end gap-2 pt-2">
@@ -406,6 +435,8 @@ export default function ProductCategoriesPage() {
               excludeId={(editTarget as any).id}
               onSlugTouched={() => setEditSlugTouched(true)}
               busy={busy}
+              imageBusy={imageBusy}
+              onUploadImage={(file) => handleCategoryImageUpload(file, "edit")}
             />
 
             <div className="flex justify-end gap-2 pt-2">
@@ -476,6 +507,8 @@ function FormFields({
   excludeId,
   onSlugTouched,
   busy,
+  imageBusy,
+  onUploadImage,
 }: {
   form: FormState;
   setForm: React.Dispatch<React.SetStateAction<FormState>>;
@@ -483,6 +516,8 @@ function FormFields({
   excludeId: string | null;
   onSlugTouched: () => void;
   busy: boolean;
+  imageBusy: boolean;
+  onUploadImage: (file: File | null) => void;
 }) {
   const filteredParents = useMemo(() => {
     if (!excludeId) return parentOptions;
@@ -561,16 +596,49 @@ function FormFields({
       </div>
 
       <div className="md:col-span-2">
-        <Field label="Image URL">
-          <input
-            value={form.image_url}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, image_url: e.target.value }))
-            }
-            className="w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-black/20"
-            placeholder="https://..."
-            disabled={busy}
-          />
+        <Field label="Image de la catégorie">
+          <div className="space-y-3">
+            {form.image_url ? (
+              <div className="relative overflow-hidden rounded-xl border bg-gray-50">
+                <img
+                  src={form.image_url}
+                  alt=""
+                  className="h-44 w-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, image_url: "" }))}
+                  className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-red-600 shadow hover:bg-red-50"
+                  disabled={busy || imageBusy}
+                  aria-label="Retirer l'image"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            ) : null}
+
+            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm font-medium text-gray-700 transition hover:border-black hover:bg-white">
+              <UploadCloud size={18} />
+              {imageBusy ? "Envoi en cours..." : "Ajouter une image"}
+              <input
+                type="file"
+                className="hidden"
+                accept="image/png,image/jpeg,image/jpg,image/webp"
+                onChange={(e) => onUploadImage(e.target.files?.[0] ?? null)}
+                disabled={busy || imageBusy}
+              />
+            </label>
+
+            <input
+              value={form.image_url}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, image_url: e.target.value }))
+              }
+              className="w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-black/20"
+              placeholder="Ou coller une URL d'image"
+              disabled={busy || imageBusy}
+            />
+          </div>
         </Field>
       </div>
     </div>

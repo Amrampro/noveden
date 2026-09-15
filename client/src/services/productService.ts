@@ -9,6 +9,8 @@ import type {
   ProductImage,
 } from "../lib/types";
 
+export type { Product, ProductCategory, ProductImage } from "../lib/types";
+
 type ListProductsParams = {
   category?: string; // category slug
   featured?: boolean;
@@ -31,6 +33,12 @@ type CreateProductPayload = {
   is_new?: boolean;
   ingredients?: string | null;
   usage?: string | null;
+  suitability?: string | null;
+  formula_benefits?: string | null;
+  cure_duration?: string | null;
+  usage_advice?: string | null;
+  composition?: string | null;
+  precautions?: string | null;
   benefits?: any[];
   category_ids?: string[];
   images?: { image_url: string; alt_text?: string }[];
